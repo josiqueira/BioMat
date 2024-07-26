@@ -1,0 +1,1563 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 1: Número real"
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula01.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula01.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:", "Usuarios", "Jose", "scilab2023", "bin", "Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(stringr, warn.conflicts=FALSE))
+suppressMessages(library(DescTools, warn.conflicts=FALSE))
+suppressMessages(library(units, warn.conflicts=FALSE))
+suppressMessages(library(crfsuite, warn.conflicts=FALSE))
+suppressMessages(library(turner, warn.conflicts=FALSE))
+suppressMessages(library(nlsr, warn.conflicts=FALSE))
+suppressMessages(library(Deriv, warn.conflicts=FALSE))
+suppressMessages(library(REAT, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+"A morte do homem começa no instante em que ele desiste de aprender."
+
+> Albino Teixeira _apud_ Leite (2009)
+
+# Conteúdo
+
+__1.  Número real (Capítulo 1)__
+
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+# Livro adotado
+
+* [Batschelet, E](https://de.wikipedia.org/wiki/Eduard_Batschelet){target="_blank"} (1979) [_Introduction to mathematics for life scientists_](https://drive.google.com/file/d/1Am3G5ZGXqzXibQwddI12VRQI9mZ9jWYE/view?usp=share_link){target="_blank"}. 3rd ed. NY: Springer.
+
+* [Batschelet, E](https://de.wikipedia.org/wiki/Eduard_Batschelet){target="_blank"} (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+
+# Justificativa
+
+A modelagem quantitativa realizada por meio da matemática, estatística e simulação é parte integrante do corpo de disciplinas necessárias para expressar, formular, resolver e comunicar problemas no âmbito das Ciências da Vida, pois ela consiste numa linguagem fundamental para elaborar modelos quantitativos sobre os fenômenos biológicos.
+
+# Material da aula no GoogleDrive
+
+* [Material](https://drive.google.com/drive/folders/1M731rpKtHRwgnMU8faJeOpwm255AjLYv?usp=sharing){target="_blank"}
+
+# [Bibliografia](https://drive.google.com/drive/folders/1XBjQidaBIqBbJ7-LSn4rdVp3ywIMZAcq?usp=sharing){target="_blank"}
+
+* Allen, LJS (2007) _An Introduction to Mathematical Biology_. NJ: Pearson.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Bloomfield, VA (2014) _Using R for numerical analysis in science and engineering_. USA: CRC.
+* Fieller, N (2015) _Basics of matrix algebra for statistics with R_. USA: CRC.
+* Garﬁnkel, A et al. (2017) _Modeling Life: The Mathematics of Biological Systems_. USA: Springer.
+* Giordano, FR et al. (1997) _A first course in mathematical modeling_. 2nd ed. OH: Thomson. 
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. 
+* Hoppenstead, FC & Peskin, CS (1991) _Mathematics in medicine and the life sciences_. NY: Springer.
+* Jones, DS, Plank, MJ & Sleeman, BD (2009) _Differential Equations and Mathematical Biology_. 2nd ed. UK: CRC.
+* Leite, M (2009) _SciLab: uma abordagem prática e didática_. RJ: Ciência Moderna.
+* Massad, E, Menezes, RX, Silveira, PSP & Ortega, NRS (2004) _Métodos quantitativos em medicina_. Manole.
+* Neuhauser, C & Roper, ML (2018) _Calculus for Biology and Medicine_. 4th ed. USA: Pearson.
+* Nogueira, EA et al. (2008) _Modelos matemáticos nas ciências não-exatas_. SP: Blucher.
+* Nooney, GC (1966) Mathematical models in medicine: A diagnosis. _Journal of Chronic_ 19(4): 325-32.
+* Nowak, MA (2006) _Evolutionary dynamics exploring the equations of life_. USA: Harvard.
+* Otto, SP & Day, T (2007) _A biologist’s guide to mathematical modeling in ecology and evolution_. NJ: Princeton.
+* Pack, AI & Murray-Smith, DJ (1972) Mathematical models and their applications in medicine. _Scottish Medical Journal_ 17(12): 401-9. doi:10.1177/003693307201701205.
+* Paiva Jr, FP et al. (2021) _Modelagem matemática e epidemiologia com aplicações_. Curitiba: Appris.
+* Pauli, RU et al. (1980) _Física 4: eletricidade, magnetismo, física moderna e análise dimensional_. São Paulo: EPU. O livro apresenta a análise dimensional de forma didática e aplicada em física. 
+* Simão, C (1980) _Manual do professor de física 4 de Pauli et al._ São Paulo: EPU.
+* Rustagi, JS (1971) Mathematical models in medicine. _International Journal of Mathematical Education in Science and Technology_ 2(2): 193–203. doi:10.1080/0020739710020209.
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* Thompson, JR (1989) _Empirical model building_. NJ: Wiley.
+
+# Matemática em Inteligência Artificial
+
+* [chatGPT (gratuito)](https://chat.openai.com/){target="_blank"}
+* [chatGPT (assinado) + WolframAlpha + RStudioGPT](https://chat.openai.com/){target="_blank"}
+* [Perplexity (gratuito) + WolframAlpha](https://www.perplexity.ai/){target="_blank"}
+* [Interactive Mathematics](https://app.intmath.com/){target="_blank"}
+
+# Matemática em Internet
+
+* [R no Google Colab](https://colab.research.google.com/#create=true&language=r){target="_blank"}
+* [RStudio Cloud](https://rstudio.cloud/plans/free){target="_blank"}
+* [WolframAlpha](https://www.wolframalpha.com/){target="_blank"}
+* [Microsoft Math Solver ](https://mathsolver.microsoft.com/pt/solver?f=ep){target="_blank"}
+* [SCILAB on cloud](https://cloud.scilab.in/){target="_blank"}
+* [Interactive Mathematics (IA)](https://app.intmath.com/){target="_blank"}
+
+# Matemática em App para Android
+
+* [WolframAlpha Apps: Android e iOS](https://products.wolframalpha.com/mobile){target="_blank"}
+* [Maple Calculator](https://www.maplesoft.com/products/Maplecalculator/){target="_blank"}
+* [Microsoft Math Solver](https://math.microsoft.com/pt){target="_blank"}
+* [MATLAB Mobile](https://play.google.com/store/apps/details?id=com.mathworks.matlabmobile&hl=pt_BR&gl=US&pli=1){target="_blank"}
+
+# Matemática em Texto na Internet 
+
+* [Math is Fun](https://www.mathsisfun.com/index.htm){target="_blank"}
+* [Math is Fun: Advanced: Limit](https://www.mathsisfun.com/calculus/index.html){target="_blank"}
+* [LibreTexts Mathematics: Bookshelves](https://math.libretexts.org/Bookshelves){target="_blank"}
+* [Multivariable calculus: Math Insight](https://mathinsight.org/thread/multivar#sitenav){target="_blank"}
+* [Prof. José Siqueira no ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+* [https://www.wolfram.com/language/elementary-introduction/2nd-ed/](https://www.wolfram.com/language/elementary-introduction/2nd-ed/){target="_blank"}
+
+# Matemática em YouTube 
+
+* [Mathematical modeling in biology](https://www.youtube.com/watch?v=LZ_-BdcC7Bk&list=PL5zWDs2j0YF3kPPvs4L5FGlLc7x13Uwjn){target="_blank"}
+* [Thomas Frank: How to Get Better at Math](https://www.youtube.com/watch?v=HPsazrVSjl8&t=420s){target="_blank"}
+* [This equation will change how you see the world (the logistic map)](https://www.youtube.com/watch?v=ovJcsL7vyrk){target="_blank"}
+* [Eric Rowland: An Exact Formula for the Primes: Willans' Formula](https://www.youtube.com/watch?v=j5s0h42GfvM){target="_blank"}
+* [The Rhythm of The Primes](https://www.youtube.com/watch?v=8x374slJGuo){target="_blank"}
+* [D!NG: A Proof That The Square Root of Two Is Irrational](https://www.youtube.com/watch?v=LmpAntNjPj0){target="_blank"}
+* [Dennis Wildfogel: Quão grande é o infinito?](https://www.youtube.com/watch?v=UPA3bwVVzGI){target="_blank"}
+* [DontMemorise.com: Logarithms - What is e? | Euler's Number Explained | Don't Memorise](https://www.youtube.com/watch?v=_-x90wGBD8U)
+* [YouTube: All 6 Trig Functions on the Unit Circle](https://www.youtube.com/watch?v=Dsf6ADwJ66E){target="_blank"}
+* [Zach Star: The Applications of Matrices | What I wish my teachers told me way earlier](https://www.youtube.com/watch?v=rowWM-MijXU){target="_blank"}
+* [Dr. Trefor Bazett: Top 4 Algebraic Tricks for Computing Limits](https://www.youtube.com/watch?v=zswMgrZqj4E){target="_blank"}
+* [Dr. Trefor Bazett: Limits of Oscillating Functions and the Squeeze Theorem](https://www.youtube.com/watch?v=vIRvEvjKM58){target="_blank"}
+* [Dr. Trefor Bazett: The most important limit in Calculus // Geometric Proof & Applications](https://www.youtube.com/watch?v=f2PRu5QPa3o){target="_blank"}
+* [Dr. Trefor Bazett: What is cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(…?? // Banach Fixed Point Theorem](https://www.youtube.com/watch?v=qHnXE_h5c2M&t=12s){target="_blank"}
+* [blackpenredpen: 100 limits (ultimate calculus study guide)](https://www.youtube.com/watch?v=TglD4Y6lmQk&list=WL&index=7&t=223s){target="_blank"}
+* [Bruno Bernal: ¿Qué es la derivada? El concepto gráfico de derivada. ¿Qué es doblegar la  curva?](https://www.youtube.com/watch?v=YH1WfIT6TFg&t=743s){target="_blank"}
+* [BlueDot: ¿QUÉ es LA INTEGRAL?](https://www.youtube.com/watch?v=y6YQSUDTzqE){target="_blank"} 
+* [Bruno Bernal: Curso de Integrales. Capítulo 1: ¿Qué es y para qué sirve la integral? Una propuesta didáctica.](https://www.youtube.com/watch?v=M3Zx9a9gO0c){target="_blank"}
+* [Dr. Trefor Bazett: Your calculus prof lied to you (probably)](https://www.youtube.com/watch?v=u4kex7hDC2o){target="_blank"}
+* [EDGlio: The Art of Approximations](https://www.youtube.com/watch?v=lzMY5eoITIc){target="_blank"}
+* [3Blue1Brown: Séries de Taylor | Capítulo 10, Essência do Cálculo](https://www.youtube.com/watch?v=3d6DsjIBzJ4){target="_blank"}
+* [Brilliant: This is why you're learning differential equations](https://www.youtube.com/watch?v=ifbaAqfqpc4){target="_blank"}
+* [Physics with Elliot: Physics Students Need to Know These 5 Methods for Differential Equations](https://www.youtube.com/watch?v=0kY3Wpvutfs&list=WL&index=9&t=2s){target="_blank"}
+* [Dr. Trefor Bazett: The MATH of Pandemics | Intro to the SIR Model](https://www.youtube.com/watch?v=Qrp40ck3WpI){target="_blank"}
+* [Brian Sullivan: SIR Model For Disease Spread- 1. Introduction](https://www.youtube.com/watch?v=vL6NfB7BKeY){target="_blank"}
+* [Jeffrey Chasnov: Derivation of the basic reproductive ratio from the SIR model | Differential Equations for Engineers](https://www.youtube.com/watch?v=UldcLrMI4fM&list=WL&index=6){target="_blank"}
+* [The Efficient Engineer: Entendendo a Equação de Bernoulli](https://www.youtube.com/watch?v=DW4rItB20h4&list=WL&index=5&t=704s){target="_blank"}
+* [D!ng: The Monty Hall problem ](https://www.youtube.com/watch?v=TVq2ivVpZgQ){target="_blank"}
+
+# Introdução
+
+O objetivo do primeiro capítulo é revisar algumas leis e regras de álgebra. 
+
+Uma seleção enfatizando as necessidades dos cientistas da vida será oferecida.
+
+Ao mesmo tempo, adicionaremos conceitos importantes que geralmente são negligenciados em livros didáticos de matemática.
+
+## Linguagem
+
+Podem ser apresentados em três versões:
+
+```{r fig.align="left", out.width='50%', echo=FALSE}
+knitr::include_graphics("./image/WolframAlpha.png")
+```
+$~$Disponível em [www.wolframalpha.com](https://www.wolframalpha.com/){target="_blank"}
+
+```{r fig.align="left", out.width='50%', echo=FALSE}
+knitr::include_graphics("./image/Scilab.png")
+```
+$~$Disponível em [www.scilab.org](https://www.scilab.org/){target="_blank"}
+
+```{r fig.align="left", out.width='50%', echo=FALSE}
+knitr::include_graphics("./image/Rproject.png")
+```
+$~$Disponível em [www.r-project.org](https://www.scilab.org/){target="_blank"}
+
+# Sobre alguns números reais
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[is 0 a positive number?](https://www.wolframalpha.com/input?i=is+0+a+positive+number%3F){target="_blank"}
+
+[is infinity a real number?](https://www.wolframalpha.com/input?i=is+infinity+a+real+number%3F){target="_blank"}
+
+[x/0](https://www.wolframalpha.com/input?i=x%2F0){target="_blank"}
+
+[is pi an irrational number?](https://www.wolframalpha.com/input?i=is+pi+an+irrational+number%3F){target="_blank"}
+
+[is pi a complex number?](https://www.wolframalpha.com/input?i=is+pi+an+complex+number%3F){target="_blank"}
+
+[continued fraction pi](https://www.wolframalpha.com/input?i=continued+fraction+pi){target="_blank"}
+
+[continued fraction golden number](https://www.wolframalpha.com/input?i=continued+fraction+golden+number){target="_blank"}
+
+# Classificação
+
+* [Level of measurement: Wikipedia](https://en.wikipedia.org/wiki/Level_of_measurement){target="_blank"} 
+
+Nível de medição da variável (Stevens, 1951):
+
+* nominal: nenhuma ordenação indicada
+* ordinal: ordenação possível; intervalos não definidos
+* intervalar/ graduada: ordenação possível; intervalos definidos; valor de referência arbitrário; proporções não têm sentido
+* proporcional/ razão (_ratio_): ordenação possível; intervalos definidos; valor de referência absoluto; proporções têm sentido
+
+```{r fig.align="center", out.width='50%', echo=FALSE}
+knitr::include_graphics("./image/VariaveisHierarquia.png")
+```
+
+__Exemplo 1.2.9__: Massa, estatura, comprimento, largura, espessura, volume e temperatura de um corpo podem medidas na escala razão.
+
+# Unidade de medida
+
+* [WolframAlpha: 17|	Units](https://www.wolfram.com/language/elementary-introduction/2nd-ed/17-units.html){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[10 lb + 10 kg](https://www.wolframalpha.com/input?i=10+lb+%2B+10+kg){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[96 kg / (1.69 m)^2](https://www.wolframalpha.com/input?i=96+kg+%2F+%281.69+m%29%5E2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[kg / m^2](https://www.wolframalpha.com/input?i=kg+%2F+m%5E2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[convert mi^3 to ft^3](https://www.wolframalpha.com/input?i=convert+mi%5E3+to+ft%5E3){target="_blank"}
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+MCT <- rnorm(10,70,10)
+Estatura <- rnorm(10,1.70,0.7)
+units(MCT) <- "kg"
+print(MCT)
+units(Estatura) <- "m"
+print(Estatura)
+IMC <- MCT/Estatura^2
+print(IMC)
+print(IMC[1])
+```
+
+# Um problema com porcentagens
+
+## Crescimento de um potro
+
+Suponha que um biólogo esteja estudando o crescimento de um potro. Quando ele começa sua investigação, o potro pesa 50 kg. O número é simplificado para facilitar a apresentação. Em um mês a massa corporal total (MCT) aumenta 20%, ou seja, 1/5 de 50 kg, e chega a 60 kg. Suponha que em um segundo mês a MCT aumente novamente em 20%; então tendemos a dizer "o aumento total é de 20% + 20% = 40%".
+
+$$f=w\left(1+\frac{p}{100}\right)^n$$
+
+$n\in\mathbb{N^{*}}$: número de intervalos de tempo
+
+$p\in\mathbb{R_{+}^{*}}$: proporção de aumento da MCT num período de tempo
+
+Este é um exemplo clássico de crescimento composto, onde os ganhos de um período são reinvestidos, por assim dizer, e contribuem para o crescimento em períodos subsequentes. No contexto do crescimento da massa corporal total (MCT) do potro, o erro comum é somar as taxas de crescimento sem considerar o efeito de composição.
+
+No primeiro mês, o potro de 50 kg aumenta sua massa em 20%, o que leva a um aumento de 10 kg, resultando em uma MCT de 60 kg.
+
+Para o segundo mês, o aumento de 20% não é aplicado ao peso original de 50 kg, mas ao novo peso de 60 kg. Isso significa que o aumento é de 20% de 60 kg, não de 50 kg. Vamos calcular o novo peso após o segundo mês para ver por que simplesmente somar as taxas de crescimento (20% + 20% = 40%) não dá uma descrição precisa do aumento total.
+
+\[ \text{Aumento no segundo mês} = 60 kg \times 20\% = 60 kg \times 0.20 = 12 kg \]
+
+\[ \text{Novo peso após o segundo mês} = 60 kg + 12 kg = 72 kg \]
+
+Portanto, ao final do segundo mês, o peso do potro é de 72 kg. Para calcular o aumento percentual total, podemos usar a fórmula de crescimento composto ou simplesmente calcular a diferença percentual entre o peso inicial e o final:
+
+\[ \text{Aumento percentual total} = \left( \frac{\text{Peso final} - \text{Peso inicial}}{\text{Peso inicial}} \right) \times 100\% \]
+
+\[ \text{Aumento percentual total} = \left( \frac{72 kg - 50 kg}{50 kg} \right) \times 100\% \]
+
+Vamos calcular isso para ver como o aumento total é realmente maior do que a soma simples das taxas de aumento mensal.
+
+O aumento percentual total na massa corporal total (MCT) do potro, ao longo dos dois meses, é de 44%. Isso demonstra que o aumento real é maior do que a soma simples das taxas de crescimento mensal (20% + 20% = 40%), devido ao efeito de composição do crescimento.
+
+<br> 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$\left(1+\frac{20}{100}\right)^2=1.44$$](https://www.wolframalpha.com/input?i=%5Cleft%281%2B%5Cfrac%7B20%7D%7B100%7D%5Cright%29%5E2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+(1+20/100)^2
+quit
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+(1+20/100)^2
+```
+
+```{r}
+w <- 50
+r <- 0.2
+for (t in 0:2)
+{
+  cat("\nPeso no tempo t(",t,")=",w,sep="")
+  cat("\n\t... aumento de ",r*100,"%",sep="")
+  w <- w*(1+r)
+}
+```
+
+## [Jacinto d'água](https://pt.wikipedia.org/wiki/Jacinto-de-%C3%A1gua){target="_blank"}
+
+* __Problema 1.3.1__ O Nilo Branco acima da represa em Jebel Aulia estava infestado por uma erva daninha conhecida como jacinto d'água. Em 1958 a planta cobria apenas 12 km<sup>2</sup>, mas o aumento anual foi de 50%. 
+
+a) Qual área foi coberta $1,2, \ldots, n$ anos depois? 
+
+b) Quanto tempo levou para cobrir toda a área de remanso de 200 km<sup>2</sup>?
+
+Solução: 
+
+a) Área = 12 x 1.5<sup>n</sup> km<sup>2</sup> ($n = 1,2, \ldots$)
+
+b) 12 x 1.5<sup>n</sup> = 200; n x log(1.5) = log(200/12);  $n\approx6.94$  anos
+
+Portanto, a água represada foi totalmente coberto em 1965 (= 1958 + 7). 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$12 \times 1.5^n = 200$$](https://www.wolframalpha.com/input?i=12+x+1.5%5En+%3D+200){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+log(200/12)/log(1.5)
+quit
+```
+
+```{r engine="scilab"}
+deff("[y]=f(x)","y=12*1.5^x - 200")
+fsolve(7,f)
+quit
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+cat("n =" , log(200/12)/log(1.5))
+``` 
+
+```{r}
+f <- function(x) 12*1.5^x-200
+uni <- stats::uniroot(f, c(0, 8))$root
+cat("n =", uni)
+curve(f(x), 0, 10, xlab="n", ylab="f(n)", 
+      main=expression(f(n)==12*plain(x)*1.5^n-200))
+points(uni, 0, pch = 16, cex = 1.2)
+abline(h = 0, lty = 3)
+abline(v = uni, lty = 3)
+```
+
+```{r}
+# changing axes
+startyear <- 1958
+curve(f(x), 0, 10, 
+      xlab="ano = n+1958", 
+      ylab="área (km²)", 
+      axes=FALSE,
+      main=expression(f(ano)==12*plain(x)*1.5^ano))
+y <- seq(-200,600,by=100)
+l <- y+200
+axis(2,at=y,labels=l)
+axis(1,at=0:10,labels=seq(startyear,startyear+10,by=1))
+points(uni, 0, pch = 16, cex = 1.2)
+abline(h = 0, lty = 3)
+abline(v = uni, lty = 3)
+```
+
+```{r eval=TRUE, echo=TRUE}
+area <- 12
+r <- 0.5
+ano <- ano0 <- 1958
+while (1)
+{
+  cat("\nArea coberta em ",ano," = ",area,sep="")
+  delta <- ano-ano0
+  if(delta>0) {cat(" (após ",delta," anos)",sep="")}
+  if (area >= 200)
+  {
+    break
+  }
+  cat("\n\t... aumento de ",r*100,"%",sep="")
+  area <- area*(1+r)
+  ano <- ano+1
+}
+```
+
+$\Diamond$
+
+# Usos incorretos e corretos de porcentagens
+
+Porcentagens só podem ser aplicadas para quantidades medidas em uma escala de proporção/ razão.
+
+* __Exemplo 1.4.4__ _Um aumento de 50% e uma diminuição subsequente de 50% não se anulam_. Se, por exemplo, a colheita de uma macieira aumenta de 120 kg para 180 kg em um ano, chamamos isso de aumento de 50%.
+Uma redução subsequente de 50%, no entanto, geralmente é relacionada a 180 kg como 100%. Assim, a colheita é reduzida para 90 kg em vez dos 120 kg originais.
+
+# Leis algébricas
+
+* [Basic Laws of Algebra](https://en.wikiversity.org/wiki/Basic_Laws_of_Algebra){target="_blank"}
+
+Quais expressões a seguir são equivalentes?
+
+a. $1+p/100$ 
+b. $(1+p)/100$
+c. $p/100+1$
+d. $p/(100+1)$
+
+Resposta: 
+
+a. $1+\dfrac{p}{100}$ 
+b. $\dfrac{1+p}{100}$
+c. $\dfrac{p}{100}+1$
+d. $\dfrac{p}{100+1}$
+
+Portanto, a=c. $\Diamond$
+
+# Números relativos
+
+* [Number line](https://en.wikipedia.org/wiki/Number_line){target="_blank"}
+
+* Valor absoluto
+
+$$\begin{align}
+|+5|&=5 \\
+|-5|&=5
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$\text{absolute}~-5$$](https://www.wolframalpha.com/input?i=absolute+-5){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r eval=TRUE, echo=TRUE}
+abs(-5)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+abs(-5)
+quit
+```
+
+* _Nunca divida por zero!_
+
+__Exemplo I__ Os leitores familiarizados com o símbolo $\infty$ que significa infinito podem estar inclinados a escrever $3/0 = \infty$. No entanto, isso não é correto por dois motivos. Primeiramente, $\infty$ não é um número, de modo que o sinal de igualdade não é aplicável. Em segundo lugar, se $3/0 = \infty$ fosse verdadeiro, $3/0 = -\infty$ também seria verdadeiro. $\Diamond$
+
+__Exemplo II__ Observe que a equação $x^2 = px$ não pode ser resolvida adequadamente se dividirmos cada lado por $x$. Perderíamos a solução possível $x = 0$.
+
+Procedendo corretamente, coletamos os dois termos do lado esquerdo, fatoramos $x$ e decidimos que $x$ ou $x - p$ deve ser zero:
+
+$$\begin{align}
+x^2&=px \\
+x^2-px&=0 \\
+x(x-p)&=0
+\end{align}$$
+
+Para $p=1$, tem-se $x(x-1)=0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[x^2 = x](https://www.wolframalpha.com/input?i=x%5E2+%3D+p+x){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+// Solucao correta e exata! 0 c -1 x + 1 x^2=0
+y = poly([0 -1 1],"x","coeff")
+roots(y)
+quit
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r eval=TRUE, echo=TRUE}
+# Solucao incorreta!
+f <- function(x) x^2 - x
+curve(f(x), 0, 2, xlab="x", ylab="f(x)", 
+      main=expression(x^2-x==0))
+uni <- stats::uniroot(f, c(0, 2))$root
+cat("x =", uni)
+points(uni, 0, pch = 16, cex = 1.2)
+abline(h = 0, lty = 3)
+abline(v = uni, lty = 3)
+
+# Solucao correta, mas aproximada!
+f <- function(x) x^2 - x
+curve(f(x), -1, 2, xlab="x", ylab="f(x)", 
+      main=expression(x^2-x==0))
+All <- rootSolve::uniroot.all(f, c(-1, 2))
+print(All)
+points(All, y = rep(0, length(All)), pch = 16, cex = 1)
+abline(h = 0, lty = 3)
+abline(v = All[1], lty = 3)
+abline(v = All[2], lty = 3)
+```
+
+$\Diamond$
+
+# Desigualdades
+
+* [Inequality (mathematics)](https://en.wikipedia.org/wiki/Inequality_(mathematics)){target="_blank"}
+
+__Exemplo 1.7.1__: Resolver a inequação: _u_ é incógnita e _p_ é parâmetro
+
+$$u(u-1)>p-4u+u^2$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$\text{solve}~u(u-1)>p-4u+u^2~ \text{for}~u$$](https://www.wolframalpha.com/input?i=solve+u%28u-1%29%3Ep-4u%2Bu%5E2+for+u){target="_blank"}
+
+Resposta: $u>p/3$ and $p \in \mathbb{R}$. $\Diamond$
+
+__Exemplo II__: Resolver a inequação
+
+$$x^2<2$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$x^2<2$$](https://www.wolframalpha.com/input?i=x%5E2%3C2){target="_blank"}
+
+Resposta: $-\sqrt{2}<x<\sqrt{2}$. $\Diamond$
+
+# Valores médios
+
+* [Mean](https://en.wikipedia.org/wiki/Mean){target="_blank"}
+
+Quando uma quantidade muda com o tempo ou quando um experimento é repetido várias vezes, temos que condensar a quantidade de dados para fins práticos. Uma maneira de fazer isso é calcular médias ou valores médios.
+
+Quando a quantidade em consideração é intervalar ou razão, o valor médio mais comum é a média aritmética.
+
+$$\bar{x}=\frac{x_{1}+x_{2}}{2}$$
+
+Há ocasiões em que a média aritmética perde seu valor biológico
+significado. 
+
+A média geométrica só é aplicável se as grandezas envolvidas
+são medidos em uma escala de proporção.
+
+Considere o crescimento de um potro conforme descrito na Seção 1.3.
+
+Em intervalos de tempo equidistantes, o potro atinge os pesos
+50kg, 60kg, 72kg.
+
+A sequência foi o resultado da multiplicação de 50 kg repetidamente pelo fator constante 1.2. Achamos que 60 kg é a média adequada entre 50 kg e 72 kg. Porém, a média aritmética é (50 + 72)/2 = 61.
+Podemos tentar a média geométrica que é definida pela fórmula $x_{g}=\sqrt{x_{1} \times x_{2}}$. Obtemos $\sqrt{50\times72} = \sqrt{3600} = 60$ que é o valor desejado.
+
+$$\begin{align} 
+x_{g}&=\sqrt{x_{1} \times x_{2}} \\
+\log{x_{g}}&=\dfrac{\log{x_{1}} + \log{x_{2}}}{2}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[$$\log{x_{g}}=\log{\sqrt{x_{1} \times x_{2}}}=\frac{\log{x_{1}} + \log{x_{2}}}{2}$$](https://www.wolframalpha.com/input?i=simplify+%5Clog%7B%5Csqrt%7Bx_%7B1%7D+%5Ctimes+x_%7B2%7D%7D){target="_blank"}
+
+<br>
+
+* [mean (a,b,c)](https://www.wolframalpha.com/input?i=mean+%28a%2Cb%2Cc%29){target="_blank"}
+* [geometric mean (a,b,c)](https://www.wolframalpha.com/input?i=geometric+mean+%28a%2Cb%2Cc%29){target="_blank"}
+* [harmonic mean (a,b,c)](https://www.wolframalpha.com/input?i=harmonic+mean+%28a%2Cb%2Cc%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- c(2.4,3.1,2.8,2.9,2.2,2.8)
+DescTools::Mean(x)
+DescTools::Gmean(x)
+DescTools::Hmean(x)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+x = [2.4, 3.1, 2.8, 2.9, 2.2, 2.8]
+mean(x)
+geomean(x)
+harmean(x)
+quit
+```
+
+* Observe que uma fórmula de valor médio não pode ser usada no nível ordinal.
+
+## Exemplos de aplicação de médias aritmética, geométrica e harmônica
+
+* [Média aritmética: UOL Mundo Educação](https://mundoeducacao.uol.com.br/matematica/media-aritmetica.htm){target="_blank"}
+* [Média geométrica: UOL Mundo Educação](https://mundoeducacao.uol.com.br/matematica/media-geometrica.htm){target="_blank"}
+* [Média harmônica: UOL Mundo Educação](https://mundoeducacao.uol.com.br/matematica/media-harmonica.htm){target="_blank"}
+
+# Somatório
+
+$$\begin{align} 
+\bar{x}&=\dfrac{x_{1}+x_{2}+\cdots+x_{n}}{n}=\dfrac{\sum_{i=1}^{n}{x_{i}}}{n} \\
+\bar{x}&=\dfrac{\sum_{i=1}^{n}{x_{i}}}{n}=\dfrac{1}{n}\sum_{i=1}^{n}{x_{i}}=\sum_{i=1}^{n}{\dfrac{x_{i}}{n}}
+\end{align}$$
+
+* Mostre que o somatório dos desvios é nulo, i.e., $\sum_{i=1}^{n}{\left(x_{i}-\bar{x}\right)}=0$.
+
+* Mostre que a média dos desvios absolutos é positiva, i.e.,$\dfrac{1}{n}\sum_{i=1}^{n}{\left|x_{i}-\bar{x}\right|}\ge0$.
+
+* Mostre que a média dos desvios ao quadrado (variância populacional) é positiva, i.e., $\dfrac{1}{n}\sum_{i=1}^{n}{\left(x_{i}-\bar{x}\right)^2}\ge0$.
+
+__Exemplo__:
+
+| $x_{i}$ | $x_{i}-\bar{x}$ | $\left(x_{i}-\bar{x}\right)^2$ |
+|----:|------:|---------:|
+|2.4  | -0.3  | 0.09     |
+|3.1  | +0.4  | 0.16     |
+|2.8  | +0.1  | 0.01     |
+|2.9  | +0.2  | 0.04     |
+|2.2  | -0.5  | 0.25     |
+|2.8  | +0.1  | 0.01     |
+|----|------|---------|
+|16.2  | 0  | 0.56     |
+
+* Média: $\bar{x}=16.2/6=2.7$
+* Variância populacional: $s^2=0.56/6=0.09\bar{3}$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[mean (2.4, 3.1, 2.8, 2.9, 2.2, 2.8)](https://www.wolframalpha.com/input?i=mean+%282.4%2C+3.1%2C+2.8%2C+2.9%2C+2.2%2C+2.8%29){target="_blank"}
+
+[population variance (2.4, 3.1, 2.8, 2.9, 2.2, 2.8) ](https://www.wolframalpha.com/input?i=population+variance+%282.4%2C+3.1%2C+2.8%2C+2.9%2C+2.2%2C+2.8%29+){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r eval=TRUE, echo=TRUE}
+x <- c(2.4, 3.1, 2.8, 2.9, 2.2, 2.8)
+mean(x)
+var(x)*((length(x)-1)/length(x)) 
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+x = [2.4, 3.1, 2.8, 2.9, 2.2, 2.8]
+mean(x)
+variance(x)*5/6
+variance(x,"*", %nan)
+quit
+```
+
+$\Diamond$
+ 
+# Potências
+
+* [Exponentiation](https://en.wikipedia.org/wiki/Exponentiation){target="_blank"}
+
+* [Múltiplos e submúltiplos em SI](https://www.forp.usp.br/restauradora/pg/metrologia/metrologia_eletric/mult_submult.html){target="_blank"}
+
+Exemplos são $\mu$g (micrograma), $\mu$m (micrômetro, anteriormente denotado apenas por $\mu$), nm (nanômetro), MHz (Megahertz = 10<sup>6</sup> ciclos por segundo), mHz (Millihertz = 10<sup>-3</sup> ciclos por segundo).
+
+A unidade ppm indica quantas "partes por milhão" estão envolvidas.
+Assim, 1 mg significa 1 ppm em relação a 1 kg. Da mesma forma, 1 cm<sup>3</sup> é 1 ppm em relação a 1 m<sup>3</sup>.
+
+Portanto, recíprocos como 1/A também são escritos como A<sup>-1</sup>. Da mesma forma, encontramos m seg<sup>-1</sup> em vez de m/s para a unidade de velocidade.
+
+Em relação às potências de dez, mencionamos a frase "ordem de
+magnitude". Quando se diz que duas quantidades são de diferentes ordens de magnitude, isso pode significar que elas não são comparáveis em tamanho ou que uma quantidade é pelo menos dez vezes maior que a outra.
+"Duas ordens de grandeza" significaria então um fator de cerca de 10<sup>2</sup> = 100.
+
+__Problema 1.10.1__ Lampert et al. (1969) mediram a massa seca de partículas do vírus herpes simplex (cepa 11140) por meio de um microscópio eletrônico. O núcleo tem massa de 2 x 10<sup>-16</sup> g, o capsídeo nu vazio 5 x 10<sup>-16</sup> g, o capsídeo nu completo 7 x 10<sup>-16</sup> g e o nucleocapsídeo envelopado 13 x 10<sup>-16</sup> g. De que ordem de grandeza é a massa de uma partícula completa do vírus herpes simplex?
+
+Solução: A adição dos valores aproximados acima leva a
+1.5 x 10<sup>-15</sup> g. Portanto, a ordem de grandeza é 10<sup>-15</sup> g. Isso é oito ordens de grandeza maior do que a massa de uma única molécula de oxigênio (5 x 10<sup>-23</sup> g). 
+
+$\Diamond$
+
+__Problema 1.10.2__ A capacidade de oxigênio do sangue dos mamíferos é de cerca de 200 ml por litro de sangue. Se totalmente utilizada, esta quantidade de oxigênio produzirá uma energia de 4.2 x 10<sup>3</sup> J (Joule). 
+
+(a) Em quantos graus Celsius a temperatura de 1 litro de sangue pode ser aumentada por essa energia? 
+(b) Quantos metros um homem de 70 kg pode escalar até consumir o oxigênio de seus 3.5 litros de sangue?
+
+Solução:
+
+(a) O sangue se comporta como a água, quando aquecido: Um litro precisa da energia de 4.2 x 10<sup>3</sup> J ou mil calorias (kcal ou C) para um aumento de temperatura de 1<sup>o</sup> C. E esta é exatamente a energia que o oxigênio no sangue pode fornecer. Portanto, a resposta é 1<sup>o</sup> C. 
+
+(b) A energia necessária para erguer uma massa de 1 kg por 1 m é 9.81 Nm (Newtonmetro) = 9.81 J. Portanto, para cada metro para subir, um homem de 70 kg requer uma energia de 70 x 9.81 J m<sup>-1</sup>. A energia contida em 3.5 litros de sangue é 3.5 x 4.2 x 10<sup>3</sup> J = 14.7 x 10<sup>3</sup> J. Essa energia é suficiente para subir 
+(14.7 x 10<sup>3</sup> J)/(70 x 9.81 J m<sup>-1</sup>) = 21 m.
+
+Assim, ao subir, o corpo tem que renovar seu conteúdo de oxigênio pelo menos a cada 21 metros. $\Diamond$
+
+# Potências fracionárias
+
+$$\sqrt{x^2}=|x|$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`\sqrt{x^2}`](https://www.wolframalpha.com/input?i=%5Csqrt%7Bx%5E2%7D){target="_blank"}
+
+# Cálculos com números aproximados
+
+Os pesquisadores estão frequentemente preocupados com a imprecisão dos números.
+
+Uma fonte são erros na contagem ou incertezas nos instrumentos de leitura.
+
+Outra fonte são as flutuações aleatórias na amostragem. 
+
+Finalmente, os inevitáveis erros de arredondamento também causam algumas dificuldades.
+
+Suponha que um número como 14.07 tenha um erro não superior a 0.005, ou seja, um erro não maior que a metade do último dígito. Então o último decimal 7 é exato e dizemos que 14.07 tem quatro dígitos significativos (ou algarismos).
+
+__Problema__: Quantos dígitos significativos tem o número 380?
+
+Solução:
+
+3.8 x 10<sup>2</sup> tem dois dígitos significativos.
+
+3.80 x 10<sup>2</sup> tem três dígitos significativos.
+
+O erro é no máximo 0.05 x 10<sup>2</sup> para o primeiro número e no máximo 0.005 x 10<sup>2</sup> para o segundo número. Sem potências, ambos os números seriam 380, não indicando, portanto, a precisão. $\Diamond$
+
+__Exemplo__: Arredondar para uma casa decimal, arredondar para o menor e maior inteiro, e truncar os números 4.65 e 4.75.
+
+Solução: 
+
+Pode ser aplicado pela regra: 5 é arredondado para baixo sempre que o algarismo precedente é par e é arredondado para cima sempre que o algarismo anterior é ímpar.
+Assim, 4.65 e 4.75 são arredondados para 4.6 e 4.8, respectivamente.
+
+Arredondar para uma casa decimal 4.65 = 4.6
+
+Arredondar para uma casa decimal 4.75 = 4.8
+
+Arredondar para o menor inteiro 4.65 = 4
+
+Arredondar para o menor inteiro 4.75 = 4
+
+Arredondar para o maior inteiro 4.65 = 5
+
+Arredondar para o maior inteiro 4.75 = 5
+
+Truncar 4.65 = 4
+
+Truncar 4.75 = 4
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`round to 2 digits 4.65`](https://www.wolframalpha.com/input?i=round+to+2+digits+4.65){target="_blank"}
+
+[`round to 2 digits 4.75`](https://www.wolframalpha.com/input?i=round+to+2+digits+4.65){target="_blank"}
+
+| Comando | Aparência | Resultado |
+|:------|--------:|--------:|
+| round to 2 digits 4.05 | 4.1 | 4.0 |
+| round to 2 digits 4.15 | 4.2 | 4.2 |
+| round to 2 digits 4.25 | 4.3 | 4.3 |
+| round to 2 digits 4.35 | 4.4 | 4.4 |
+| round to 2 digits 4.45 | 4.5 | 4.4 |
+| round to 2 digits 4.55 | 4.6 | 4.5 |
+| round to 2 digits 4.65 | 4.7 | 4.6 |
+| round to 2 digits 4.75 | 4.8 | 4.8 |
+| round to 2 digits 4.85 | 4.9 | 4.9 |
+| round to 2 digits 4.95 | 5.0 | 5.0 |
+
+| Comando | Aparência | Resultado |
+|:------|--------:|--------:|
+|round to 3 digits 14.05 | 14.1 | 14.0 |
+|round to 3 digits 14.15 | 14.2 | 14.2 |
+|round to 3 digits 14.25 | 14.3 | 14.2 |
+|round to 3 digits 14.35 | 14.4 | 14.4 |
+|round to 3 digits 14.45 | 14.5 | 14.4 |
+|round to 3 digits 14.55 | 14.6 | 14.5 |
+|round to 3 digits 14.65 | 14.7 | 14.7 |
+|round to 3 digits 14.75 | 14.8 | 14.7 |
+|round to 3 digits 14.85 | 14.9 | 14.9 |
+|round to 3 digits 14.95 | 15.0 | 15.0 |
+
+| Comando | Aparência | Resultado |
+|:------|--------:|--------:|
+| round to 1 digits 0.05 | 0.05 | 0.05 |
+| round to 1 digits 0.15 | 0.2 | 0.1 |
+| round to 1 digits 0.25 | 0.3 | 0.2 |
+| round to 1 digits 0.35 | 0.4 | 0.4 |
+| round to 1 digits 0.45 | 0.5 | 0.4 |
+| round to 1 digits 0.55 | 0.6 | 0.6 |
+| round to 1 digits 0.65 | 0.7 | 0.6 |
+| round to 1 digits 0.75 | 0.8 | 0.8 |
+| round to 1 digits 0.85 | 0.9 | 0.9 |
+| round to 1 digits 0.95 | 1.0 | 0.9 |
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+round(4.65,1)
+round(4.75,1)
+floor(4.65)
+floor(4.75)
+ceiling(4.65)
+ceiling(4.75)
+trunc(4.65)
+trunc(4.75)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+round(4.75)
+quit
+```
+```{r engine="scilab"}
+round(4.65)
+quit
+```
+```{r engine="scilab"}
+floor(4.65)
+quit
+```
+```{r engine="scilab"}
+floor(4.75)
+quit
+```
+```{r engine="scilab"}
+ceil(4.65)
+quit
+```
+```{r engine="scilab"}
+ceil(4.75)
+quit
+```
+```{r engine="scilab"}
+int(4.65)
+quit
+```
+```{r engine="scilab"}
+int(4.75)
+quit
+```
+
+O resultado de uma multiplicação ou divisão tem aproximadamente o mesmo número de dígitos significativos que o termo com o menor número de dígitos significativos.
+
+Assim, em 14.04 x 2.3/39.7 = 0.813, o termo com menos dígitos significativos é 2.3. Tem um, no máximo dois dígitos significativos. Portanto, 0.813 não tem mais dígitos significativos. O resultado deve ser arredondado para 0.81 caso o fator 2.3 tenha apenas um dígito significativo.
+
+Ocasionalmente, o número de dígitos significativos é aumentado. Isso pode acontecer com a média aritmética de dez ou mais medições se a dispersão for pequena o suficiente. Por razões que não podem ser explicadas aqui, a precisão da média aritmética é maior do que a das medições individuais. Por exemplo, suponha que dez folhas de uma árvore sejam selecionadas aleatoriamente e seus comprimentos medidos em cm sejam:
+
+5.8 6.1 5.7 5.6 6.2 5.8 5.9 6.2 6.0 5.9.
+
+Cada medição contém dois dígitos significativos. A média aritmética 
+deve ser escrita 5.92 e tem uma precisão maior que dois dígitos significativos.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`14.04 2.3/39.7`](https://www.wolframalpha.com/input?i=14.04+2.3%2F39.7){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+14.04*2.3/39.7
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+14.04*2.3/39.7
+quit
+```
+
+# Uma aplicação
+
+```{r fig.align="center", out.width='80%', echo=FALSE}
+knitr::include_graphics("./image/Fig1.3.png")
+```
+
+Para ilustrar o uso de potências fracionárias em biologia, consideramos a forma de quadrúpedes (Fig. 1.3). $l$ denota o comprimento de um quadrúpede medido do quadril ao ombro e $h$ denota a largura que é a espessura média do corpo medida na direção vertical. Então o tronco é comparado com uma barra uniforme de comprimento $l$ e largura $h$ apoiada em suas extremidades. A gravidade causa encurvamento da barra. A física mostra que a razão é limitada por algum valor. Se a proporção exceder esse valor, a barra cede. 
+
+$$l/h^{2/3}$$
+
+Embora o torso de um animal seja um sistema complicado que consiste em ossos, músculos e tendões e, portanto, bastante diferente de uma barra uniforme, a aplicação da razão $l/h^{2/3}$ indica aproximadamente a limitação do comprimento dos quadrúpedes.
+
+A maioria dos outros quadrúpedes tem uma proporção consideravelmente menor que 7. Desta forma, Seus troncos são menos ameaçados pela gravidade. Animal com razão maior que 7 dificilmente poderia manter-se em suas patas. O tronco provavelmente tocaria o chão. 
+
+Alguns dos valores mais altos alcançados pelos quadrúpedes são:
+
+|   Mamífero Quadrúpede            |   $l$ cm |   $h$ cm  | $l/h^{2/3}$ |
+|:---------------------------------|-------:|--------:|------------:|
+|Arminho (Mustela erminea) |  12  |   4  |  4.8   |
+|Bassê |  35  | 12    |  6.7  |
+|Tigre indiano (Panthera tigres) | 90   | 45    |  7.1   |
+|Lhama (Lama glama) |  122     |  73    |  7.0   |
+|Elefante indiano (Elephas maximus) |  153    |  135   | 5.8    |
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`12/4^{2/3}`](https://www.wolframalpha.com/input?i=12%2F4%5E%282%2F3%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+12/4^(2/3)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+12/4^(2/3)
+quit
+```
+
+# Número real em YouTube
+
+* [Thomas Frank: How to Get Better at Math](https://www.youtube.com/watch?v=HPsazrVSjl8&t=420s){target="_blank"}
+* [Eric Rowland: An Exact Formula for the Primes: Willans' Formula](https://www.youtube.com/watch?v=j5s0h42GfvM){target="_blank"}
+* [The Rhythm of The Primes](https://www.youtube.com/watch?v=8x374slJGuo){target="_blank"}
+* [D!NG: A Proof That The Square Root of Two Is Irrational](https://www.youtube.com/watch?v=LmpAntNjPj0){target="_blank"}
+* [Dennis Wildfogel: Quão grande é o infinito?](https://www.youtube.com/watch?v=UPA3bwVVzGI){target="_blank"}
+* [Matemática da Támires: NUNCA MAIS ERRE PROBLEMA COM TORNEIRAS ](https://www.youtube.com/watch?v=tvc_Ycp-9qg&t=7s){target="_blank"}
+
+# Bibliografia: Aula01: Número real
+
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulo 14: Dimensional Analysis and Similitude.
+* Pauli, RU et al. (1980) _Física 4: eletricidade, magnetismo, física moderna e análise dimensional_. São Paulo: EPU O livro apresenta a análise dimensional de forma didática e aplicada à  Física. 
+* Simão, C (1980) _Manual do professor de física 4 de Pauli et al._ São Paulo: EPU.
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+
+# Simplificação em R
+
+```{r}
+nlsr::nlsSimplify(quote((a+b) + (a+b))) ## 2 * (a + b)
+nlsr::nlsSimplify(quote((a+b) - (a+b))) ## 0
+nlsr::nlsSimplify(quote(log(exp(a+b)))) ## a + b
+nlsr::nlsSimplify(quote(exp(log(a+b)))) ## a + b
+
+Deriv::Simplify(quote((a+b) + (a+b))) ## 2 * (a + b)
+Deriv::Simplify(quote((a+b) - (a+b))) ## 0
+Deriv::Simplify(quote(log(exp(a+b)))) ## a + b
+Deriv::Simplify(quote(exp(log(a+b)))) ## exp(log(a + b))
+```
+
+# Tipos numéricos em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- 1L
+is.integer(x) # TRUE
+
+x <- 1:3
+is.integer(x) # TRUE
+
+x <- seq(1,3)
+is.integer(x) # TRUE
+
+x <- 1
+is.double(x) # TRUE
+
+x <- 1L
+x <- as.double(x) 
+is.double(x) # TRUE
+
+pi # 3.141593
+is.double(pi) # TRUE
+
+x <- "3.141593"
+is.character(x) # TRUE
+x <- as.double(x)
+is.double(x) # TRUE
+
+x <- "3.141593"
+is.character(x) # TRUE
+nchar(x) # 8
+x <- as.numeric(x)
+is.double(x) # TRUE
+
+z <- 1 + 3i
+is.complex(z) # TRUE
+Re(z) # 1
+Im(z) # 3
+Mod(z) # h = √(x^2 + y^2) = 3.162278
+Arg(z) # angle = 1.249046
+Conj(z) # 1-3i
+```
+
+# Arredondamento em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+options(digits=7) # default
+pi # 3.141593
+round(x=pi) # 3
+round(x=pi, digits=0) # 3
+round(x=pi, digits=2) # 3.14
+round(x=pi, digits=20) # 3.141593
+signif(x=pi, digits=1) # 3
+signif(x=pi, digits=2) # 3.1
+signif(x=pi, digits=3) # 3.14
+trunc(x=pi) # 3
+ceiling(pi) # 4
+floor(pi) # 3
+
+options(digits=15) # default
+round(x=pi, digits=15) # 3.14159265358979
+
+options(digits=20) # default
+round(x=pi, digits=20) # 3.1415926535897931???
+```
+
+# Formatação numérica em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+options(digits=7) # default
+x <- pi 
+x # 3.141593
+options(digits=3)
+x # 3.14
+
+x <- pi # 3.141593
+f <- format(x) # "3.141593"
+str(f) # chr "3.141593"
+print(f, quote=FALSE) # 3.141593
+noquote(f) # 3.141593
+f <- as.double(f) # 3.14 < 3.141593
+str(f) # num 3.14
+toString(x) # "3.14159265358979"
+noquote(toString(x)) # 3.14159265358979
+format(x, digits=7) # 3.141593
+format(x, digits=17) # 3.1415926535897931
+format(x/10, scientific=TRUE) # 3.141593e-01
+
+format(c(6.0, 13.1), digits=2) # " 6" "13"
+format(c(6.0, 13.1), digits=2, nsmall=1) # " 6.0" "13.1"
+format(2, nsmall=4) # 2.0000
+format(round(2.001, 2), nsmall=2) # 2.00
+
+format(2.1, decimal.mark=",") # "2,1"
+
+format('Running', justify='r', width=9) # "  Running"
+format('Running', justify='c', width=12) # "  Running   "
+
+# various formats of pi
+sprintf("%f", pi)       # "3.141593"
+sprintf("%.3f", pi)     # "3.142"
+sprintf("%1.0f", pi)    # "3"
+sprintf("%5.1f", pi)    # "  3.1"
+sprintf("%05.1f", pi)   # "003.1"
+sprintf("%+f", pi)      # "+3.141593"
+sprintf("% f", pi)      # " 3.141593"
+sprintf("%-10f", pi)    # "3.141593  "
+sprintf("%e", pi)       # "3.141593e+00"
+sprintf("%E", pi)       # "3.141593E+00"
+sprintf("%g", pi)       # "3.14159"
+sprintf("%g", 1e6*pi)   # "3.14159e+06"
+sprintf("%.9g", 1e6*pi) # "3141592.65"
+sprintf("%G", 1e-6*pi)  # "3.14159E-06"
+sprintf("%.*f", 54, pi)
+# "3.141592653589793115997963468544185161590576171875000000"
+
+sprintf(paste0("e with %2d digits = %.", 
+               1:18, "g"), 
+        1:18, exp(1))
+
+sprintf("%09s", month.name)
+# [1] "  January" " February" "    March" "    April"
+# [5] "      May" "     June" "     July" "   August"
+# [9] "September" "  October" " November" " December"
+
+xx <- pi * 10^(-5:4)
+cbind(format(xx, digits = 4), formatC(xx))
+cbind(formatC(xx, width = 9, flag = "-"))
+cbind(formatC(xx, digits = 5, 
+              width = 8, format = "f", flag = "0"))
+cbind(format(xx, digits = 4), 
+      formatC(xx, digits = 4, format = "fg"))
+## individual formatting to common width:
+fc <- formatC(1.234 + 10^(0:8), format = "fg", 
+              width = 11, big.mark = ",")
+cbind(fc)
+
+sprintf("(w-1):%s", c("xyz", NA, "abc"))
+crfsuite::txt_sprintf("(w-1):%s", c("xyz", NA, "abc"))
+sprintf("(w-1):%s_%s", c("xyz", NA, "abc"), c(NA, "xyz", "abc"))
+crfsuite::txt_sprintf("(w-1):%s_%s", c("xyz", NA, "abc"), c(NA, "xyz", "abc"))
+```
+
+# Soma em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+1+2
+1+2; 3+4
+a <- 1
+is.atomic(a) # TRUE
+str(a)
+b <- c(2)
+is.atomic(b) # TRUE
+str(b)
+a+b
+
+x <- c(10,0,2,3)
+is.atomic(x) # TRUE
+is.vector(x) # TRUE
+str(x)
+y <- c(5,6,7,8)
+z <- x + y
+sum(x) + sum(y)
+sum(x + y)
+sum(z)
+
+x <- c(10,0,2,4)
+y <- c(5,6,7)
+z <- x + y # 15  6  9  9: soma errada!
+sum(x) + sum(y) # 34: ok
+sum(x + y) # 39: soma errada!
+sum(z) # 39: soma errada!
+
+x <- c(10,0,2,4)
+x==0
+sum(x==0)
+which(x==0)
+x>0
+sum(x>0)
+which(x>0)
+
+x <- c(2, 4, NA)
+length(x) # 3
+str(x)
+sum(!is.na(x)) # 2 valid values
+sum(is.na(x)) # 1 missing value
+sum(is.nan(x)) # 0
+sum(is.infinite(x)) # 0
+sum(x) # NA
+sum(x, na.rm=TRUE) # 6
+x <- sort(x) # 2 4
+sum(x) # 6
+x <- x[!is.na(x)] # 2 4
+sum(x) # 6
+
+x <- c(2, 4, NA, NULL)
+length(x) # 3
+str(x)
+sum(is.na(x)) # 1
+sum(is.nan(x)) # 0
+sum(is.infinite(x)) # 0
+sum(x) # NA
+sum(x, na.rm=TRUE) # 3
+
+x <- c(2, 4, NA, NULL, TRUE)
+length(x) # 4
+str(x)
+sum(is.na(x)) # 1
+sum(is.nan(x)) # 0
+sum(is.infinite(x)) # 0
+sum(x) # NA
+sum(x, na.rm=TRUE) # 7
+
+x <- c(2, 4, NA, NULL, TRUE, Inf)
+length(x) # 5
+str(x)
+sum(is.na(x)) # 1
+sum(is.nan(x)) # 1
+sum(is.infinite(x)) # 1
+sum(x) # NA
+sum(x, na.rm=TRUE) # Inf
+
+x <- c(2, 4, NA, NULL, TRUE, Inf, "a")
+length(x) # 6
+str(x)
+sum(is.na(x)) # 1
+sum(is.nan(x)) # 0
+sum(is.infinite(x)) # 0
+sum(is.character(x)) # 1
+# sum(x) # Error
+# sum(x, na.rm=TRUE) # Error
+sum(as.numeric(x), na.rm=TRUE) # Inf
+
+x <- list(2, 4, NA, NULL, TRUE, Inf)
+str(x)
+length(x) # 7
+sum(is.na(x)) # 1
+# sum(is.nan(x)) # Error
+# sum(is.infinite(x)) # Error
+# sum(x) # Error
+# sum(x, na.rm=TRUE) # Error
+turner::sumlist(x, na.rm=TRUE)
+
+# Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, ...
+# Program to display the Fibonacci sequence up to n-th term using recursive functions
+recursive_fibonacci <- function(n) {
+  if(n <= 1) {
+    return(n)
+  } else {
+    return(recursive_fibonacci(n-1) + recursive_fibonacci(n-2))
+  }
+}
+k <- 8
+fs <- NULL
+for(i in 0:k){
+  fs <- c(fs,recursive_fibonacci(i))
+}
+print(fs)
+```
+
+# Média em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- c(10,0,2,4)
+is.vector(x) # TRUE
+x>0 # TRUE FALSE  TRUE  TRUE
+sum(x>0) # 3
+which(x>0) # 1 3 4
+mean(x) # 4
+mean(x>0) # 0.75
+mean(x[x>0]) # 5.33 = (2+4+10)/3
+
+x <- c(10,0,2,4,NA)
+mean(x, na.rm=TRUE) # 4
+
+w <- c(1, 2)
+x <- c(7, 9)
+xw <- weighted.mean(x, w) # (1*7 + 2*9)/3
+xa <- mean(x) # (7 + 9)/2
+
+x <- c(1:9, 20)
+x # 1  2  3  4  5  6  7  8  9 20
+mean(x) # 6.5
+sum(x)/length(x) # 6.5
+mean(x, trim=0.1) # 5.5
+sum(x[2:9])/8 # 5.5
+
+count <- function(x,n){length((which(x==n)))}
+perc <- function(x,n){
+  format(round(100*length((which(x==n)))/length(x),2),2)
+  }
+x <- c(7, 2, 4, 3, -1, -2, 3, 3, 6, 8, 12, 7, 3)
+sort(x)
+# [1] -2 -1  2  3  3  3  3  4  6  7  7  8 12
+length(x) # 13
+count(x, 3) # 4
+as.double(perc(x, 3)) # 30.77 = 100*(13/4)
+
+x <- c(3, 4)
+DescTools::Mean(x) # 3.5
+DescTools::Gmean(x) # 3.464102
+prod(x)^(1/length(x)) # 3.464102
+DescTools::Hmean(x) # 3.428571
+length(x)/(1/x[1] + 1/x[2]) # 3.428571
+```
+
+# Multiplicação em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- 2
+y <- 3
+p <- x*y # 6
+
+x <- 2
+y <- c(3, 4)
+p <- x*y # 6 8
+
+x <- c(2, 5)
+y <- c(3, 4)
+p <- x*y # 6 20
+
+x <- c(2, 5)
+p <- x**2 # 4 25
+p <- x^2 # 4 25
+p <- x^0.5 # 1.41 2.24
+
+x <- 2
+y <- 10
+'+'(x,y)
+'*'(x,y)
+'^'(x,y)
+
+x <- 1:3
+prod(x) # 6 = 1*2*3 = 3! 
+
+x <- c(1:3, NA)
+prod(x) # NA 
+prod(x, na.rm=TRUE) # 6 = 1*2*3 = 3! 
+
+# Recursive function to find factorial
+recursive.factorial <- function(x) {
+  if (x == 0)    return (1)
+  else           return (x*recursive.factorial(x-1))
+}
+recursive.factorial(0) # 1
+recursive.factorial(3) # 6
+recursive.factorial(10) # 3628800
+
+x <- 1:3
+y <- 2:4
+x %*% y
+#      [,1]
+# [1,]   20
+drop(x %*% y)  # scalar product
+# 1*2 + 2*3 + 3*4 = 20
+# [1] 20
+
+# h = sqrt(a^2 + b^2)
+c <- c(3, 4)
+cd <- sum(c^2, na.rm=TRUE)
+cs <- crossprod(c) # 3^2 + 4^2 = 25
+identical(cd, cs) # FALSE
+cs <- drop(crossprod(c)) # 3^2 + 4^2 = 25
+identical(cd, cs) # TRUE
+h <- sqrt(cs) # 5
+
+x <- 1:9 
+names(x) <- x
+# Multiplication & Power Tables
+x %o% x
+outer(x, x, "*")
+y <- 2:8 
+names(y) <- paste0(y,":")
+outer(y, x, "^")
+
+# 3 times table
+drop(outer(1:10,3,"*"))
+```
+
+# Divisão em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- 2
+y <- 3
+d <- x/y # 0.667
+
+x <- 2
+y <- c(3, 4)
+d <- y/x # 1.5 2
+
+x <- c(2, 5)
+y <- c(3, 4)
+d <- x/y # 0.667 1.25
+
+x <- c(6, 9)
+d <- x%%2 # 0 1 (2*3+0=6; 2*4+1=9)
+d <- x%/%2 # 3 4 (2*3+0=6; 2*4+1=9)
+
+x <- 0/Inf # 0
+x <- 1/Inf # 0
+
+x <- 1/0 # Inf
+
+x <- 0/0 # NaN
+x <- Inf/Inf # NaN
+```

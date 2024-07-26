@@ -1,0 +1,1547 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 5: Série e Limite"  
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula05.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula05.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+
+__5.	Série e limite (Capítulo 8)__
+
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+# Adicionar
+
+* [Desmos: calculadora gráfica](https://www.desmos.com/?lang=pt-BR){target="_blank"}
+* [Desmos 2D](https://www.desmos.com/calculator?lang=pt-BR){target="_blank"}
+* [Desmos 3D](https://www.desmos.com/3d?lang=pt-BR){target="_blank"} 
+
+# Pensamento
+
+```{r echo=FALSE, out.width="90%", out.height="600", fig.cap="Folha de São Paulo, 28 de novembro 2021"}
+knitr::include_graphics("./image/Pornografia_Calculo2.pdf")
+```
+
+# Introdução
+
+* [Infinito: Wikipédia](https://pt.m.wikipedia.org/wiki/Infinito#O_s%C3%ADmbolo_de_infinito){target="_blank"}
+
+O propósito deste capítulo é tornar o cálculo diferencial e integral compreensível. 
+
+Com o estudo dos limites obteremos uma ferramenta muito poderosa para definir conceitos como taxa de crescimento (instantâneo), taxa de decaimento, taxa de reação, taxa de difusão e suas contrapartes, quantidade total de crescimento, de decaimento etc.
+
+Na matemática moderna, $\infty$ não é um número e nenhuma [_sic_] operação algébrica é definida para este símbolo. Em conexão com sequências, "infinito" significa simplesmente que $a_n$ de um certo $n$ em diante, excede qualquer limite $C$, não importa quão grande $C$ seja escolhido.
+
+Operações algébricas envolvendo o conceito de infinito, representado frequentemente por \( \infty \), seguem algumas regras especiais dentro da matemática, principalmente porque o infinito não é um número, mas um conceito que descreve algo que não tem limites finitos. Aqui estão algumas operações padrão com infinito e suas propriedades usuais:
+
+1. Adição e Subtração:
+   - \( \infty + a = \infty \) para qualquer número real \( a \) (exceto \( -\infty \)).
+   - \( \infty - a = \infty \) para qualquer número real \( a \) (exceto \( +\infty \)).
+   - \( -\infty - a = -\infty \) para qualquer número real \( a \) (exceto \( +\infty \)).
+   - \( -\infty + a = -\infty \) para qualquer número real \( a \) (exceto \( +\infty \)).
+   - \( \infty + \infty = \infty \).
+   - \( -\infty + (-\infty) = -\infty \).
+   - \( \infty - \infty \) e \( -\infty + \infty \) são formas indeterminadas.
+
+2. Multiplicação:
+   - \( \infty \times a = \infty \) se \( a > 0 \).
+   - \( \infty \times a = -\infty \) se \( a < 0 \).
+   - \( -\infty \times a = -\infty \) se \( a > 0 \).
+   - \( -\infty \times a = \infty \) se \( a < 0 \).
+   - \( \infty \times \infty = \infty \).
+   - \( -\infty \times (-\infty) = \infty \).
+   - \( \infty \times 0 \) e \( -\infty \times 0 \) são formas indeterminadas.
+
+3. Divisão:
+   - \( \frac{\infty}{a} = \infty \) se \( a > 0 \).
+   - \( \frac{\infty}{a} = -\infty \) se \( a < 0 \).
+   - \( \frac{-\infty}{a} = -\infty \) se \( a > 0 \).
+   - \( \frac{-\infty}{a} = \infty \) se \( a < 0 \).
+   - \( \frac{a}{\infty} = 0 \) para qualquer número real \( a \) não infinito.
+   - \( \frac{\infty}{\infty} \) e \( \frac{-\infty}{-\infty} \) são formas indeterminadas.
+
+4. Exponenciação:
+   - \( \infty^a = \infty \) se \( a > 0 \).
+   - \( \infty^a = 0 \) se \( a < 0 \).
+   - \( a^\infty = \infty \) se \( a > 1 \).
+   - \( a^\infty = 0 \) se \( 0 < a < 1 \).
+   - \( \infty^0 \), \( 0^\infty \), e \( 1^\infty \) são formas indeterminadas.
+
+Essas operações mostram que o tratamento do infinito envolve cuidados especiais, especialmente porque o infinito interage de maneira diferente dependendo do contexto e dos valores com os quais está sendo combinado, levando frequentemente a resultados que são considerados indeterminados na matemática.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png") 
+```
+
+* [infinity](https://www.wolframalpha.com/input?i=infinity){target="_blank"}
+
+* [infinity + pi](https://www.wolframalpha.com/input?i=infinity+pi){target="_blank"}
+
+* [infinity - pi](https://www.wolframalpha.com/input?i=infinity+-+pi){target="_blank"}
+
+* [infinity pi](https://www.wolframalpha.com/input?i=infinity+%2B+pi){target="_blank"}
+
+* [infinity^pi](https://www.wolframalpha.com/input?i=infinity%5Epi){target="_blank"}
+
+* [pi^infinity](https://www.wolframalpha.com/input?i=pi%5Einfinity){target="_blank"}
+
+* [infinity - infinity](https://www.wolframalpha.com/input?i=infinity+-+infinity){target="_blank"}
+
+# Série
+
+* [Wikipedia: List of mathematical series](https://en.wikipedia.org/wiki/List_of_mathematical_series){target="_blank"}
+
+* [YouTube: blackpenredpen: 100 calculus series (no food, no water, no stop)](https://www.youtube.com/@blackpenredpen){target="_blank"}
+
+A sequência infinita enumerável de números _a_ é definida da seguinte maneira: 
+
+$$a=\left[a_1,a_2,a_3,a_4,\dots\right]=\left[a_j\right]_{j=1}^{\infty}$$
+
+Os elementos $a_1,a_2,a_3,a_4,\dots$ da sequência são chamados de seus termos. 
+
+O termo geral da sequência é denotado por $a_j$.
+
+A sequência infinita enumerável de números _s_ é denominada série e sua definição é a seguinte:
+
+$$s=[s_1,s_2,s_3,s_4,\dots]=\left[s_j\right]_{j=1}^{\infty}$$
+
+Sendo que $s_j=\sum_{k=1}^j{a_k}$, $j\in \mathbb{N^*}$.
+
+Os termos da série $s_1,s_2,s_3,s_4, \dots$ são as somas parciais dos termos da sequência. O termo geral da série é denotado por $s_j$. 
+
+A série é uma sequência de somas parciais dos termos de uma sequência. 
+
+O objetivo é analisar o comportamento de $s_{\infty}$.
+
+Se $a_{\infty}\to m$ e $m\ne 0$, então $s_{\infty}$ diverge.
+
+Se $a_{\infty}\to 0$, então $s_{\infty}$ pode convergir, mas necessita trabalhar matematicamente para mostrar se há convergência.
+
+Eis algumas propriedades do somatório para $n\in \mathbb{N^{*}}$:
+
+$$\begin{align}
+\sum_{k=1}^{n}{a_k} \pm \sum_{k=1}^{n}{b_k} &=\sum_{k=1}^{n}{\left(a_k\pm b_k \right)} \\ 
+\sum_{k=1}^{n}{ca_k} &= c\sum_{k=1}^{n}{a_k} \\
+\sum_{k=1}^{n}{c}&=cn
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+<hr>Conferindo
+$$\sum_{k=1}^{n}{a_k} \pm \sum_{k=1}^{n}{b_k} =\sum_{k=1}^{n}{\left(a_k\pm b_k \right)}$$
+<div align=right><small><small>
+[`demo_prop_sum01.R`](demo_prop_sum01.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_prop_sum01.R'),}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_prop_sum01.R')
+```
+
+<hr>Conferindo
+$$\sum_{k=1}^{n}{ca_k} = c\sum_{k=1}^{n}{a_k}$$
+<div align=right><small><small>
+[`demo_prop_sum02.R`](demo_prop_sum02.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_prop_sum02.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_prop_sum02.R')
+```
+
+<hr>Conferindo
+$$\sum_{k=1}^{n}{c}=cn$$
+<div align=right><small><small>
+[`demo_prop_sum03.R`](demo_prop_sum03.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_prop_sum03.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_prop_sum03.R')
+```
+
+## Tipos de séries
+
+### positivamente divergente
+
+Por exemplo, uma sequência pode ser formada por todos os números inteiros positivos ordenados, i.e., $a=[1,2,3,4,\dots]=[j]_{j=1}^{\infty}$. 
+
+O índice _j_ da sequência sempre varia entre 1 e $\infty$, i.e., $j \in \mathbb{N^{*}}$. 
+
+Para simplificar a notação tem-se que a notação explícita de variação do índice pode ser eliminada, isto é, $a=[1,2,3,4,\dots]=[j]$. 
+
+Dessa forma, tem-se que a série é dada por $s=[1,3,6,10,\dots]$. 
+
+Cada elemento dessa série é o resultado da soma de uma progressão aritmética (PA) finita com $n=j$ elementos, início em $a_1=1$, término em $a_n=j$ e diferença comum igual a $d=a_2-a_1=1$. 
+
+Numa progressão aritmética o _j_-ésimo elemento é determinado pela fórmula $a_j=a_1+(n-1)d=1+(j-1)=j$. 
+
+Cada elemento da série pode ser calculado usando a fórmula $s_n=(n/2)(2a_1+(n-1)d)$. No caso particular, tem-se que $s_j=(j/2)(2+(j-1))=(j/2)(1+j)$. 
+
+Note que a série dos inteiros positivos cresce quadraticamente, isto é, $s_j=(j/2)(1+j)=(1/2)(j+j^2)$. 
+
+Então, a série é dada por $s=\left[\frac{1}{2}j(j+1)\right]=[1,3,6,10,\dots]$. 
+
+Dessa forma, $s_\infty=\infty$, isto é, a série dessa progressão aritmética é divergente positivamente. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1+2+3+4+...](https://www.wolframalpha.com/input?i=1%2B2%2B3%2B4%2B...){target="_blank"}
+
+[Table[Sum[j,{j,1,n}],{n,1,10}]](https://www.wolframalpha.com/input?i=Table%5BSum%5Bj%2C%7Bj%2C1%2Cn%7D%5D%2C%7Bn%2C1%2C10%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Para conferir, obtemos o gráfico para $1 \le j \le 20$ dos valores de $a$ e $s$ computando por "força bruta" $s_j=\sum_{k=1}^j{a_k}$ e pela fórmula deduzida $s_j=\frac{1}{2}j(j+1)$.
+
+Este é um exemplo de progressão aritmética, positivamente divergente.
+<div align=right><small><small>
+[`demo_serie1_divergentepositiva.R`](demo_serie1_divergentepositiva.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_serie1_divergentepositiva.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_serie1_divergentepositiva.R')
+```
+
+### convergente
+
+Outro exemplo é sequência $a=[1/2,1/4,1/8,1/16,\dots]=[1/2^j]$. 
+
+O índice _j_ da sequência varia entre 1 e $\infty$. 
+
+Essa sequência é uma progressão geométrica (PG) com $n=j$ elementos, primeiro elemento igual a 1, i.e., $a_1=1$ e razão comum igual a 1/2, i.e., $r=1/2$.
+
+Cada elemento da série é calculado por meio da fórmula: 
+
+$$s_n=a_1\dfrac{1-r^n}{1-r}$$ 
+
+Para essa progressão geométrica, tem-se que $s_j=(1/2)(1- 1/2^j)/(1/2 )=1-1/2^j$. 
+
+Tem-se que a série é dada por $s=[1/2,3/4,7/8,15/16,31/32,63/64,127/128,\dots]=\left[1-\dfrac{1}{2^j} \right]$. 
+
+Dessa forma, $s_\infty=1$, isto é, a série dessa progressão geométrica converge para 1.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1/2+1/4+1/8+1/16+...](https://www.wolframalpha.com/input?i=1%2F2%2B1%2F4%2B1%2F8%2B1%2F16%2B...){target="_blank"}
+
+[Table[Sum[1/2^j,{j,1,n}],{n,1,10}]](https://www.wolframalpha.com/input?i=Table%5BSum%5B1%2F2%5Ej%2C%7Bj%2C1%2Cn%7D%5D%2C%7Bn%2C1%2C10%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Este é um exemplo de progressão geométrica convergente para 1.
+<div align=right><small><small>
+[`demo_serie2_convergente.R`](demo_serie2_convergente.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_serie2_convergente.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_serie2_convergente.R')
+```
+
+Uma progressão geométrica é convergente se $-1<r<1$. 
+
+Se $-1<r<1$, então $s_\infty=\dfrac{a_1}{1-r}$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Para verificar esta afirmação, experimentemos algumas séries com $-1<r<1$.
+
+<div align=right><small><small>
+[`demo_serie2b_convergentes.R`](demo_serie2b_convergentes.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie2b_convergentes.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie2b_convergentes.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Contrariando a afirmação, algumas séries com $r \le -1$ ou $r \ge 1$.
+
+<small>**Nota**: há problemas quando $r=1$, pois a fórmula $s_k = a_1(1-r^k)/(1-r)$ não é computável para $r=1$, mas a computamos pela somatória porque $a_k=1$ e $s = \sum_{k=1}^{j}{a_k}$; no entanto, esta não é uma progressão geométrica.</small>
+<div align=right><small><small>
+[`demo_serie2c_divergentes.R`](demo_serie2c_divergentes.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie2c_divergentes.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie2c_divergentes.R')
+```
+
+### progressão harmônica
+
+A sequência $a=[1,1/2,1/3,1/4,1/5,\dots]=\left[\dfrac{1}{j}\right]$ não é nem progressão aritmética e nem geométrica. 
+
+Essa sequência é denominada progressão harmônica (PH), pois cada elemento intermediário é a média harmônica entre dois elementos laterais, isto é, $2/(1/(1/1)+1/(1/3))=2/(1+3)=1/2$, $2/(2+4)=1/3$, $2/(3+5)=1/4$ e assim por diante. 
+
+Sua série é dada por $s=[1/2,5/6,13/12,77/60,29/20,223/140,\dots]$ e seus elementos são chamados de números harmônicos. 
+
+A série da progressão harmônica é divergente positivamente, pois $s_\infty=\infty$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1+1/2+1/3+1/4+1/5+...](https://www.wolframalpha.com/input?i=1%2B1%2F2%2B1%2F3%2B1%2F4%2B1%2F5%2B...){target="_blank"}
+
+[Table[Sum[1/j,{j,1,n}],{n,1,10}]](https://www.wolframalpha.com/input?i=Table%5BSum%5B1%2Fj%2C%7Bj%2C1%2Cn%7D%5D%2C%7Bn%2C1%2C10%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+<div align=right><small><small>
+[`demo_serie3_harmonica.R`](demo_serie3_harmonica.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3_harmonica.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3_harmonica.R')
+```
+
+### alternantes ou oscilantes
+
+Se a sequência tem termos que alternam de sinal, então é chamada de sequência alternante ou oscilante. 
+
+A série de uma sequência oscilante é oscilante e pode ser convergente ou divergente. 
+
+Por exemplo, são divergentes oscilantemente ou indeterminadas as séries das sequências oscilantes $[(-1)^n ]=[-1,1,-1,1,\dots]$ e $\left[(-1)^{n-1}  \dfrac{n+1}{n}\right]=[2,-3/2,4/3,-5/4,\dots]$. 
+
+Note que essas duas sequências são divergentes oscilantemente ou indeterminadas. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Sum[((-1)^(n-1))((n+1)/n),{n,1,Infinity}]](https://www.wolframalpha.com/input?i=Sum%5B%28%28-1%29%5E%28n-1%29%29%28%28n%2B1%29%2Fn%29%2C%7Bn%2C1%2CInfinity%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Esta é a série obtida com $a = [(-1)^n]$.
+
+<small>
+**Nota**: é o mesmo que definir $a_j = (-1)^{j-1}$, se $j$ é par, e $a_j = 1^{j-1}$, se $j$ é ímpar.
+
+Nesta formulação, podemos substituir -1 e 1 por qualquer outro valor.
+</small>
+<div align=right><small><small>
+[`demo_serie3_oscilante.R`](demo_serie3_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3_oscilante.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+Série obtida com $a_j = (-1)^{j-1} \dfrac{j+1}{j}$:
+<div align=right><small><small>
+[`demo_serie3_oscilante2.R`](demo_serie3_oscilante2.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3_oscilante2.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3_oscilante2.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+Voltando a $a_j = (-b)^{j-1}$, se $j$ é par e $a_j = b^{j-1}$, se $j$ é ímpar, sendo $b>1$; e.g., $b=1.1$: 
+<div align=right><small><small>
+[`demo_serie3b_oscilante.R`](demo_serie3b_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3b_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3b_oscilante.R')
+```
+
+Para $b<-1$, e.g., $b=-1.1$
+<div align=right><small><small>
+[`demo_serie3c_oscilante.R`](demo_serie3c_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3c_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3c_oscilante.R')
+```
+
+Curiosamente, para $-1 < b < 1, b \ne 0$, as séries se tornam convergentes
+
+Para $b=-0.75$
+<div align=right><small><small>
+[`demo_serie3d_oscilante.R`](demo_serie3d_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3d_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3d_oscilante.R')
+```
+
+Para $b=0.75$
+<div align=right><small><small>
+[`demo_serie3e_oscilante.R`](demo_serie3e_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie3e_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie3e_oscilante.R')
+```
+
+As séries das sequências oscilantes $[(-1/2)^n ]=[-1/2,1/4,-1/8,1/16,\dots]$ e $\left[\dfrac{(-1)^n}{n!}\right]=[-1,1/2,-1/6,1/24,\dots]$ convergem para $-1/3$ e $e^{-1}-1=0.6321\dots$, respectivamente. 
+
+Note que essas duas sequências convergem oscilantemente para 0.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Sum[(-1/2)^n,{n,1,k}]](https://www.wolframalpha.com/input?i=Sum%5B%28-1%2F2%29%5En%2C%7Bn%2C1%2Ck%7D%5D){target="_blank"}
+
+[Sum[(-1/2)^n,{n,1,Infinity}]](https://www.wolframalpha.com/input?i=Sum%5B%28-1%2F2%29%5En%2C%7Bn%2C1%2CInfinity%7D%5D){target="_blank"}
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+Série obtida com $a_j = \left (-\dfrac{1}{2} \right ) ^ j$:
+<div align=right><small><small>
+[`demo_serie4.1_oscilante.R`](demo_serie4.1_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie4.1_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie4.1_oscilante.R')
+```
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Sum[((-1)^n)/n!,{n,1,k}]](https://www.wolframalpha.com/input?i=Sum%5B%28%28-1%29%5En%29%2Fn%21%2C%7Bn%2C1%2Ck%7D%5D){target="_blank"}
+
+[Sum[((-1)^n)/n!,{n,1,Infinity}]](https://www.wolframalpha.com/input?i=Sum%5B%28%28-1%29%5En%29%2Fn%21%2C%7Bn%2C1%2CInfinity%7D%5D){target="_blank"}
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+Série obtida com $a_j = \dfrac{(-1)^j}{j!}$:
+<div align=right><small><small>
+[`demo_serie4.2_oscilante.R`](demo_serie4.2_oscilante.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_serie4.2_oscilante.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_serie4.2_oscilante.R')
+```
+
+### absoluta e condicionalmente convergentes
+
+A série convergente oscilantemente é absolutamente convergente se a série dos valores absolutos de sua sequência é convergente. Caso contrário, a série convergente oscilantemente é condicionalmente convergente. 
+
+Por exemplo, a série da sequência $\left[\dfrac{(-1)^n}{n}\right]=[-1,1/2,-1/3,1/4,-1/5,\dots]$ converge para $-\ln(2)=-0.69\cdots$. 
+
+No entanto, a série da sequência $\left[\left|\dfrac{(-1)^n}{n}\right|\right]=\left[\dfrac{1}{n}\right]=[1,1/2,1/3,1/4,1/5,\dots]$ é divergente positivamente. Dessa forma, a série da sequência $[(-1)^n/n]$ é convergente condicionalmente.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+Gráfico de $a_j$ e $|a_j|$ da série condicionalmente convergente $a_j = \dfrac{(-1)^j}{j}$:
+
+<div align=right><small><small>
+[`demo_serie5.1_cond.convergente.R`](demo_serie5.1_cond.convergente.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_serie5.1_cond.convergente.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_serie5.1_cond.convergente.R')
+```
+
+Um exemplo de série convergente absolutamente é a série da sequência $[(-1/2)^n ]$, pois sua série converge para $-1/3$ e a série da sequência $\left[|((-1)/2)^n|\right]=[1/2^n]$ converge para 1.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Gráfico de $a_j$ e $|a_j|$ da série absolutamente convergente $a_j = \left( -\dfrac{1}{2} \right)^n$:
+
+<div align=right><small><small>
+[`demo_serie5.2_abs.convergente.R`](demo_serie5.2_abs.convergente.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_serie5.2_abs.convergente.R'),}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_serie5.2_abs.convergente.R')
+```
+
+### resumo
+
+```{r echo=FALSE, out.width="90%"}
+knitr::include_graphics("./image/serie.png")
+```
+
+Considere as seguintes sequências:
+
+$a = [a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8, a_9, \dots]$
+
+<br>
+
+$b = [b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9, \dots]$
+
+sendo $b_1 = (a_1+a_2), \;b_2 = (a_3+a_4), \;\dots$
+
+<br>
+
+$c = [c_1, c_2, c_3, c_4, c_5, c_6, c_7, c_8, \dots]$
+
+sendo $c_1 = (a_1+a_2+a_3), c_2 = (a_4+a_5+a_6), \;\dots$
+
+<br>
+
+$d = [d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, \dots]$
+
+sendo $d_1 = (a_1+a_2), \; d_2 = (a_4+a_5+a_6), \;d_3 = (a_7), \;d_4=(a_8+a_9), \;\dots$
+
+Repare que criamos novas sequências colocando parênteses para agrupar os elementos de $a$ seguindo diferentes padrões ou mesmo sem um padrão previsível. 
+Então:
+
+* se a série é convergente, é permitido colocar parênteses a vontade que a nova série permanece sendo convergente para o mesmo valor.
+
+* se a série é divergente, a colocação de parênteses pode transformá-la em convergente.
+
+* a remoção de parênteses na série convergente pode produzir uma série divergente.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+E.g., a seguinte sequência $a$ é convergente para $0$ e a série $s$ para $0.\bar{4}$.
+
+As sequências $b$ e $c$ formam seus elementos agrupando $a$, respectivamente, de 2 em 2 e de 3 em 3.
+
+Observa-se:
+<div align=right><small><small>
+[`demo_parenteses.R`](demo_parenteses.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_parenteses.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_parenteses.R')
+```
+
+## Séries Especiais
+
+### Série geométrica
+
+$$\begin{align}
+a_n&=a_{0}q^n\\
+s_n&=a_{0}\dfrac{1-q^{n+1}}{1-q}, \; q\ne1
+\end{align}$$
+
+Se $|q|<1$, então:
+
+$$\lim_{n\to\infty}s_n=\dfrac{a_{0}}{1-q}$$
+
+#### Exemplo: $0.\bar{9}=1$?
+
+$$\begin{align}
+0.\bar{9}&=0.999\cdots=\dfrac{9}{10}+\dfrac{9}{100}+\dfrac{9}{1000}+\cdots\\
+s_n&=\sum_{i=1}^{n}{\dfrac{9}{10^{i}}}\\
+\lim_{n\to\infty}s_n&=\dfrac{\dfrac{9}{10}}{1-\dfrac{1}{10}}=1
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[0.9... = 1](https://www.wolframalpha.com/input?i=0.9...+%3D+1){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+<div align=right><small><small>
+[`demo_serie09over10.R`](demo_serie09over10.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_serie09over10.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_serie09over10.R')
+```
+
+<!-- #### Exemplo 8.3.2: Genética -->
+
+<!-- Neel e Schull (1958, p. 333) estudaram a ocorrência de retinoblastoma sob a influência de mutação, herança e seleção. O retinoblastoma é um tipo de câncer do olho em crianças. -->
+
+<!-- Aparentemente, a doença depende de um único gene dominante, digamos A. -->
+
+<!-- Seja a o alelo normal.  -->
+
+<!-- Acredita-se que a mutação de a em A ocorra a uma taxa de _m_ = 2 x 10<sup>-5</sup> em cada geração. Excluímos a possibilidade de retromutações (A em a).  -->
+
+<!-- Com cuidados médicos, aproximadamente 70% das pessoas afetadas sobrevivem. -->
+
+<!-- Além disso, assumimos que os sobreviventes se reproduzem na metade da frequência normal.  -->
+
+<!-- A proporção produtiva líquida de pessoas afetadas será, portanto, _r_ = 0.35. -->
+
+<!-- Como A é extremamente raro, praticamente todas as pessoas afetadas são do genótipo Aa. Assim, podemos negligenciar indivíduos de genótipo AA. Espera-se que apenas metade dos filhos de indivíduos afetados recebam o alelo patógeno A, mas essa redução é compensada pelo fato de que cada pessoa afetada compartilha a reprodução com seu parceiro não afetado. -->
+
+<!-- Começando com zero casos herdados em uma geração inicial, obtemos para a _n_-ésima geração consecutiva uma taxa de -->
+
+<!-- $m$ devido a mutação na _n_-ésima geração -->
+
+<!-- $mr$ devido a mutação na (_n_ - 1)-ésima geração -->
+
+<!-- $mr^2$ devido a mutação na (_n_ - 2)-ésima geração -->
+
+<!-- $\dots$ -->
+
+<!-- $mr^n$ devido a mutação na geração original (que é numerado 0). -->
+
+<!-- Para a taxa total $p_n$ de ocorrência na _n_-ésima geração, obtemos -->
+
+<!-- $$ p_n= m + mr + mr^2 + \dots + mr^n=m\dfrac{1-r^{n+1}}{1-r}\\ -->
+<!-- p=\lim_{n\to\infty}p_n=\dfrac{m}{1-r}=\dfrac{2\times10^{-5}}{1-0.35}=3.08 \times 10^{-5}$$ -->
+
+<!-- Portanto, a frequência de pessoas afetadas com retinoblastoma será finalmente de 3.08 x 10<sup>-5</sup>, ou seja, cerca de 50% maior que a taxa de mutação. -->
+
+<!-- Também segue da fórmula anterior que -->
+
+<!-- $$m=(1-r)p$$ -->
+
+<!-- Para este resultado encontramos uma interpretação intuitiva simples. Em um estado estacionário, o número de alelos A produzidos pela mutação deve ser compensado por um número igual de perdas. Assim, por geração, a taxa de produção é $m$, enquanto a taxa de perdas é $1 - r$ (proporção improdutiva) multiplicado por $p$ (frequência de pessoas afetadas). -->
+
+### Equação de recorrência linear
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Linear Recurrence Equation](https://mathworld.wolfram.com/LinearRecurrenceEquation.html){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Common linear recurrence equations and the corresponding solutions."}
+knitr::include_graphics("./image/recorrencia.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[a(n+1)-a(n-1)=a(n), a(1)=1, a(2)=1](https://www.wolframalpha.com/input?i=a%28n%2B1%29-a%28n-1%29%3Da%28n%29%2C+a%281%29%3D1%2C+a%282%29%3D1){target="_blank"} 
+
+[Table[Fibonacci[n], {n, 20}]](https://www.wolframalpha.com/input?i=Table%5BFibonacci%5Bn%5D%2C+%7Bn%2C+20%7D%5D){target="_blank"} 
+
+[Fibonacci Number](https://mathworld.wolfram.com/FibonacciNumber.html){target="_blank"} 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Sequência de Fibonacci e o Número de Ouro:
+
+<div align=right><small><small>
+[`demo_Fibonacci.R`](demo_Fibonacci.R){target="_blank"}
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_Fibonacci.R'),}
+```
+-->
+``` {r echo=FALSE}
+source('demo_Fibonacci.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png") 
+```
+
+Variante, sequência de Lucas:
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[a(n+1)-a(n-1)=a(n), a(1)=1, a(2)=3](https://www.wolframalpha.com/input?i=a%28n%2B1%29-a%28n-1%29%3Da%28n%29%2C+a%281%29%3D1%2C+a%282%29%3D3){target="_blank"} 
+
+[Table[LucasL[n], {n, 20}]](https://www.wolframalpha.com/input?i=Table%5BLucasL%5Bn%5D%2C+%7Bn%2C+20%7D%5D){target="_blank"} 
+
+[Lucas Number](https://www.wolframalpha.com/input?i=Lucas+Number){target="_blank"}
+
+<div align=right><small><small>
+[`demo_Lucas.R`](demo_Lucas.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_Lucas.R'),}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_Lucas.R')
+```
+
+### Equação de recorrência quadrática
+
+[Quadratic recurrence equation](https://mathworld.wolfram.com/QuadraticMap.html){target="_blank"}
+
+a. $\sqrt{1}, \;\sqrt{1 + \sqrt{1}}, \;\sqrt{1 + \sqrt{1 + \sqrt{1}}}, \;\sqrt{1 + \sqrt{1 + \sqrt{1 + \sqrt{1}}}}, \;\dots$
+
+$$\begin{align}
+x&=\sqrt{1 + \sqrt{1 + \sqrt{1 + \cdots}}} \\
+x&=\sqrt{1+x}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(1+x)^0.5=x](https://www.wolframalpha.com/input?i=%281%2Bx%29%5E0.5%3Dx){target="_blank"}
+
+O limite (ponto fixo) da sequência $a_n^2=1-a_{n-1}$ é o número de ouro $\phi=\dfrac{1+\sqrt{5}}{2}\approx1.618$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`1^0.5, (1+1^0.5)^0.5, (1+(1+1^0.5)^0.5)^0.5, (1+(1+(1+1^0.5)^0.5)^0.5)^0.5, ...`](https://www.wolframalpha.com/input?i=1%5E0.5%2C+%281%2B1%5E0.5%29%5E0.5%2C+%281%2B%281%2B1%5E0.5%29%5E0.5%29%5E0.5%2C+%281%2B%281%2B%281%2B1%5E0.5%29%5E0.5%29%5E0.5%29%5E0.5%2C+...){target="_blank"}
+
+[`a(n)^2=1-a(n-1), a(1)=1, a(2)=(1+1^0.5)^0.5`](https://www.wolframalpha.com/input?i=a%28n%29%5E2%3D2%2Ba%28n-1%29%2C+a%281%29%3D2%5E0.5%2C+a%282%29%3D%282%2B2%5E0.5%29%5E0.5){target="_blank"}
+
+b. $\sqrt{2}, \;\sqrt{2 + \sqrt{2}}, \;\sqrt{2 + \sqrt{2 + \sqrt{2}}}, \;\sqrt{2 + \sqrt{2 + \sqrt{2 + \sqrt{2}}}}, \;\dots$
+
+$$\begin{align}
+x&=\sqrt{2 + \sqrt{2 + \sqrt{2 + \cdots}}} \\
+x&=\sqrt{2+x}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(2+x)^0.5=x](https://www.wolframalpha.com/input?i=%282%2Bx%29%5E0.5%3Dx){target="_blank"}
+
+O limite (ponto fixo) da sequência $a_n^2=2+a_{n-1}$ é 2. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`2^0.5, (2+2^0.5)^0.5, (2+(2+2^0.5)^0.5)^0.5, (2+(2+(2+2^0.5)^0.5)^0.5)^0.5, ...`](https://www.wolframalpha.com/input?i=2%5E0.5%2C+%282%2B2%5E0.5%29%5E0.5%2C+%282%2B%282%2B2%5E0.5%29%5E0.5%29%5E0.5%2C+%282%2B%282%2B%282%2B2%5E0.5%29%5E0.5%29%5E0.5%29%5E0.5%2C+...){target="_blank"}
+
+[`a(n)^2=2+a(n-1), a(1)=2^0.5, a(2)=(2+2^0.5)^0.5`](https://www.wolframalpha.com/input?i=a%28n%29%5E2%3D2%2Ba%28n-1%29%2C+a%281%29%3D2%5E0.5%2C+a%282%29%3D%282%2B2%5E0.5%29%5E0.5){target="_blank"}
+
+
+### Sequência sem fórmula de recorrência e sem solução exata
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+$$\begin{align}
+y&=\cos(\cos(\cos(\cdots(x)))) \\
+y&=\cos(y)
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cos(y)=y](https://www.wolframalpha.com/input?i=cos%28y%29%3Dy){target="_blank"}
+
+O valor do ponto fixo de $\cos(y)=y$ é $x\approx0.7391\dots$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cos(1), cos(cos(1)), cos(cos(cos(1))), cos(cos(cos(cos(1)))), cos(cos(cos(cos(cos(1))))), ...](https://www.wolframalpha.com/input?i=cos%281%29%2C+cos%28cos%281%29%29%2C+cos%28cos%28cos%281%29%29%29%2C+cos%28cos%28cos%28cos%281%29%29%29%29%2C+cos%28cos%28cos%28cos%28cos%281%29%29%29%29%29%2C+...){target="_blank"}
+
+[cos(0), cos(cos(0)), cos(cos(cos(0))), cos(cos(cos(cos(0)))), cos(cos(cos(cos(cos(0))))), ...](https://www.wolframalpha.com/input?i=cos%280%29%2C+cos%28cos%280%29%29%2C+cos%28cos%28cos%280%29%29%29%2C+cos%28cos%28cos%28cos%280%29%29%29%29%2C+cos%28cos%28cos%28cos%28cos%280%29%29%29%29%29%2C+...){target="_blank"}
+
+# Limite
+
+* [Convergent series: Wikipedia](https://en.wikipedia.org/wiki/Convergent_series){target="_blank"} 
+
+* [Limite: Wikipedia](https://en.wikipedia.org/wiki/Limit_(mathematics)){target="_blank"}
+
+A definição de limite usa tradicionalmente a letra grega épsilon, i.e., $\epsilon$. 
+O épsilon é um número real estritamente positivo e costuma-se atribuir valores muito menores do que 1 a ele, isto é, $\epsilon \in \mathbb{R^{*}_{+}}$ e $\epsilon \ll 1$ (o símbolo $\ll$ significa muito menor). O épsilon é um ente dinâmico que tende para zero denotado por $ε\to 0$. Tender significa aproximar-se cada vez mais de 0 e não ser 0. 
+
+A sequência $[a_n]$ tem limite $L$ se é possível obter um número inteiro positivo $N$ tal que $-\epsilon<a_n-L<\epsilon$ para $n>N$ qualquer que seja $\epsilon$. Neste caso, indica-se $\lim_{n\to \infty} a_n=L$ e diz-se que a sequência converge para $L$. Se o limite existe, ele é único.
+
+Note que a existência do limite $L$ depende do “enssanduichamento” de $a_n$ na expressão $-\epsilon<a_{N+1}-L<\epsilon$.
+
+Considere, por exemplo, a sequência $\left[\dfrac{1}{2^n}\right]=[1/2,1/4,1/8,1/16,\dots]$. O termo geral $1/2^n$  converge para 0, i.e., 0 é o valor limite de $1/2^n$  quando $n$ tende para infinito. O número $n$ tender ao infinito significa que ele é tão grande quanto se queira. Matematicamente, tem-se que $\lim_{n\to \infty} \dfrac{1}{2^n}=0$. 
+
+A seguir é mostrado que a sequência converge para 0.
+
+$$-\epsilon<a_n+L<\epsilon \\
+L-\epsilon<a_n<L+\epsilon \\
+0-\epsilon<\dfrac{1}{2^n} <0+\epsilon \\  
+-\epsilon<\dfrac{1}{2^n} <\epsilon \\
+0<\dfrac{1}{2^n} <\epsilon \\
+2^n>1/\epsilon \\
+n>\log_2 \dfrac{1}{\epsilon}$$
+
+Por exemplo, se $\epsilon=1/1000$, então $\log_2 (1/\epsilon)=\log_2 1000=0.96\dots$. Tem-se que $n>9.96\dots$, i.e., $N=10$. Se $\epsilon=1/10000$, então $\log_2 (1/\epsilon)=\log_2 10000=13.28\dots$. Tem-se que $n>13.28\dots$, i.e., $N=14$. Dessa forma, quanto menor $\epsilon$, maior _N_. Note que essa relação é esperada. Como existe _N_ para cada $\epsilon$ fixado, então o limite é 0. Como o limite é 0, então a sequência converge para 0.
+
+As seguintes expressões de limite são equivalentes:
+
+$$\lim_{n\to \infty}{a_n}=0 \\
+a_n\to 0$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Limit 1/(2^n) as n -> infinity](https://www.wolframalpha.com/input?i=Limit+1%2F%282%5En%29+as+n+-%3E+infinity){target="_blank"} 
+
+Um exemplo importante de sequência convergente é dado a seguir. 
+
+A sequência $[a^n]$, sendo que $-1<a<1$, converge para 0, i.e., $\lim_{n\to\infty}{a^n}=0$.
+
+A série $[s_n ]$ é dita ser convergente para o número $s_\infty$ se $\lim_{n\to\infty} {s_n}=s_{\infty}$.
+
+E.g., a série $\left[1-\dfrac{1}{2^n}\right]$, oriunda da sequência $\left[\dfrac{1}{2^n}\right]$, tem limite igual a 1, i.e., $\lim_{n\to\infty}{\left(1-\dfrac{1}{2^n}\right)}=1$. Então, diz-se que a série converge para 1.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Limit 1-1/(2^n) as n -> infinity](https://www.wolframalpha.com/input?i=Limit+1-1%2F%282%5En%29+as+n+-%3E+infinity){target="_blank"} 
+
+Se a série é convergente, então o termo geral da sequência converge para 0. No entanto, se o termo geral da sequência converge para 0, não implica a convergência da série. Por exemplo, a sequência $\left[\dfrac{1}{n}\right]$ converge para 0. No entanto, a série é divergente positivamente.
+
+Considere $\lim_{n\to\infty}{a_n}=A$ e $\lim_{n\to\infty}{b_n}=B$. As propriedades do limite são as seguintes:
+
+1. $\lim_{n\to\infty} c=c$
+1. $\lim_{n\to\infty} a_{n+k}=\lim_{n\to\infty} a_n=A$, $k\in \mathbb{Z}$
+1. $\lim_{n\to\infty} ca_n=c \lim_{n\to\infty} a_n=cA$
+1. $\lim_{n\to\infty} (a_n\pm b_n )=\lim_{n\to\infty} a_n\pm \lim_{n\to\infty} b_n=A±B$
+1. $\lim_{n\to\infty} (a_n\times b_n )=\lim_{n\to\infty} a_n\times \lim_{n\to\infty} b_n=A×B$
+1. $\lim_{n\to\infty}  a_n/b_n =(\lim_{n\to\infty} a_n)/(\lim_{n\to\infty} b_n )=A/B$
+1. $\lim_{n\to\infty} (a_n )^k=(\lim_{n\to\infty} a_n )^k=A^k$, $k\in \mathbb{N^{*}}$
+1. $\lim_{n\to\infty} \sqrt[k]{a_n}=\sqrt[k]{\lim_{n\to\infty} a_n}=\sqrt[k]{A}$, $k\in \mathbb{N^{*}}$
+	
+A seguir são mostrados os limites das sequências e de suas respectivas séries usadas ao longo do capítulo.
+
+1. $a_n=n: \;\lim_{n\to\infty} n=\infty$
+
+1. $s_n=(n/2)(1+n): \;\lim_{n\to\infty} (n/2)(1+n)=(\lim_{n\to\infty}  n/2)(\lim_{n\to\infty} (1+n))= \\ =((\lim_{n\to\infty} n)/2)(1+\lim_{n\to\infty} n)=(\infty/2) \times (1+\infty)=\infty$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[limit n as n->infinity](https://www.wolframalpha.com/input?i=limit+n+as+n-%3Einfinity){target="_blank"} 
+
+[sum n ](https://www.wolframalpha.com/input?i=limit+n+as+n-%3Einfinity){target="_blank"} 
+
+<br>
+
+1. $a_n=1/2^n∶ \;\lim_{n\to\infty}  1/2^n =1/\lim_{n\to\infty} 2^n=1/\infty=0$
+
+1. $s_n=1-1/2^n:\;\lim_{n\to\infty} (1-1/2^n)=1-\lim_{n\to\infty} 1/2^n=1-0=1$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1/2^n](https://www.wolframalpha.com/input?i=1%2F2%5En){target="_blank"} 
+
+[limit 1/2^n as n->infinity](https://www.wolframalpha.com/input?i=limit+1%2F2%5En+as+n-%3Einfinity){target="_blank"} 
+
+[sum 1/2^n](https://www.wolframalpha.com/input?i=sum+1%2F2%5En){target="_blank"} 
+
+<br>
+
+1. $a_n=1/n: \;\lim_{n\to\infty}  1/n=0$
+
+1. $s_n=\sum_{j=1}^n 1/j: \;\lim_{n\to\infty} \sum_{j=1}^n 1/j=?$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1/n](https://www.wolframalpha.com/input?i=1%2Fn){target="_blank"} 
+
+[limit 1/n as n->infinity](https://www.wolframalpha.com/input?i=limit+1%2Fn+as+n-%3Einfinity){target="_blank"} 
+
+[sum 1/n](https://www.wolframalpha.com/input?i=sum+1%2Fn+){target="_blank"} 
+<br>
+
+1. $a_n=(-1)^n: \;\lim_{n\to\infty} (-1)^n= \text{indeterminado}$, pois é 1, se _n_ par, e -1, se _n_ ímpar 
+
+1. $s_n=\sum_{j=1}^n (-1)^j∶\; \lim_{n\to\infty} (\sum_{j=1}^n (-1)^j )=\text{indeterminado}$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(-1)^n](https://www.wolframalpha.com/input?i=1%2Fn){target="_blank"} 
+
+[limit (-1)^n as n->infinity](https://www.wolframalpha.com/input?i=limit+%28-1%29%5En+as+n-%3Einfinity){target="_blank"} 
+
+[sum (-1)^n](https://www.wolframalpha.com/input?i=sum+1%2Fn+){target="_blank"} 
+
+<br>
+
+1. $a_n=(-1)^{n-1}(n+1)/n: \;\lim_{n\to\infty} (-1)^{n-1}  (n+1)/n=\\ =(\lim_{n\to\infty} (-1)^{n-1} )(\lim_{n\to\infty}  (n+1)/n)=\\ =(\lim_{n\to\infty} (-1)^{n-1} )(1+\lim_{n\to\infty}  1/n)=\\ =\lim_{n\to\infty} (-1)^{n-1}=\text{indeterminado}$ 
+
+1. $s_n=\sum_{j=1}^n (-1)^{j-1}  (j+1)/j: \;\lim_{n\to\infty} \sum_{j=1}^n (-1)^{j-1}  (j+1)/j=\\ =\lim_{n\to\infty}\sum_{j=1}^n (-1)^{j-1}(1+\lim_{n\to\infty} (\sum_{j=1}^n 1/j))=\text{indeterminado}$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(-1)^{n-1}(n+1)/n](https://www.wolframalpha.com/input?i=1%2Fn){target="_blank"} 
+
+[limit (-1)^{n-1}(n+1)/n as n->infinity](https://www.wolframalpha.com/input?i=limit+%28-1%29%5E%7Bn-1%7D%28n%2B1%29%2Fn+as+n-%3Einfinity){target="_blank"} 
+
+[sum (-1)^{n-1}(n+1)/n ](https://www.wolframalpha.com/input?i=sum+%28-1%29%5E%7Bn-1%7D%28n%2B1%29%2Fn+){target="_blank"} 
+
+<br>
+
+1. $a_n=(-1)^n/2^n∶\; \lim_{n\to\infty}  (-1)^n/2^n= \lim_{n\to\infty} (-1)^n /\lim_{n\to\infty} 2^n=\\ =\lim_{n\to\infty} (-1)^n/\infty=0$
+
+1. $s_n=((-1/2)^n-1)/3: \;\lim_{n\to\infty} ((-1/2)^n-1)/3=(\lim_{n\to\infty} (-1)^n/\lim_{n\to\infty} 2^n-1)/3=\\=(\lim_{n\to\infty} (-1)^n/\infty-1)/3=-1/3$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(-1)\^n/2\^n ](https://www.wolframalpha.com/input?i=%28-1%29%5En%2F2%5En+){target="_blank"} 
+
+[limit (-1)^n/2^n as n->infinity](https://www.wolframalpha.com/input?i=limit+%28-1%29%5En%2F2%5En+as+n-%3Einfinity){target="_blank"} 
+
+[sum (-1)^n/2^n ](https://www.wolframalpha.com/input?i=sum+%28-1%29%5En%2F2%5En){target="_blank"} 
+
+<br>
+
+1. $a_n=1/(n(n+1)): \;\lim_{n\to\infty}  1/(n(n+1))=1/(\lim_{n\to\infty} n(n+1) )=1/\infty=0$
+
+1. $s_n=1-1/(1+n): \;\lim_{n\to\infty} (1-1/(1+n))=1-\lim_{n\to\infty} 1/(1+n) =1-0=1$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1/(n(n+1))](https://www.wolframalpha.com/input?i=1%2F%28n%28n%2B1%29%29){target="_blank"} 
+
+[limit 1/(n(n+1)) as n->infinity](https://www.wolframalpha.com/input?i=limit+1%2F%28n%28n%2B1%29%29+as+n-%3Einfinity){target="_blank"} 
+
+[sum 1/(n(n+1))](https://www.wolframalpha.com/input?i=sum+1%2F%28n%28n%2B1%29%29){target="_blank"} 
+
+<br>
+
+1. $a_n=1/((n+a)(n+1+a)): \;\lim_{n\to\infty} 1/((n+a)(n+1+a))=1/\lim_{n\to\infty} ((n+a)(n+1+a))=0$
+
+1. $s_n=n/((1+a)(n+1+a)): \;\lim_{n\to \infty}  n/((1+a)(n+1+a))=\\=(\lim_{n\to\infty} n/(n+1+a))/(1+a)=1/(1+a)$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[1/((n+a)(n+1+a))](https://www.wolframalpha.com/input?i=1%2F%28%28n%2Ba%29%28n%2B1%2Ba%29%29){target="_blank"} 
+
+[limit 1/((n+a)(n+1+a)) as n->infinity](https://www.wolframalpha.com/input?i=limit+1%2F%28%28n%2Ba%29%28n%2B1%2Ba%29%29+as+n-%3Einfinity){target="_blank"} 
+
+[sum 1/((n+a)(n+1+a))](https://www.wolframalpha.com/input?i=sum+1%2F%28%28n%2Ba%29%28n%2B1%2Ba%29%29){target="_blank"} 
+
+## Propriedades
+
+A série que tem a propriedade comutativa, isto é, seus termos podem ser alterados de posição sem que a soma se altere, é chamada de convergente incondicionadamente.
+
+Em geral a propriedade comutativa não é válida nas séries.
+
+A série de termos positivos tem a propriedade comutativa e associativa, isto é, a alteração da ordem dos termos ou a inclusão ou supressão de parênteses não altera a sua soma. Em outras palavras, a série de termos positivos conserva as propriedades comutativa e associativa no cálculo do limite.
+
+A série convergente de termos reais permite a colocação de parênteses como se quiser sem que a soma seja alterada. No entanto, os parênteses podem ser suprimidos desde que a nova série obtida seja convergente. Se isso ocorrer, então a eliminação de parênteses ocorre sem alteração da soma.
+
+A série absolutamente convergente tem a propriedade comutativa, isto é, a série absolutamente convergente é convergente incondicionadamente. 
+
+A soma de duas séries convergentes resulta uma série convergente cuja soma é a soma dos limites das duas, isto é, se a primeira série converge para $A$ e a segunda para $B$, a soma das séries converge para $A+B$.
+
+Se as séries $a$ e $b$ convergem para $A$ e $B$, respectivamente, e pelo menos uma delas é convergente absolutamente, o produto de Cauchy [produto de Cauchy](https://en.wikipedia.org/wiki/Cauchy_product){target="_blank"} (convolução discreta) converge para $AB$ (teorema de Mertens).
+
+## Limites Especiais
+
+$$\Large \lim_{n\to\infty}\left(1+\dfrac{1}{n}\right)^n=e\approx2.7182$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+```{r echo=FALSE, out.width="50%", fig.cap="Fig. 8.6. O comportamento de y = 1/x quando _x_ se aproxima de zero pela direita e pela esquerda. Os eixos x e y são assíntotas da hipérbole."}
+knitr::include_graphics("./image/Fig8.6.png")
+```
+
+[limit (1+1/n)^n as n->infinity](https://www.wolframalpha.com/input?i=limit+%281%2B1%2Fn%29%5En+as+n-%3Einfinity){target="_blank"} 
+
+$$\Large \lim_{x\to\infty}\dfrac{1}{x}=0$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[limit 1/x as x -> 0](https://www.wolframalpha.com/input?i=limit+1%2Fx+as+x+-%3E+0){target="_blank"} 
+
+$$\Large \lim_{x\to0}\dfrac{1}{x}=\text{inexistente}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[limit 1/x as x -> infinity](https://www.wolframalpha.com/input?i=limit+1%2Fx+as+x+-%3E+infinity){target="_blank"}
+
+$$\Large \lim_{x\to0}\dfrac{\sin(x)}{x}=1$$
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/Fig8.4.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[limit sin(x)/x as x -> 0](https://www.wolframalpha.com/input?i=limit+sin%28x%29%2Fx+as+x+-%3E+0){target="_blank"} 
+
+$$\Large \lim_{x\to0}\dfrac{\tan(x)}{x}=1$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[limit tan(x)/x as x -> 0](https://www.wolframalpha.com/input?i=limit+tan%28x%29%2Fx+as+x+-%3E+0){target="_blank"} 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+$$\begin{align}
+\dfrac{\sin(x)}{\tan(x)}&=\cos(x)\\
+\cos(0)&=1
+\end{align}$$
+
+[limit sin(x)/tan(x) as x -> 0](https://www.wolframalpha.com/input?i=limit+sin%28x%29%2Ftan%28x%29+as+x+-%3E+0){target="_blank"}
+
+### Exemplo: SoLua
+
+```{r echo=FALSE, out.width="70%", fig.cap="The Sun and the Moon"}
+knitr::include_graphics("./image/Sumoon.png")
+```
+
+https://www.haikudeck.com/the-sun-and-the-moon-uncategorized-presentation-Qrui77dUj9#slide0
+
+* [Tamanho aparente dos astros](http://www.observatoriodumont.com.br/2018/06/tamanho-aparente-dos-astros.html?m=1){target="_blank"}
+
+O tamanho aparente dos astros é a sensação de tamanho maior ou menor que temos ao observamos um astro no céu.
+
+A figura a seguir ilustra um observador que olha para a Lua. 
+
+O tamanho aparente da Lua dependerá do ângulo de abertura do cone de luz que vai da Lua aos olhos do observador. Em geometria básica, utilizando o raio do astro e a distância até o observador, construímos um triângulo retângulo como mostra a imagem a seguir:
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/TerraLua.png")
+```
+
+Se tomarmos a mediatriz do ângulo _θ_ teremos um triângulo retângulo com um ângulo _θ_/2 onde o cateto adjacente é a distância _d_ do observador ao Sol e o cateto oposto é _R_, o próprio raio lunar. Podemos escrever a expressão da tangente de _θ_/2 como "cateto oposto dividido pelo cateto adjacente", ou seja:
+
+$$\tan\dfrac{\theta}{2}=\dfrac{R}{d}$$
+
+Sabendo que a Lua está a uma distância aproximada de _d_ = 3.84 x 10<sup>5</sup> km da Terra e tem um raio aproximado _R_ = 1.74 x 10<sup>3</sup> km (portanto, o diâmetro é _D_ = 3.48 x 10<sup>3</sup> km), podemos concluir que: 
+
+$$\tan\dfrac{\theta}{2}=\dfrac{D/2}{d}=\dfrac{1.74\times10^3}{3.84\times10^5}$$
+
+Se 
+
+$$\lim_{\frac{\theta}{2}\to0}\dfrac{\tan\left(\dfrac{\theta}{2}\right)}{\dfrac{\theta}{2}}=1$$
+
+Então 
+
+$$\tan\left(\dfrac{\theta}{2}\right)\approx\dfrac{\theta}{2}$$
+
+Portanto
+
+$$\dfrac{\theta}{2}\approx\dfrac{D/2}{d}\\
+\theta\approx\dfrac{D}{d}=\dfrac{3.48\times10^3}{3.84\times10^5}=0.0090625 \;\text{radiano}=0.52 \; \text{grau}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[convert 0.0090625 to degrees](https://www.wolframalpha.com/input?i=convert+0.0090625+to+degrees){target="_blank"}
+
+A Lua tem cerca de 0.52 grau (aproximadamente meio grau) de tamanho angular aparente. 
+
+Se fizermos esse cálculo para o Sol, observaremos que o valor será o mesmo (coincidência ou capricho cósmico?), por isso em um eclipse solar total a Lua obstrui o Sol, pois embora tenham tamanhos reais diferentes, as distâncias também diferentes fazem com que tenham o tamanho aparente semelhante.
+
+O disco solar é cerca de 400 vezes maior que o disco lunar. Em compensação, a Lua está cerca de 400 vezes mais perto da Terra do que o Sol. A órbita da Lua ao redor da Terra é elíptica, assim como a órbita da Terra ao redor do Sol, portanto as distâncias variam na prática. Para o cálculo foi utilizado as métricas aproximadas, assumindo valores constantes. Isso explica porque Sol e Lua têm o mesmo tamanho aparente de cerca de meio grau no céu. 
+
+Sabendo que a distância até o Sol é cerca de _d_ = 1.50 x 10<sup>8</sup> km da Terra e tem um raio da ordem de _R_ = 6.96 x 10<sup>5</sup> km, aplicando na equação anterior temos:
+
+$$\theta\approx\dfrac{D}{d}=\dfrac{13.92\times10^5}{1.50\times10^8}=0.00928 \;\text{radiano}=0.53 \; \text{grau}$$
+
+Portanto, o Sol tem praticamente o mesmo tamanho angular aparente que a Lua!
+
+## Limite de Função
+
+Na Fig. 8.7, os pontos $x_2$ e $x_3$ não têm limites único e finito, respectivamente.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 8.7. O gráfico de uma função com dois pontos de descontinuidade (x<sub>2</sub> e x<sub>3</sub>)."}
+knitr::include_graphics("./image/Fig8.7.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 8.8. Exemplo de uma função degrau: o número _N_ de gatos em uma casa. A função tem um salto a cada instante em que ocorre o nascimento ou a morte."}
+knitr::include_graphics("./image/Fig8.8.png")
+```
+
+### Assíntota
+
+"Em funções de crescimento que apresentam uma assíntota horizontal superior à curva, frequentemente surge a questão sobre quando se pode considerar o crescimento como praticamente constante, isto é, quando a curva está suficientemente próxima à sua assíntota, de modo que se possa declarar a diferença como sendo não-significativa. Vários métodos têm sido empregados, entre eles o que verifica através do teste t a significância da diferença entre a curva e sua assíntota. O uso de regressão segmentada, como em Portz et al. (2000), também tem esse objetivo, isto é, a determinação de um ponto de início de crescimento praticamente constante. Utilizou-se a função logística de crescimento, a qual possui assíntota horizontal e ponto de inflexão, e aplicou-se um novo método, que consiste na determinação matemática de um ponto da curva a partir do qual a aceleração do crescimento tende assintoticamente a zero. Este método, além de ter um significado biológico, conduz a um ponto bastante próximo aos obtidos pelos métodos anteriormente citados."
+
+> Mischan et al., 2011, p. 109
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 8.5. Gráficos de várias funções que atingem o eixo _x_ assintoticamente. Os gráficos de y = 1/x e y = 1/x<sup>2</sup> são chamados de hipérboles."}
+knitr::include_graphics("./image/Fig8.5.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[asymptote (1/2)^x](https://www.wolframalpha.com/input?i=asymptote+%281%2F2%29%5Ex){target="_blank"}
+
+[asymptote 1/x^2](https://www.wolframalpha.com/input?i=asymptote+1%2Fx%5E2){target="_blank"}
+
+[asymptote 1/x](https://www.wolframalpha.com/input?i=asymptote+1%2Fx){target="_blank"}
+
+```{r echo=FALSE, out.width="50%", fig.cap="Fig. 8.6. O comportamento de y = 1/x quando _x_ se aproxima de zero pela direita e pela esquerda. Os eixos x e y são assíntotas da hipérbole."}
+knitr::include_graphics("./image/Fig8.6.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[asymptote x/(1-x^2)](https://www.wolframalpha.com/input?i=asymptote+x%2F%281-x%5E2%29){target="_blank"}
+
+[asymptote log(x)](https://www.wolframalpha.com/input?i=asymptote+log%28x%29){target="_blank"}
+
+[asymptote sin(x)](https://www.wolframalpha.com/input?i=asymptote+sin%28x%29){target="_blank"}
+
+# Sequência em R
+
+```{r}
+seq(3) 
+# 1 2 3
+seq(from=3)
+# 1 2 3
+seq(length.out=3)
+# 1 2 3
+seq(from=-3, to=3) 
+# -3 -2 -1  0  1  2  3
+seq(from=-2, to=2, by=0.5)
+# -2.0 -1.5 -1.0 -0.5  0.0  0.5  1.0  1.5  2.0
+seq(from=-10, to=10, along=1:5)
+# -10  -5   0   5  10
+seq(from=-10, to=10, along=1:9)
+# -10.0  -7.5  -5.0  -2.5   0.0   2.5   5.0   7.5  10.0
+seq(from=0, to=1, length.out=6)
+# 0.0 0.2 0.4 0.6 0.8 1.0
+
+# geometric progression
+2^seq(from=0, to=5, by=1)
+# 1  2  4  8 16 32
+geomSeries <- function(base, max){
+  base^(0:floor(log(max, base)))
+}
+geomSeries(base=2, max=50)
+# 1  2  4  8 16 32
+geomSeq <- function(start,ratio,begin,end){
+  begin<-begin-1
+  end<-end-1
+  start*ratio**(begin:end)
+}
+geomSeq(1, 2, 1, 6)
+# 1  2  4  8 16 32
+geomSeq(1, 2, 3, 6)
+# 4  8 16 32
+
+# first day of year series
+seq(as.Date("2018/1/1"), as.Date("2021/1/1"), by="years")
+# "2018-01-01" "2019-01-01" "2020-01-01" "2021-01-01"
+
+# month series
+seq(as.Date("2000/1/1"), by="month", length=12)
+# [1] "2000-01-01" "2000-02-01" "2000-03-01" "2000-04-01"
+# [5] "2000-05-01" "2000-06-01" "2000-07-01" "2000-08-01"
+# [9] "2000-09-01" "2000-10-01" "2000-11-01" "2000-12-01"
+
+# quarter series
+seq(as.Date("2000/1/1"), as.Date("2001/1/1"), by="3 months")
+# [1] "2000-01-01" "2000-04-01" "2000-07-01" "2000-10-01"
+# [5] "2001-01-01"
+
+# week series
+seq(as.Date("2001/1/1"), as.Date("2001/3/1"), by="weeks")
+# [1] "2001-01-01" "2001-01-08" "2001-01-15" "2001-01-22"
+# [5] "2001-01-29" "2001-02-05" "2001-02-12" "2001-02-19"
+# [9] "2001-02-26"
+
+# day series
+seq(as.Date("2001/1/1"), as.Date("2001/1/31"), by="days")
+# [1] "2001-01-01" "2001-01-02" "2001-01-03" "2001-01-04"
+# [5] "2001-01-05" "2001-01-06" "2001-01-07" "2001-01-08"
+# [9] "2001-01-09" "2001-01-10" "2001-01-11" "2001-01-12"
+# [13] "2001-01-13" "2001-01-14" "2001-01-15" "2001-01-16"
+# [17] "2001-01-17" "2001-01-18" "2001-01-19" "2001-01-20"
+# [21] "2001-01-21" "2001-01-22" "2001-01-23" "2001-01-24"
+# [25] "2001-01-25" "2001-01-26" "2001-01-27" "2001-01-28"
+# [29] "2001-01-29" "2001-01-30" "2001-01-31"
+
+# first four months
+cat(month.name[1:4], sep=" ")
+# January February March April
+
+# first four months
+cat(month.name[1:4], sep="-")
+# January-February-March-April
+
+# first four months
+cat(month.name[1:4], sep="")
+# JanuaryFebruaryMarchApril
+
+cat("Statistics", "in R") # Statistics in R
+cat("Statistics", "in R", file="output.txt")
+
+outer(month.abb, 1999:2003, FUN="paste")
+
+rep(x=1, times=2)
+# 1 1 
+rep(x=c(4, 3), times=2)
+# 4 3 4 3
+rep(x=c(4, 3), times=c(2,5))
+# 4 4 3 3 3 3 3
+rep(x=c(4, 3), each=2)
+# 4 4 3 3
+
+rep(x="a", times=2)
+# "a" "a" 
+rep(x=c("a", "b"), times=2)
+# "a" "b" "a" "b"
+rep(x=c("a", "b"), times=c(2,5))
+# "a" "a" "b" "b" "b" "b" "b"
+rep(x=c("a", "b"), each=2)
+# "a" "a" "b" "b"
+
+paste(1:6) 
+# "1" "2" "3" "4" "5" "6"
+paste(1:5, c("st", "nd", "rd", rep("th", 2)))
+# "1 st" "2 nd" "3 rd" "4 th" "5 th"
+paste0(1:5, c("st", "nd", "rd", rep("th", 2)))
+# "1st" "2nd" "3rd" "4th" "5th"
+paste0(1:5, c("st", "nd", "rd", rep("th", 2)),
+       collapse=", ")
+# "1st, 2nd, 3rd, 4th, 5th"
+paste("Q", 1:6, sep="")
+# "Q1" "Q2" "Q3" "Q4" "Q5" "Q6"
+paste0("Q", 1:6)
+# "Q1" "Q2" "Q3" "Q4" "Q5" "Q6"
+paste("Today is", date())
+# "Today is Mon Nov 08 18:27:11 2021"
+paste0("Today is ", date())
+# "Today is Mon Nov 08 18:27:11 2021"
+paste0("Q", 1:6, collapse="+")
+paste0("F~",paste0("Q", 1:6, collapse="+"))
+paste0("F~",paste0("Q", 1:6, collapse="+"), "\n",
+       "G~",paste0("Q", 7:9, collapse="+"))
+
+n <- 1e6
+z <- stats::rnorm(n)
+table(cut(z, breaks=-6:6))
+table(cut(z, breaks=-6:6))/n
+
+aaa <- c(1,2,3,4,5,2,3,4,5,6,7)
+cut(aaa, 3)
+cut(aaa, 3, dig.lab = 3, ordered_result = TRUE)
+
+## one way to extract the breakpoints
+labs <- levels(cut(aaa, 3))
+cbind(lower = as.numeric( sub("\\((.+),.*", "\\1", labs) ),
+      upper = as.numeric( sub("[^,]*,([^]]*)\\]", "\\1", labs) ))
+
+## First control, then treatment:
+gl(n=2, k=4, labels=c("Control", "Treat"))
+# [1] Control Control Control Control Treat   Treat  
+# [7] Treat   Treat  
+# Levels: Control Treat
+
+## 20 alternating 1s and 2s
+gl(n=2, k=1, length=2*4)
+# [1] 1 2 1 2 1 2 1 2
+# Levels: 1 2
+
+## alternating pairs of 1s and 2s
+gl(n=2, k=2, length=2*4)
+# [1] 1 1 2 2 1 1 2 2
+# Levels: 1 2
+
+gl(n=3, k=4, labels=c("Low", "Medium", "High"),
+   ordered=TRUE)
+# [1] Low    Low    Low    Low    Medium Medium Medium
+# [8] Medium High   High   High   High  
+# Levels: Low < Medium < High
+```
+
+# Bibliografia: Aula05: Limite e série
+
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulos 2 e 14.
+* Gradshteyn, IS & Ryzhik, IM (2007) _Table of integrals, series, and products_. 7th ed. USA: Academic.
+* Mishan, MM et al. (2011) Determination of a point sufficiently close to the asymptote in nonlinear growth functions. _Sci. Agric._ 68(1): 109-14.
+* Poularikas, AD (1999) _The Handbook of Formulas and Tables for Signal Processing_. Boca Raton: CRC/Springer/IEEE. 
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+
+# Limite e série no YouTube
+
+* [Math is Fun: Advanced: Limit](https://www.mathsisfun.com/calculus/index.html){target="_blank"}
+* [Dennis Wildfogel: Quão grande é o infinito?](https://www.youtube.com/watch?v=UPA3bwVVzGI){target="_blank"}
+* [Mathematical Visual Proofs: A Dozen Proofs: Sum of Integers Formula (visual proofs)](https://www.youtube.com/watch?v=eHbtc50-qXo&list=WL&index=4&t=445s){target="_blank"}
+* [Mathematical Visual Proofs: Beautiful Geometry behind Geometric Series)](https://www.youtube.com/watch?v=JteQEN1XPyc&list=WL&index=5&t=8s){target="_blank"}
+* [Ace Tutors: Continuity and Differentiability EXPLAINED with Examples](https://www.youtube.com/watch?v=nRv1lPqrx3k){target="_blank"}
+* [3Blue1Brown: Limites | Capítulo 7, Essência do Cálculo](https://www.youtube.com/watch?v=kfF40MiS7zA&list=WL&index=5){target="_blank"}
+* [Dr. Trefor Bazett: Top 4 Algebraic Tricks for Computing Limits](https://www.youtube.com/watch?v=zswMgrZqj4E){target="_blank"}
+* [Dr. Trefor Bazett: Limits of Oscillating Functions and the Squeeze Theorem](https://www.youtube.com/watch?v=vIRvEvjKM58){target="_blank"}
+* [Dr. Trefor Bazett: The most important limit in Calculus // Geometric Proof & Applications](https://www.youtube.com/watch?v=f2PRu5QPa3o){target="_blank"}
+* [Dr. Trefor Bazett: What is cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(cos(\dots?? // Banach Fixed Point Theorem](https://www.youtube.com/watch?v=qHnXE_h5c2M&t=12s){target="_blank"}
+* [blackpenredpen: 100 limits (ultimate calculus study guide)](https://www.youtube.com/watch?v=TglD4Y6lmQk&list=WL&index=7&t=223s){target="_blank"}
+* [This equation will change how you see the world (the logistic map)](https://www.youtube.com/watch?v=ovJcsL7vyrk){target="_blank"}
+* [theJourneyofPurpose TJOP: Fibonacci Sequence in Nature](https://www.youtube.com/watch?v=nt2OlMAJj6o){target="_blank"}
+* [DavidsonArtOnline: Golden Ratio = Mind Blown!](https://www.youtube.com/watch?v=c8ccsE_IumM&list=WL&index=7&t=8s){target="_blank"}
+* [Numberphile: The Golden Ratio (why it is so irrational)](https://www.youtube.com/watch?v=sj8Sg8qnjOg){target="_blank"}
+* [Azup: Donald no País da Matemágica e O Número de Ouro - [Dublado 720p HD])](https://www.youtube.com/watch?v=g8oqgrVhA_8){target="_blank"}
+

@@ -1,0 +1,1495 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 3: Funções potência, exponencial, logarítmica e periódica"
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output: 
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula03.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula03.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(plotly, warn.conflicts=FALSE))
+suppressMessages(library(pracma, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+"Fizeram-me ver que é possível chegar a conhecimentos que sejam utilíssimos à vida e que, em vez dessa filosofia especulativa que se ensina nas escolas, pode-se encontrar uma prática pela qual, conhecendo as forças e as ações do fogo, da água, do ar, dos astros, dos céus, tão distintamente quanto conhecemos os diversos ofícios de nossos artesãos, poderemos empregá-los da mesma maneira em todos os usos a que são adequados e, desse modo, tornamo-nos senhores e possuidores da natureza." 
+
+> DESCARTES, R (1637) Discurso sobre o método, _apud_ ROSSI, P (1989) _Os filósofos e as máquinas_. São Paulo: Cia. das Letras, p. 91-2.
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+
+__3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)__
+
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e Vetor (Capítulo 14)
+
+# Função potência
+
+[Power functions: Wikipedia](https://en.wikipedia.org/wiki/Exponentiation#Power_functions){target="_blank"}
+
+A função potência é definida como:
+
+$$f(x)=ax^{n}$$
+
+Sendo que $x\in\mathbb{Q^{*}}$, $a\in\mathbb{R^{*}}$  e  $n\in \mathbb{R^*}$. 
+
+Por exemplo:
+
+*  $f(x)=x^{2}$, $x\in\mathbb{R}$
+*  $f(x)=x^{1/2}=\sqrt{x}$, $x\in\mathbb{R_{+}}$
+*  $f(x)=x^{-1/2}=1/\sqrt{x}$, $x\in\mathbb{R_{+}^{*}}$
+*  $f(x)=x^{\sqrt{2}}$, $x\in\mathbb{R_{+}}$
+*  $f(x)=x^{-\sqrt{2}}$, $x\in\mathbb{R_{+}^{*}}$
+
+A função potência tem, em geral, $D(f)=\mathbb{R_{+}^{*}}$   e  $Im(f)=\mathbb{R_{+}^{*}}$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[x^2](https://www.wolframalpha.com/input?i=x%5E2){target="_blank"}
+
+[x^(1/2)](https://www.wolframalpha.com/input?i=x%5E%281%2F2%29){target="_blank"}
+
+[x^(-1/2)](https://www.wolframalpha.com/input?i=x%5E%28-1%2F2%29){target="_blank"}
+
+[x^sqrt(2)](https://www.wolframalpha.com/input?i=x%5Esqrt%282%29){target="_blank"}
+
+[x^(-sqrt(2))](https://www.wolframalpha.com/input?i=x%5E%28-sqrt%282%29%29){target="_blank"}
+
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/Fig4.1.png")
+```
+
+Na função potência, as constantes _a_ e _n_ caracterizam uma função potência, ou seja, valores específicos de _a_ e _n_ pertencem a uma e somente uma função potência.
+
+Em geral, constantes com tal propriedade são chamadas de parâmetros de uma função. 
+
+Também dizemos que a função potência é uma função biparamétrica. Outro exemplo de uma função de dois parâmetros é $y = ax + b$ com a inclinação _a_ e a intercepto _b_ como parâmetros.
+
+Neste capítulo vamos lidar não apenas com funções de potência, mas também com polinômios que são somas de funções de potência.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot x^sqrt(2), x=0 to 1, axes labels "x" "y"](https://www.wolframalpha.com/input?i=plot+x%5Esqrt%282%29%2C+x%3D0+to+1%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot x^(-sqrt(2)), x=0 to 1, axes labels "x" "y"](https://www.wolframalpha.com/input?i=plot+x%5E%28-sqrt%282%29%29%2C+x%3D0+to+1%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+## Exemplo 1: Salto do golfinho
+
+Como primeira aplicação, estudamos um animal que pula ou salta, como uma pulga, um gato ou um golfinho.
+
+A lei de Galilei afirma que o centro de gravidade está sujeito à mesma aceleração para todos os corpos, desde que a resistência do ar possa ser desprezada. 
+
+O movimento do centro de gravidade é descrito por esta lei, independentemente da ação que o animal execute durante o salto.
+
+Considere o nível mais alto atingido pelo centro de gravidade. 
+
+Seja _t_ = 0 o instante de tempo em que o nível mais alto é atingido e denote s a distância vertical do centro de gravidade medida a partir de seu nível mais alto (ver Fig. 4.2):
+
+$$s(t)=\dfrac{g}{2}t^2$$
+
+sendo que _g_ é a aceleração do centro de gravidade. 
+
+A distância vertical é proporcional ao quadrado do tempo. 
+
+Se _t_ é medido em segundo e _s_ em metro, então _g_ = 9.81 x 10<sup>2</sup> cm/s<sup>2</sup> para a superfície da terra.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 4.2: O centro de gravidade descreve uma parábola, não importa como o golfinho aja durante o movimento."}
+knitr::include_graphics("./image/Fig4.2.png")
+```
+
+Podemos incluir frequentemente valores negativos, ou seja, considerar o tempo antes do animal atingir a culminância. Então _s_ ainda é a distância vertical do nível de culminação. 
+
+O gráfico da função é uma parábola:
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot (981/2) t^2, t:-1 to 1, axes labels "t" "s"](https://www.wolframalpha.com/input?i=plot+%28981%2F2%29+t%5E2%2C+t%3A-1+to+1%2C+axes+labels+%22t%22+%22s%22){target="_blank"}
+
+Golfinhos são conhecidos por sua agilidade e habilidade de realizar saltos impressionantes fora da água. De modo geral, golfinhos podem atingir alturas de cerca de 4,5 a 6 metros acima da água em seus saltos. No entanto, em condições ideais e dependendo da força e velocidade ao saltar, alguns golfinhos podem atingir alturas ainda maiores.
+
+Esses saltos são não apenas espetaculares, mas também servem a propósitos práticos, como limpar parasitas da pele, comunicar-se com outros golfinhos, ou simplesmente como parte de seu comportamento lúdico.
+
+## Exemplo 2: Organismo unicelular esférico
+
+A biofísica fornece importantes aplicações das funções de potência.
+
+Considere um ser unicelular de forma esférica. 
+
+Seja _r_ o raio da esfera. 
+
+Então a superfície _S_ e o volume _V_ da célula são dados por:
+
+$$ S = 4\pi r^{2}$$
+
+$$V=\dfrac{4}{3}\pi r^{3}$$
+
+com $\pi = 3.14...$. 
+
+A superfície _S_ é uma função quadrática de _r_. 
+
+Se o raio cresce por um fator 2, 3 etc., a superfície aumenta por um fator 4, 9 etc. (ver Fig. 4.4). 
+
+O volume _V_ é uma função cúbica de _r_. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 4.4. Duas esferas de raio diferente. Se $r_{2} =2r_{1}$, a superfície é quatro vezes maior."}
+knitr::include_graphics("./image/Fig4.4.png")
+```
+
+Assim, se o raio dobra, o volume aumenta por um fator 8. 
+
+Quando uma célula viva cresce, seu volume aumenta mais rápido que sua superfície. 
+
+Por outro lado, desde que a célula seja pequena em tamanho, a superfície é relativamente grande. 
+
+Suponha que as várias propriedades físicas e químicas dos componentes celulares permaneçam inalteradas enquanto a célula cresce. 
+
+Em seguida, o fluxo de substâncias químicas, como O<sub>2</sub> e CO<sub>2</sub>, pela superfície aumenta em um ritmo mais lento do que a capacidade metabólica da célula, que é proporcional ao volume. 
+
+O mesmo é verdade para a energia luminosa recebida através da superfície. 
+
+Um equilíbrio adequado entre o fluxo pela superfície e o metabolismo interno só é possível para uma célula que não seja muito grande nem muito pequena. 
+
+Por um lado, se o raio for menor que um valor crítico inferior, digamos $r < r_{1}$, o metabolismo presumivelmente entra em colapso, pois o volume não é suficiente em relação à eficiência da superfície. 
+
+Por outro lado, para um raio maior que um valor crítico superior, digamos $r > r_{2}$, a troca química e o fluxo de energia através da superfície podem ser interrompidos, pois a superfície é muito pequena em relação à capacidade do metabolismo. 
+
+Somente para $r_{1} < r < r_{2}$ a célula é competitiva e capaz de sobreviver na luta pela existência. 
+
+Pesquisas teóricas futuras podem fornecer valores numéricos para $r_{1}$ e $r_{2}$ e, assim, sugerir por que os seres unicelulares são do tamanho observado na natureza.
+
+## Exemplo 3: Corpo animal
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 4.5. O corpo de um animal é subdividido em sólidos retangulares para mostrar que o volume é proporcional à terceira potência de uma dimensão linear."}
+knitr::include_graphics("./image/Fig4.5.png")
+```
+
+Para plantas e animais com uma forma mais complexa do que uma esfera, ainda existe uma relação geométrica fácil entre a superfície e o volume do corpo. 
+
+Para melhor compreensão introduzimos o termo de uma dimensão linear. 
+
+O comprimento total de um corpo, sua altura ou sua largura são dimensões lineares. 
+
+Além disso, qualquer distância entre pontos bem definidos de um corpo, como a distância ombro-quadril, pode servir como uma dimensão linear.
+
+No caso especial de uma célula de forma esférica, usamos o raio _r_ como uma dimensão linear. 
+
+Agora consideramos corpos de tamanhos diferentes, mas exatamente da mesma forma. 
+
+Tais corpos são semelhantes no sentido geométrico. 
+
+Seja _l_ uma dimensão linear adequadamente escolhida. 
+
+Então vamos expressar o volume como uma função de _l_. 
+
+Para isso, subdividimos o corpo em um grande número de cubos de tamanhos diferentes (ou de sólidos retangulares como na Fig. 4.5).
+
+Seja _V_ o volume total desses cubos. Ele é próximo ao volume do corpo. 
+Podemos realizar a subdivisão de maneira tão refinada que o erro de aproximação é arbitrariamente pequeno.
+
+O volume de um corpo de qualquer formato é proporcional ao cubo de qualquer uma de suas dimensões lineares:
+
+$$V\propto l^{3}$$
+
+A massa de um corpo de qualquer formato é proporcional ao volume:
+
+$$M \propto V$$
+
+Da mesma forma, podemos subdividir a superfície de um corpo em um grande número de quadrados de tamanhos diferentes. 
+
+Se _S_ denota a superfície total, obtemos pelo mesmo método de antes o resultado: A superfície de um corpo de qualquer formato é proporcional ao quadrado de qualquer uma de suas dimensões lineares.
+
+$$S\propto l^{2}$$
+
+Portanto,
+
+$$\begin{align}
+S &\propto V^{2/3}  \\
+S &\propto M^{2/3}
+\end{align}$$
+
+Plantas e animais multicelulares de tamanho consideravelmente maior do que uma única célula não podem existir a menos que tenham uma superfície suficientemente grande.
+
+Isso decorre de nossa discussão sobre uma célula esférica. 
+
+Brânquias, pulmões, intestinos, rins para animais, raízes e folhas para plantas são dispositivos para uma superfície enrugada a fim de estimular a difusão de moléculas ou a absorção de energia. 
+
+Todos esses dispositivos são apropriados, desde que o tamanho do corpo permaneça dentro de certos limites.
+
+Como ilustração, será usado um camundongo. Um camundongo gigante, de forma geométrica semelhante a um camundongo comum, mas com uma dimensão linear dez vezes maior, dificilmente sobreviveria. Seu volume cresceu 10<sup>3</sup> = 1000 vezes, enquanto a superfície (incluindo a superfície interna dos pulmões, intestinos etc.) aumentou apenas pelo fator 10<sup>2</sup> = 100. Assim, as trocas gasosas, a reabsorção de alimentos e as funções renais não seriam suficientes. Por outro lado, um camundongo anão, geometricamente semelhante em forma a um camundongo comum, mas com uma dimensão linear um décimo menor, também é deficiente. A superfície é 1/100 do camundongo comum, enquanto o volume caiu para 1/1000. O metabolismo, também diminuído para 1/1000, seria incapaz de manter as funções necessárias, especialmente porque o camundongo é um animal de sangue quente e tem que compensar a perda de calor proporcional à superfície.
+
+É um fato experimental que a força muscular é aproximadamente proporcional ao número de fibras musculares e, portanto, proporcional a _l_<sup>2</sup>, sendo que _l_ é uma dimensão linear do músculo. A energia produzida por um músculo é "força x segmento" (trabalho, energia) e, portanto, proporcional a _l_<sup>2</sup> x _l_ = _l_<sup>3</sup>.
+
+Considere agora uma pulga (_Ctenocephalis canis_). Uma pulga saltando pode atingir uma altura quase 200 vezes a sua própria altura. A energia (potencial gravitacional) necessária para fazer isto é aproximada pela fórmula "massa x altura do salto" (x aceleração da gravidade). Imagine uma pulga gigante, geometricamente semelhante em forma, mas 10 vezes maior em sua dimensão linear. A energia necessária para saltar 200 vezes mais alto que sua própria altura seria 10<sup>3</sup> x 10 = 10<sup>4</sup> vezes mais do que para a pulga comum. Isso, no entanto, não pode ser feito pela pulga gigante, pois sua força muscular aumentou apenas um fator de 10<sup>3</sup>. Assim, poderia atingir uma altura de apenas 20 ($=200/(10^4/10^3)=200/10$) vezes a sua própria altura. Da mesma forma, uma pulga "supergigante", 100 vezes maior em sua dimensão linear do que uma pulga comum, poderia saltar a uma altura que é apenas o dobro ($=200/(10^8/10^6)=200/100$ de sua própria altura, apesar de um tremendo músculo saltador.
+
+Generalizando um pouco este exemplo, vemos que os animais, fugindo de predadores ou em busca de comida, gastam energias aproximadamente proporcionais à quarta potência de suas dimensões lineares, enquanto o suprimento de energia (massas) é proporcional apenas à terceira potência.
+
+Concluímos que uma espécie animal é capaz de competir com outras espécies, apenas se o tamanho do corpo estiver sujeito a certas restrições. 
+
+Em geral, se as dimensões lineares de um organismo forem alteradas, as propriedades físicas e químicas também serão alteradas. Eles podem ser mantidos constantes apenas em uma pequena faixa de aumento ou diminuição. 
+
+Os liliputianos de quinze centímetros de altura de Jonathan Swift são muito divertidos. Em _As Viagens de Gulliver_, eles são capazes de atuar como humanos. No entanto, eles permanecem ficção. A biologia não pode funcionar dessa maneira.
+
+$$\Diamond$$
+
+As grandezas fundamentais, ou unidades base, são essenciais para definir todas as outras unidades derivadas usadas na física e em outras ciências. Aqui estão as sete grandezas fundamentais da natureza conforme definidas pelo SI:
+
+* Massa: Quilograma (kg)
+* Comprimento: Metro (m)
+* Tempo: Segundo (s)
+* Corrente elétrica: Ampere (A)
+* Temperatura termodinâmica: Kelvin (K)
+* Quantidade de substância: Mol (mol)
+* Intensidade luminosa: Candela (cd)
+
+## Problema 4.2.1: Crescimento do cristal
+
+Suponha que um cristal cresça de tal forma que todas as dimensões lineares aumentem em 18%. 
+
+Quais são os aumentos percentuais da superfície _S_ e do volume _V_ do cristal?
+
+Solução: 
+
+O fator _c_ é $c= 1 + 18/100= 1.18$.
+
+Por isso, 
+
+$$\begin{align}
+S^{\prime} &= c^2 S \\
+c^{2} &= 1.39
+\end{align}$$
+
+aumento da superfície = $39\%$,
+
+$$\begin{align}
+V^{\prime} &= c^{3} V \\
+c^{3} &= 1.64
+\end{align}$$
+
+aumento de volume = $64\%$.
+
+## Polinômio
+
+A função polinomial de grau $n$ é definida como 
+
+$$f(x)=a_{0}+a_{1}x+a_{2}x^{2}+\cdots+a_{n-1}x^{n-1}+a_{n}x^{n}$$
+
+$x\in\mathbb{R}$, $a_{n}\in\mathbb{R^{*}}$ e $a_{i}\in\mathbb{R}$, $i\in \{1,2,...,n-1\}$ e $n\in\mathbb{N}^*$.
+
+A função polinomial de grau $n$ possui $D(f)=\mathbb{R}$  e  $Im(f)=\mathbb{R}$.
+
+Se a função polinomial possui grau par e  $D(f)=\mathbb{R}$, então  $Im(f)\subset \mathbb{R}$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot y=10*x^3-x^2+5*x-1`](https://www.wolframalpha.com/input?i=plot+y%3D10*x%5E3-x%5E2%2B5*x-1){target="_blank"}
+
+[`plot y=5*x^4+10*x^3-x^2+5*x-1`](https://www.wolframalpha.com/input?i=plot+y%3D5*x%5E4%2B10*x%5E3-x%5E2%2B5*x-1){target="_blank"}
+
+## Diferença finita
+
+A diferença finita de uma função é $\Delta f(x) = f(x+1) - f(x)$.
+
+Para um polinômio quadrático, a primeira diferença finita produz uma função linear; a segunda diferença finita produz uma constante; a terceira diferença finita é nula.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+$$\begin{align}
+f(x)&=c+bx+ax^{2} \\
+\Delta f(x) &= f(x+1) - f(x) = c+b(x+1)+a(x+1)^{2}- \left(c+bx+ax^{2}\right)
+\end{align}$$
+
+[differencedelta(ax^2+bx+c, x)](https://www.wolframalpha.com/input?i=differencedelta%28ax%5E2%2Bbx%2Bc%2C+x%29){target="_blank"}
+
+[differencedelta(ax^2+bx+c, x, x)](https://www.wolframalpha.com/input?i=differencedelta%28ax%5E2%2Bbx%2Bc%2C+x%2C+x%29){target="_blank"}
+
+[differencedelta(ax^2+bx+c, x, x, x)](https://www.wolframalpha.com/input?i=differencedelta%28ax%5E2%2Bbx%2Bc%2C+x%2C+x%2C+x%29){target="_blank"}
+
+## Aplicação: fluxo de sangue em vaso sanguíneo
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 4.7. O fluxo de sangue em um tubo cilíndrico. (a) e (b) escoamento laminar. (c) fluxo turbulento"}
+knitr::include_graphics("./image/Fig4.7.png")
+```
+
+Consideramos o fluxo de sangue em um vaso sanguíneo. Um pedaço de uma artéria ou de uma veia pode ser concebido como um tubo cilíndrico de largura constante.
+
+Assuma que a seção transversal é um círculo de raio _R_. 
+
+Como qualquer líquido, o sangue tem uma fricção interna que é chamada de viscosidade e denotada por $\eta$ (letra grega eta). 
+
+A viscosidade é medida em Pa s (Pascal-segundo), uma das unidades SI que é igual a kg s<sup>-1</sup> m<sup>-1</sup>. Também há atrito nas paredes do tubo. 
+
+Imediatamente na parede a velocidade do sangue é zero. A velocidade é maior ao longo do eixo central do tubo. Se a velocidade não ultrapassar um determinado valor crítico, o fluxo é laminar, ou seja, todas as partículas do líquido se movem paralelamente ao tubo e a velocidade aumenta regularmente de zero na parede em direção ao centro (ver Fig. 4.7a, b). 
+
+Podemos pensar em um número infinito de lâminas cilíndricas que se movem como os tubos de um telescópio. A velocidade aumenta em direção ao centro. Se, no entanto, a velocidade exceder o valor crítico, por exemplo, em um vaso parcialmente ocluído, o fluxo é turbulento e o som pode ser ouvido (Fig. 4.7c).
+
+Agora assumimos fluxo laminar. Seja _r_ a distância de qualquer ponto do líquido ao eixo. Então a velocidade _v_ é uma função de _r_. Podemos escrever $v = v(r)$. O domínio da função é o intervalo $0\le r \le R$. 
+
+A função foi descoberta experimentalmente por J. L. Poiseuille. Mais tarde, foi derivada de uma forma teórica. 
+
+A velocidade _v_ (m s<sup>-1</sup>) é
+
+$$v=\dfrac{p}{4\eta l}\left(R^{2}-r^{2}\right)$$
+
+sendo que _l_ denota o comprimento do tubo (metro) e _p_ a diferença de pressão (Pa). 
+
+Os raios _R_ e _r_ são medidos em metros. Claramente, $v=0$ para $r=R$. Para $r=0$ a velocidade atinge seu máximo. Assim, o intervalo da função é $0\le v\le pR^{2}/4\eta l$. 
+
+Para obter mais informações sobre a lei de Poiseuille, estudamos um exemplo numérica escolhido para ser o mais realista possível. 
+
+O sangue arterial com sua alta concentração de O<sub>2</sub> está ligado à hemoglobina. Para o sangue humano, sua viscosidade é um pouco menor que a do sangue venoso, em média $\eta$ = 0.0027 Pa s. Supõe-se que o sangue flua através de uma arteríola (capilar arterial largo) de comprimento _l_ = 0.02 m e raio _R_ = 8 x 10<sup>-5</sup> m. Em uma extremidade, a pressão é considerada maior do que na outra, de modo que a diferença seja _p_ = 400 Pa ($\approx$ 3 mm de mercúrio). Então: 
+
+$$\begin{align}
+v&=\dfrac{400}{4 \times 0.0027 \times 0.02} \left(64 \times 10^{-10} -r^{2}\right)  \\
+v&=1.185\times 10^{-2} - 1.85\times 10^{6}r^{2}
+\end{align}$$
+
+medida em m s<sup>-1</sup>.
+
+De acordo com a definição, _v_ é uma função quadrática de _r_. Daí o
+gráfico é uma seção de uma parábola quadrática. A velocidade máxima é de 0.0185 m s<sup>-1</sup>. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot v=1.185 10^-2 - 1.85 10^6 r^2, r:0 to 8e-5, axes label "r" "v"`](https://www.wolframalpha.com/input?i=plot+v%3D1.185+10%5E-2+-+1.85+10%5E6+r%5E2%2C+r%3A0+to+8e-5%2C+axes+label+%22r%22+%22v%22){target="_blank"}
+
+## Equação quadrática
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[ax^2+bx+c=0](https://www.wolframalpha.com/input?i=ax%5E2%2Bbx%2Bc%3D0){target="_blank"}
+
+### Problema 4.6.3: Recombinação de cromossomos 
+
+Kramer (1964, p. 517) estudou um problema genético de recombinação de cromossomos. 
+
+Seja _p_ a fração de recombinação com a limitação $0 \le p \le 1/2$, e seja $1 - p$ a fração de não recombinação. 
+
+Nesse estudo, o comportamento do produto $p(1-p)$ teve que ser considerado.
+
+Solução: 
+
+Seja 
+
+$$y= p(1-p)$$
+
+Esta é uma função quadrática de _p_ com domínio $0 \le p \le 1/2$. 
+
+Segue-se que $y \ge 0$. 
+
+Para um dado valor de _y_, surge a questão de saber se existe um valor correspondente de _p_ e, em caso afirmativo, como encontrar _p_. 
+
+A equação anterior leva a uma equação quadrática. 
+
+Ao reorganizar os termos, encontramos a forma padrão $ax^{2}+bx+c=0$.
+
+Comparando com a forma padrão identificamos _x_ por _p_, _a_ por 1, _b_ por -1 e _c_ por _y_.
+
+Então:
+
+$$p^{2}-p+y=0$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`solve p^2-p+y=0 for p, 1/2>=p>0`](https://www.wolframalpha.com/input?i=solve+p%5E2-p%2By%3D0+for+p%2C+1%2F2%3E%3Dp%3E0){target="_blank"}
+
+[`solve p^2-p+1/8=0 for p, 1/2>=p>0`](https://www.wolframalpha.com/input?i=solve+p%5E2-p%2B1%2F8%3D0+for+p%2C+1%2F2%3E%3Dp%3E0){target="_blank"}
+
+# Função exponencial
+
+A função exponencial é definida como:
+
+$$f(x)=a^{x}$$
+
+Sendo que $x\in \mathbb{R}$  e  $a\in \mathbb{R_{+}^{*}}-\{1\}$.
+
+Por exemplo, a função exponencial, cuja base é o número de Euler, é $f(x)=e^{x}$. 
+
+A função exponencial tem $D(f)=\mathbb{R}$   e  $Im(f)=\mathbb{R_{+}^{*}}$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot sqrt(2)^x, x=-10 to 10, axes labels "x" "y"`](https://www.wolframalpha.com/input?i=plot+sqrt%282%29%5Ex%2C+x%3D-10+to+10%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot (1/sqrt(2))^x, x=-10 to 10, axes labels "x" "y"`](https://www.wolframalpha.com/input?i=plot+%281%2Fsqrt%282%29%29%5Ex%2C+x%3D-10+to+10%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+## Sequência aritmética
+
+Uma sequência aritmética é definida pela função linear discreta $f(x) = ax+b$, $x\in \mathbb{N}$, sendo _a_ a diferença comum.
+
+Todo termo de uma sequência aritmética é a média aritmética dos termos seguinte e precedente.
+
+## Sequência geométrica
+
+Uma sequência geométrica é definida pela função potência discreta $f(x) = ar^{x}$, $x\in \mathbb{N}$, sendo _r_ a razão comum.
+
+Todo termo de uma sequência geométrica é a média geométrica dos termos seguinte e precedente.
+
+### Exemplo 1: Divisão celular
+
+Sob condições ideais, uma célula pode se subdividir em duas células em um determinado intervalo de tempo. As novas células subdividem-se novamente após transcorrido o mesmo intervalo de tempo etc. Assumimos que o tempo é medido em unidades que coincidem com o intervalo de tempo necessário para uma divisão celular. Seja _t_ o tempo e _N_ o número de células. Então obtemos a sequência 1, 2, 4, 8, 16, ... ou
+
+$$N(t) = 2^{t}, \; t \in \{0, 1, 2, ...\}$$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`discrete plot 2^t, t=0 to 6 axes label "t" "N"`](https://www.wolframalpha.com/input?i=discrete+plot+2%5Et%2C+t%3D0+to+6+axes+label+%22t%22+%22N%22){target="_blank"}
+
+### Exemplo 2: Decaimento radiativo
+
+Outra sequência surge quando uma substância radioativa decai.
+O isótopo de carbono <sup>14</sup>C tem uma meia-vida de 5760 anos. Isso significa que o número _N_ de átomos de <sup>14</sup>C na substância é reduzido para _N_/2 após o transcurso de 5760 anos. Assim, se _t_ denota o tempo medido em unidades de 5760 anos e N<sub>0</sub> o número de átomos de <sup>14</sup>C na substância no tempo _t_ = 0, obtemos a sequência
+
+$$N(t) = N_{0} 2^{-t}, \; t \in \{0, 1, 2, ...\}$$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`discrete plot 2^(-t), t=0 to 6 axes label "t" "N"`](https://www.wolframalpha.com/input?i=discrete+plot+2%5E%28-t%29%2C+t%3D0+to+6+axes+label+%22t%22+%22N%22){target="_blank"}
+
+# Função logarítmica
+
+* [YouTube: DontMemorise.com: Logarithms - What is e? | Euler's Number Explained | Don't Memorise](https://www.youtube.com/watch?v=_-x90wGBD8U)
+
+A função logarítmica é definida como:
+
+$$f(x)=\log_{a}(x)$$
+
+Sendo que $x\in \mathbb{R_{+}^{*}}$  e  $a\in \mathbb{R_{+}^{*}}-\{1\}$.
+
+Por exemplo, a função logarítmica, cuja base é o número de Euler, é $f(x)=\log_{e}(x)=\ln(x)$. 
+
+A função logarítmica tem $D(f)=\mathbb{R_{+}^{*}}$   e  $Im(f)=\mathbb{R}$.
+
+A função logarítmica é a função inversa da função exponencial.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Log[e, x]](https://www.wolframalpha.com/input?i=Log%5Be%2C+x%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Log[e, x] = log(x) = ln(x)](https://www.wolframalpha.com/input?i=Log%5Be%2C+x%5D+%3D+log%28x%29+%3D+ln%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[log(x) properties](https://www.wolframalpha.com/input?i=log%28x%29+properties){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot ln(x), x=0 to 4, axes labels "x" "y"](https://www.wolframalpha.com/input?i=plot+ln%28x%29%2C+x%3D0+to+4%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot Log[2, x], x=0 to 4, axes labels "x" "y"`](https://www.wolframalpha.com/input?i=plot+Log%5B2%2C+x%5D%2C+x%3D0+to+4%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+## Problema 6.5.1: Madeira na floresta I 
+
+A quantidade de madeira em uma floresta jovem cresce quase exponencialmente. Podemos assumir que a taxa anual é de 3.5\%. Que aumento é esperado dentro de dez anos?
+
+Solução: 
+
+Para responder a esta pergunta calculamos primeiro o fator $q= 1 + p/100$ com $p = 3.5\%$. Obtemos $q= 1.035$.
+
+O crescimento em dez anos é determinado pelo fator _q_. Para obter este valor numericamente, aplicamos logaritmo:
+
+$$\ln(q^{10}) = 10 \;\ln(q) = 10 \; \ln(1.035) = 10 \times 0.0344 =0.344$$.
+
+O antilogaritmo é 1.41, i.e., $e^{0.344}=1.41$. Assim, a quantidade de madeira aumentou 41\% em dez anos.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+log(1.035)
+```
+
+## Problema 6.5.2: Madeira na floresta II 
+
+Assumimos novamente que a taxa de crescimento da madeira é $p = 3.5\%$. Quantos anos serão necessários até que a quantidade de madeira dobre?
+
+Solução: 
+
+Seja _n_ o número desconhecido de anos e $q = 1+ p/100$.
+
+Então obtemos a equação $q^{n}=2$.
+
+Essa equação é chamada de equação exponencial, pois o expoente é a quantidade desconhecida.
+
+$$\begin{align}
+\log(q^{n}) &= n \times \log(q) = \log(2) \\
+n&= \dfrac{\log(2)}{\log(q)}
+\end{align}$$
+
+Com $q= 1.035$ obtemos $n=0.30103/0.01494=20.1$. Portanto, é preciso um pouco mais de 20 anos até que a quantidade de madeira dobre.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+log10(2)
+log10(1.035)
+```
+
+## Problema 6.5.4: Idade de animal experimental
+
+Quando as idades dos animais experimentais são escolhidas de maneira que formem uma sequência geométrica ou exponencial, pode surgir o seguinte problema: Dado o número de faixas etárias, a menor e a maior idade, quais são os termos da sequência?
+
+Solução:
+
+Seja _A_ a idade do grupo mais jovem, _B_ a idade do
+grupo mais antigo, e _n_ o número de grupos. Então:
+
+$$A q^{n-1}=B$$
+
+Portanto,
+
+$$\log(q)=\dfrac{\log(B)-\log(A)}{n-1}$$
+
+Se $A=4$ semanas, $B=10$ semanas e $n=5$ idades, então $q=1.257$.
+
+A sequência desejada de idades é 4, 5.03, 6.32, 7.95 e 10 semanas.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`exp(log(4) + 0*(log(10)-log(4))/4), exp(log(4) + 1*(log(10)-log(4))/4), exp(log(4) + 2*(log(10)-log(4))/4), exp(log(4) + 3*(log(10)-log(4))/4), exp(log(4) + 4*(log(10)-log(4))/4)`](https://www.wolframalpha.com/input?i=exp%28log%284%29+%2B+0*%28log%2810%29-log%284%29%29%2F4%29%2C+exp%28log%284%29+%2B+1*%28log%2810%29-log%284%29%29%2F4%29%2C+exp%28log%284%29+%2B+2*%28log%2810%29-log%284%29%29%2F4%29%2C+exp%28log%284%29+%2B+3*%28log%2810%29-log%284%29%29%2F4%29%2C+exp%28log%284%29+%2B+4*%28log%2810%29-log%284%29%29%2F4%29){target="_blank"}
+
+## Lei psicofísica de Weber-Fechner
+
+* [Weber–Fechner law](https://en.wikipedia.org/wiki/Weber%E2%80%93Fechner_law){target="_blank"}
+
+Podemos julgar o nível de sensação não apenas por uma escala ordinal, mas também por uma escala intervalar. 
+
+De fato, diferenças no nível de sensação não são arbitrárias. 
+
+Eles podem ser significativamente expressos em termos de estímulos mensuráveis.
+
+$$M=a \times \log(s)+b$$
+
+_s_: intensidade do estímulo
+
+_M_: quantidade da sensação de escala
+
+Esta fórmula é conhecida como a lei psicofísica de Weber-Fechner.
+
+_M_ é uma função linear do logaritmo de _s_.
+
+Não é uma lei no sentido usual, na medida em que falha em relacionar duas ou mais quantidades mensuráveis entre si. 
+
+Esta fórmula deve ser interpretada como uma definição adequada de _M_. 
+
+Na ausência de uma medida objetiva de sensação, a fórmula de Fechner é uma maneira útil de dimensionar a sensação.
+
+### Exemplo 6.6.2: Tom musical e frequência
+
+Considere três tons igualmente espaçados na escala de frequência, por exemplo, os três tons com frequências 300 Hz (ciclo/s), 600 Hz, 900 Hz. Hertz é o número de vezes que a onda oscila num segundo.
+
+As pessoas que ouvem esses tons concordam unanimemente que o intervalo entre o segundo e o terceiro tom é consideravelmente menor do que entre o primeiro e o segundo tom. Portanto, nossa sensação de tom musical não é proporcional à frequência. Para obter dois intervalos consecutivos que são percebidos como iguais em tamanho, temos que adotar uma sequência geométrica.
+
+Por exemplo, os tons com frequências de 300 Hz, 600 Hz e 1200 Hz estão separados por intervalos de oitavas. Cada frequência é o dobro da anterior, representando um aumento de uma oitava. Uma escala adequada para o tom musical é baseada no logaritmo da frequência, bastante de acordo com a lei de Weber-Fechner. Notar que 600 Hz é a média geométrica de 300 Hz e 1200 Hz.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[geometric mean (300,1200)](https://www.wolframalpha.com/input?i=geometric+mean+%28300%2C1200%29){target="_blank"}
+
+### Exemplo 6.6.3: Brilho estelar 
+
+Este exemplo é conhecido pelos astrônomos. O brilho experimentado de uma estrela não é de forma alguma proporcional à energia luminosa recebida pelo olho. Novamente temos uma relação linear entre o brilho e o logaritmo da intensidade da luz. Uma fórmula padrão é 
+
+$$m= c- 2.5\times \log(I)$$ 
+
+sendo que _I_ é a intensidade da luz e _c_ uma constante determinada pela unidade na qual _I_ é medido. _m_ é chamado de _magnitude aparente_ de uma estrela. A estrela mais brilhante, Sirius, tem magnitude -1.6, Vega tem magnitude 0.1 e Betelgeuse 0.9. O desconforto de uma magnitude negativa poderia ter sido evitada se a magnitude zero tivesse sido colocada melhor.
+
+### Exemplo 6.6.4: Dose-resposta em ensaio biológico
+
+Talvez a aplicação da lei de Weber-Fechner que é especialmente importante para os cientistas da vida seja a relação dose-resposta em ensaios biológicos. Quando uma determinada dose de um produto químico (droga, veneno, vitamina, hormônio etc.) é administrada a um animal, a resposta ou reação, seja ela qualitativa ou quantitativa, não pode ser linearmente relacionada à dose. 
+
+Se, por exemplo, uma dose de 10 mg for aumentada em 5 mg, é provável que a resposta varie. Se, porém, uma dose de 100 mg for aumentada em 5 mg, a resposta dificilmente mudará. Em ambos os casos o aumento é de 5 mg, mas no primeiro caso temos 50%, no segundo caso apenas 5% da dose original. É esta taxa de aumento que é relevante.
+
+Portanto, a lei de Weber-Fechner é aplicável. Embora a resposta seja geralmente de natureza qualitativa e não possa ser medida, assume-se que a resposta é linearmente dependente do logaritmo da dose.
+
+Como consequência, quando os animais são testados quanto à sua resposta a doses de diferentes níveis, as doses devem formar uma sequência geométrica ou exponencial. 
+
+Seja _d_<sub>0</sub> o a menor dose e seja _q_ um fator conveniente maior que 1. 
+
+Em seguida, o produto químico é administrado em doses
+
+$$d_{0}, d_{0}q, d_{0}q^{2},d_{0}q^{3},...$$ 
+
+Uma sequência como 10 mg, 20 mg, 30 mg, 40 mg etc. não é adequada para doses. Começando com os mesmos termos, deve ser 10 mg, 20 mg, 40 mg, 80 mg etc. em que _d_<sub>0</sub> = 10 mg e _q_ = 2.
+
+### Exemplo 6.6.5: Química
+
+Concluímos esta seção com uma aplicação de logaritmos à química. 
+
+A concentração de [hidrônio](https://pt.wikipedia.org/wiki/Hidr%C3%B4nio){target="_blank"}, denotada por [H<sub>3</sub>O<sup>+</sup>] é um fator importante no tecido vivo, bem como no solo onde as plantas crescem. 
+
+Uma alta concentração variando de cerca de 10<sup>-2</sup> a quase 10<sup>-7</sup> mol/l está presente em soluções ácidas. 
+
+O "mol" é uma das sete unidades base do Sistema Internacional de Unidades (SI) e é usada para medir a quantidade de substância. Um mol contém exatamente \(6,02214076 \times 10^{23}\) entidades elementares. Esta quantidade é conhecida como número de Avogadro.
+
+O mol é fundamental para descrever quantidades de átomos, moléculas, íons, ou outras entidades em uma dada amostra. Por exemplo, um mol de água contém \(6,022 \times 10^{23}\) moléculas de água.
+
+Para água destilada [H<sub>0</sub>O<sup>+</sup>] = 10<sup>-7</sup> mol/l aproximadamente, uma concentração que é chamada de neutra. 
+
+Concentrações mais baixas até cerca de 10<sup>-12</sup> mol/l indicam uma solução alcalina ou uma base. 
+
+Devido a essa ampla faixa, uma escala logarítmica para julgar a concentração de hidrônio parece ser mais prática. 
+
+Podemos usar os expoentes das potências acima e nos livrar do sinal de menos. 
+
+Assim, a quantidade 
+
+$$pH=-\log\left(\left[H_{3}O^{+}\right]\right)$$ 
+
+é introduzida. 
+
+Para uma solução neutra _pH_ = 7, para uma solução ácida _pH_ < 7 e para uma solução alcalina ou básica _pH_ > 7. 
+
+Para o cérebro humano verificou-se que o líquido cefalorraquidiano tem [H<sub>3</sub>O<sup>+</sup>] = 4.8 x 10<sup>-8</sup> mol/l em média. 
+
+$$pH = -\log\left((4.8 \times 10^{-8}\right)= -\left(\log(4.8)+\log\left(10^{-8} \right) \right)= -(0.68-8) = 7.32.$$
+
+Portanto, o líquido cefalorraquidiano é alcalino.
+
+## Régua de cálculo (_slide rule_)
+
+* [Slide rule: Wikipedia](https://en.wikipedia.org/wiki/Slide_rule){target="_blank"}
+
+* [Slide Rule - Proportion, Percentage, Squares And Square Roots (1944)](https://www.youtube.com/watch?v=dT7bSn03lx0&t=493s){target="_blank"}
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/reguacalculo.png")
+```
+
+Foi inventada pelo matemático inglês William Oughtred, em 1622, baseando-se na tábua de logaritmos que fora criada por John Napier pouco antes, em 1614.
+
+A régua de cálculo é um dispositivo de cálculo que se baseia na sobreposição de escalas logarítmicas. Os cálculos são realizados por meio de uma técnica mecânica analógica que permite a elaboração dos cálculos por meio de guias deslizantes graduadas, ou seja, réguas logarítmicas que deslizam umas sobre as outras, e os valores mostrados em suas escalas são relacionados através da ligação por um cursor dotado de linhas estrategicamente dispostas, que têm a função de correlacionar as diversas escalas da régua de cálculo.
+
+## Espiral: gráfico polar
+
+As conchas dos moluscos, as amonites, a disposição das sementes nos girassóis e das escamas nas pinhas indicam que as espirais ocorrem com frequência na natureza. 
+
+Nos restringimos àquelas espirais que são curvas planas e são geradas da seguinte forma: assumimos que $y = f(x)$ é uma função monótona crescente. 
+
+Em vez de um gráfico em um sistema de coordenadas retangulares, escolhemos um gráfico polar. 
+
+Para este propósito interpretamos _x_ como o ângulo polar e _y_ como a distância polar e colocamos $x = \theta$ e $y = r$. 
+
+Então o gráfico de $r = f(\theta)$ é chamado de espiral.
+
+### Espiral de Arquimedes
+
+Talvez o exemplo mais simples de uma espiral seja dado por uma função linear
+
+$$r=a\theta+b$$
+
+Sendo $a>0$ e $b\ge 0$ e domínio $\theta \ge 0$. 
+
+À medida que $\theta$ cresce, $r$ aumenta linearmente.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 6.10. Uma espiral de Arquimedes. A distância polar r cresce linearmente em função do ângulo polar theta."}
+knitr::include_graphics("./image/Fig6.10.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[polar plot r=1](https://www.wolframalpha.com/input?i=polar+plot+r%3D1){target="_blank"}
+
+[polar plot r=theta](https://www.wolframalpha.com/input?i=polar+plot+r%3Dtheta){target="_blank"}
+
+[polar plot r=-theta](https://www.wolframalpha.com/input?i=polar+plot+r%3D-theta){target="_blank"}
+
+[polar plot r=theta+1](https://www.wolframalpha.com/input?i=polar+plot+r%3Dtheta%2B1){target="_blank"}
+
+[polar plot r=-theta+1](https://www.wolframalpha.com/input?i=polar+plot+r%3D-theta%2B1){target="_blank"}
+
+### Espiral logarítmica
+
+$$r=a q^{\theta}$$
+
+Sendo $a>0$ e $q> 0$ e domínio $\theta \in \mathbb{R}$. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 6.11. Uma espiral logarítmica. A distância polar r é uma função exponencial do ângulo polar theta."}
+knitr::include_graphics("./image/Fig6.11.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 6.12. Nummulitas (a) e amonitas (b) são exemplos de dois tipos diferentes de espirais."}
+knitr::include_graphics("./image/Fig6.12.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`polar plot r=.9^theta`](https://www.wolframalpha.com/input?i=polar+plot+r%3D.9%5Etheta){target="_blank"}
+
+[`polar plot r=1.1^theta`](https://www.wolframalpha.com/input?i=polar+plot+r%3D1.1%5Etheta){target="_blank"}
+
+## Lei de Hick
+
+[Lei de Hick: Wikipedia](https://pt.wikipedia.org/wiki/Lei_de_Hick){target="_blank"}
+
+[Hick´s Law: Wikipedia](https://en.wikipedia.org/wiki/Hick%27s_law  ){target="_blank"}
+
+Referência: Hick, WE (1952) On the rate of gain of information. _Quarterly Journal of Experimental Psychology_ 4(1): 11–26. doi:10.1080/17470215208416600
+
+WE Hick (1952) desenvolveu um experimento de TR (_Time Required to Choose_) que apresentou uma série de nove testes nos quais existem n opções igualmente possíveis. 
+
+O experimento mediu o TR do sujeito com base no número de opções possíveis durante qualquer teste. 
+
+Hick mostrou que o TR do indivíduo aumentou em uma quantidade constante em função das opções disponíveis, ou da incerteza envolvida na qual o estímulo da reação apareceria a seguir. 
+
+A incerteza é medida em bit, que são definidos como a quantidade de informação que reduz pela metade a incerteza na teoria da informação (ver [Tese de doutorado de José Siqueira](https://www.teses.usp.br/teses/disponiveis/12/12139/tde-08032005-004652/pt-br.php){target="_blank"}). 
+No experimento de Hick, o TR é considerado uma função do logaritmo na base 2 do número de opções disponíveis (_n_). 
+
+Esse fenômeno é chamado de lei de Hick e é considerado uma medida da taxa de ganho de informação.
+
+A lei é geralmente expressa pela fórmula 
+
+$$TR = b \; \log_{2}(n + 1)$$
+
+sendo _n_ o número de alternativas equiprováveis, _b_ a velocidade de processamento e  $\log_{2}(n + 1)$ é o quantificador de surpresa de Shannon (_surprisal_).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. I Relações entre tempos de reação e números de diferentes estímulos. Alguns resultados de reações rápidas com erros também são plotados na mesma escala, com base no número equivalente calculado de estímulos."}
+knitr::include_graphics("./image/Hick.png")
+```
+
+A caixa de Jensen [caixa de Jensen](https://pt.wikipedia.org/wiki/Caixa_de_Jensen){target="_blank"} é uma aplicação mais recente da lei de Hick.
+
+A lei de Hick tem aplicações modernas interessantes em marketing, onde menus de restaurantes e interfaces da web (entre outras coisas) aproveitam seus princípios na tentativa de obter velocidade e facilidade de uso para o consumidor.
+
+# Ajuste de curva
+
+No contexto puramente matemático, o ajuste de curva envolve encontrar uma função que passe tão próximo quanto possível de um conjunto de pontos dados, minimizando algum tipo de discrepância entre a curva e os pontos. Diferentemente da abordagem estatística, que frequentemente envolve inferência sobre os erros ou a variabilidade dos dados, o ajuste de curva matemático pode se concentrar simplesmente na minimização de um erro ou numa discrepância geométrica sem atribuir interpretações estatísticas a esse erro.
+
+* Exemplo: Exercício 7.2.9 
+
+A atividade enzimática da catalase é perdida durante a exposição à luz solar na presença de oxigênio. Seja _y_ a concentração de catalase (em µg/10 ml) como função do tempo _t_ (em minutos). Qual é a função mais adequada para representar graficamente os seguintes dados (de Mitchell e Anderson, 1965)?
+
+| _t_ (minuto) | _y_ (µg/10 ml) |
+|-------------|--------------|
+| 0           | 121          |
+| 10          | 74           |
+| 30          | 30           |
+| 50          | 12           |
+| 60          | 6.7          |
+| 70          | 3.7          |
+| 80          | 2.0          |
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+t <- c(0.1, 10, 30, 50, 60, 70, 80)
+y <- c(121, 74, 30, 12, 6.7, 3.7, 2.0)
+REAT::curvefit(t, y)
+```
+
+No WolframAlpha, se a quantidade de pontos observados é pequena, pode ser usado, por exemplo, o comando `linear fit {{,},{,},...}`.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[linear fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=linear+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[best fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=best+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[exponential fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=exponential+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[logarithmic fit {{0.1,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=logarithmic+fit+%7B%7B0.1%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[power fit {{0.1,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=power+fit+%7B%7B0.1%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[exponential fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=exponential+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[logarithmic fit {{0.1,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=logarithmic+fit+%7B%7B0.1%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[power fit {{0.1,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=power+fit+%7B%7B0.1%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+```{r echo=FALSE, out.width="90%", fig.cap="Hoffmann et al. (2013, p. 363)"}
+knitr::include_graphics("./image/lnexp.png")
+```
+
+# Função periódica
+
+Este tópico trata de algumas ferramentas matemáticas necessárias para o estudo dos ritmos biológicos. Os ritmos mais conhecidos são as variações sazonais, a menstruação, os ciclos diários, a respiração e os batimentos cardíacos. É típico dos ritmos que o mesmo ou quase o mesmo padrão seja repetido de ciclo em ciclo. Fenômenos desse tipo também são chamados de periódicos.
+
+A Fig. 5.1 mostra um eletrocardiograma com vários ciclos. A curva pode ser interpretada como o gráfico de uma função $y = f(t)$ com o tempo _t_ como variável independente e a tensão _y_ traçada perpendicularmente ao eixo do tempo. Enquanto um eletrocardiograma real não é exatamente periódico, a Fig. 5.1 mostra um comportamento um tanto idealizado: em intervalos de tempo consecutivos de igual comprimento, a mesma curva se repete. O intervalo constante é chamado de período que é denotado por _l_. Cada ponto na curva representa uma fase particular do ritmo. Pontos que diferem por um, dois ou mais períodos são considerados em fase igual.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.1. O esquema de um eletrocardiograma"}
+knitr::include_graphics("./image/Fig5.1.png")
+```
+
+## Funções trigonométricas
+
+* [YouTube: All 6 Trig Functions on the Unit Circle](https://www.youtube.com/watch?v=Dsf6ADwJ66E){target="_blank"}
+
+* [Triangle](https://en.wikipedia.org/wiki/Triangle){target="_blank"}
+
+* [Trigonometry](https://en.wikipedia.org/wiki/Trigonometry){target="_blank"}
+
+$$\begin{align}
+\cos(\alpha)&=\dfrac{x}{r}=\sin(\beta) \\
+\sin(\alpha)&=\dfrac{y}{r}=\cos(\beta) \\
+\tan(\alpha)&=\dfrac{y}{x}=\dfrac{\sin(\beta)}{\cos(\beta)}
+\end{align}$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.14. O triângulo retângulo como um caso especial"}
+knitr::include_graphics("./image/Fig5.14.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.7. A definição de seno e cosseno para valores arbitrários de alfa"}
+knitr::include_graphics("./image/Fig5.7.png")
+```
+
+As funções trigonométricas diretas são também conhecidas como funções circulares ou periódicas. 
+
+As funções trigonométricas diretas são cosseno, seno, tangente, cossecante, secante e cotangente. 
+
+As funções trigonométricas inversas são também conhecidas como funções ciclométricas. 
+
+As funções trigonométricas inversas são arcocosseno, arcosseno, arcotangente, arcocossecante, arcocosseno e arcocotangente.
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/trigonometria.png")
+```
+
+## Seno e cosseno
+
+As funções seno e cosseno são definidas respectivamente como:
+
+$$\begin{align}
+f(x)&=\sin(x) \\
+f(x)&=\cos(x)
+\end{align}$$
+
+Sendo que $x\in \mathbb{R}$.
+
+As funções seno e cosseno têm $D(f)=\mathbb{R}$   e  $Im(f)=[-1,1]$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sin(x)](https://www.wolframalpha.com/input?i=sin%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cos(x)](https://www.wolframalpha.com/input?i=cos%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sin(x), cos(x)](https://www.wolframalpha.com/input?i=sin%28x%29%2C+cos%28x%29){target="_blank"}
+
+### Exemplo 5.6.1: Raio solar na folha
+
+Seja _I_ a intensidade da luz solar medida em unidades de energia por cm<sup>2</sup> por segundo. Se uma folha forma um ângulo $\alpha < 90^{\circ}$ com os raios incidentes, a intensidade é reduzida. Por qual fator?
+
+Solução:
+
+A pergunta pode ser respondida examinando a Fig. 5.15. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.15. Uma folha de área A<sub>2</sub> é atingida pela luz solar de seção transversal A<sub>1</sub>. A intensidade da luz é reduzida pelo fator A<sub>1</sub>/A<sub>2</sub>."}
+knitr::include_graphics("./image/Fig5.15.png")
+```
+
+Seja A<sub>1</sub> (cm<sup>2</sup>) a área da seção transversal desses raios que atingem as folhas. Além disso, seja A<sub>2</sub> a área da folha. A energia de luz incidente por segundo é _I_. Quando distribuída uniformemente sobre a folha, a energia por segundo por cm<sup>2</sup>, _I'_, é então:
+
+$$I^{\prime}=I\dfrac{A_{1}}{A_{2}}=I\dfrac{d_{1}}{d_{2}}=I \sin(\alpha)$$
+
+Portanto, A<sub>1</sub>/A<sub>2</sub> é o fator de redução. Pode ser expresso pelos dois segmentos d<sub>1</sub> e d<sub>2</sub> mostrados na Fig. 5.15.
+
+### Exemplo 5.6.2: Fibra muscular 
+
+Alguns músculos não consistem simplesmente em fibras paralelas.
+Em vez disso, as fibras são curtas e inclinadas para um tendão em seu centro. Esses músculos são chamados pinados (que significa penas). Seções transversais de um músculo pinado são mostradas na Fig. 5.16.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.16. Ação de um músculo pinado. O encurtamento das fibras musculares e o movimento do tendão ocorrem em direções diferentes. Magnitudes são conectadas por funções trigonométricas."}
+knitr::include_graphics("./image/Fig5.16.png")
+``` 
+
+Podemos perguntar quanto o tendão é movido quando o comprimento de
+cada fibra muscular, $\lambda$, é reduzida a $\lambda^{\prime}$. Para responder à pergunta, seja _y_ a distância entre os ossos aos quais o músculo está inserido.
+
+Além disso, seja $\alpha$ e $\alpha^{\prime}$ o ângulo entre as fibras e o tendão nos estágios relaxado e contraído, respectivamente. 
+
+Então 
+
+$$ \sin(\alpha)=\dfrac{y/2}{\lambda}$$
+
+$$ \sin(\alpha^{\prime})=\dfrac{y/2}{\lambda^{\prime}}$$ 
+
+A distância, _d_, que o tendão se move é 
+
+$$d=\lambda \cos(\alpha)-\lambda^{\prime} \cos(\alpha^{\prime})$$
+
+Eliminando $\lambda$ e $\lambda^{\prime}$ obtemos
+
+$$d=\dfrac{y}{2} \left(\dfrac{\cos(\alpha)}{sen(\alpha)}-\dfrac{\cos(\alpha^{\prime})}{\sin(\alpha^{\prime})} \right)=\dfrac{y}{2} \left(\cot(\alpha)-\cot(\alpha^{\prime}) \right)$$
+
+## Secante e cossecante
+
+As funções secante e cossecante são definidas respectivamente como:
+
+$$\begin{align}
+f(x) &= \sec(x)=\dfrac{1}{\cos(x)} \\
+f(x) &=\csc(x)=\dfrac{1}{\sin(x)}
+\end{align}$$
+
+A função secante tem $D(f)=\mathbb{R}-\{k\pi\}$, $k\in \mathbb{Z}$,   e  $Im(f)=\mathbb{R}-[-1,1]$. 
+
+A função cossecante tem $D(f)=\mathbb{R}-\{(2k+1)\pi/2\}$, $k\in \mathbb{Z}$, e  $Im(f)=\mathbb{R}-[-1,1]$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sec(x)](https://www.wolframalpha.com/input?i=sec%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cosec(x)](https://www.wolframalpha.com/input?i=cosec%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sec(x), cosec(x)](https://www.wolframalpha.com/input?i=sec%28x%29%2C+cosec%28x%29){target="_blank"}
+
+## Tangente e cotangente
+
+As funções tangente e cotangente são definidas respectivamente como:
+
+$$\begin{align}
+f(x)&=\tan(x)=\dfrac{\sin(x)}{\cos(x)} \\
+f(x)&=\cot(x)=\dfrac{1}{\tan(x)}=\dfrac{\cos(x)}{\sin(x)}
+\end{align}$$
+
+A função tangente tem $D(f)=\mathbb{R}-\{(2k+1)\pi/2\}$, $k\in \mathbb{Z}$, e $Im(f)=\mathbb{R}$. 
+
+A função cotangente tem $D(f)=\mathbb{R}-\{k\pi\}$, $k\in \mathbb{Z}$, e  $Im(f)=\mathbb{R}$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[tan(x)](https://www.wolframalpha.com/input?i=tan%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cotan(x)](https://www.wolframalpha.com/input?i=cotan%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[tan(x), cotan(x)](https://www.wolframalpha.com/input?i=tan%28x%29%2C+cotan%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+pracma::cot(1)
+pracma::csc(1)
+pracma::sec(1)
+pracma::acot(1)
+pracma::acsc(1)
+pracma::asec(1)
+```
+
+## Conversão para coordenadas polares
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.6. Coordenadas retangular e polar de um ponto P"}
+knitr::include_graphics("./image/Fig5.6.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.11. A conversão de coordenadas polares em coordenadas retangulares"}
+knitr::include_graphics("./image/Fig5.11.png")
+```
+
+$$\begin{align}
+x&=r\cos(\alpha) \\
+y&=r\sin(\alpha)
+\end{align}$$
+
+```{r echo=FALSE, out.width="90%", }
+knitr::include_graphics("./image/Fig5.20.png")
+```
+
+### Cardióide
+
+* [Glass of Numbers: How to Graph Any Polar Curves: Cardioid Example r = 1 + cos(theta)](https://www.youtube.com/watch?v=wEfJ8e1CQrs){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[polar plot r=2 (1 + cos(theta)), theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2+%281+%2B+cos%28theta%29%29%2C+theta%3A0+to+2pi){target="_blank"}
+
+[polar plot r=2 (1 + 0.8 cos(theta)), theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2+%281+%2B+0.8+cos%28theta%29%29%2C+theta%3A0+to+2pi){target="_blank"}
+
+[polar plot r=2 |sin(0.5 theta)|, theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2+%7Csin%280.5+theta%29%7C%2C+theta%3A0+to+2pi){target="_blank"}
+
+### Elipse
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[polar plot r=2/(1 + 0.8 cos(theta)), theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2%2F%281+%2B+0.8+cos%28theta%29%29%2C+theta%3A0+to+2pi){target="_blank"}
+
+### Petalar
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[polar plot r=2 |sin(1.5 theta)|, theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2+%7Csin%281.5+theta%29%7C%2C+theta%3A0+to+2pi){target="_blank"}
+
+[polar plot r=2 |sin(2.5 theta)|, theta:0 to 2pi](https://www.wolframalpha.com/input?i=polar+plot+r%3D2+%7Csin%282.5+theta%29%7C%2C+theta%3A0+to+2pi){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+library(plotly)
+
+df <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/polar_dataset.csv")
+
+fig <- plotly::plot_ly(
+  df,
+  type = 'scatterpolar',
+  mode = 'lines'
+) 
+fig <- fig %>%
+  plotly::add_trace(
+    r = ~x1,
+    theta = ~y,
+    name = 'Figure8',
+    line = list(
+      color = 'peru'
+    )
+  ) 
+fig <- fig %>%
+  plotly::add_trace(
+    r = ~x2,
+    theta = ~y,
+    name = 'Cardioid',
+    line = list(
+      color = 'darkviolet'
+    )
+  ) 
+fig <- fig %>%
+  plotly::add_trace(
+    r = ~x3,
+    theta = ~y,
+    name = 'Hypercardioid',
+    line = list(
+      color = 'deepskyblue'
+    )
+  ) 
+fig <- fig %>%
+  plotly::add_trace(
+    r = ~x4,
+    theta = ~y,
+    name = 'Subcardioid',
+    line = list(
+      color = 'orangered'
+    )
+  ) 
+fig <- fig %>%
+  plotly::add_trace(
+    r = ~x5,
+    theta = ~y,
+    name = 'Supercardioid',
+    line = list(
+      color = 'green'
+    )
+  ) 
+
+fig <- fig %>%
+  plotly::layout(
+    title = 'Mic Patterns',
+    font = list(
+      family = 'Arial',
+      size = 12,
+      color = '#000'
+    ),
+    showlegend = TRUE
+  )
+
+fig
+```
+
+## Polinômio trigonométrico
+
+Os dados relativos aos ritmos biológicos podem frequentemente ser aproximados por curvas trigonométicas.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.21. Quatro etapas diferentes são mostradas para transformar a função cosseno"}
+knitr::include_graphics("./image/Fig5.21.png")
+```
+
+$$y(t)=c_{0}+c\;\cos(\omega(t-t_{0})), \; w=2\pi/l$$
+
+$c$: amplitude
+
+$c_{0}$: nível médio ou mesor
+
+$t$: tempo
+
+$t_{0}$: acrófase
+
+$l$: período
+
+$\omega$: frequência angular
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.22. Uma curva senoidal é ajustada para medições telemétricas de temperaturas intraperitoneais de um rato fêmea adulto. O rato é submetido a um regime especial de iluminação que influencia a acrófase."}
+knitr::include_graphics("./image/Fig5.22.png")
+```
+
+Para qualquer número natural _n_ a função a seguir é chamada de polinômio trigonométrico. Ajustar dados periódicos por um polinômio trigonométrico é chamado de análise harmônica ou análise de Fourier.
+
+$$y(t)=a_{0}+\sum_{i=1}^{n}({a_{i}\cos(i\omega_{i}t))+b_{i}\sin(i\omega_{i}t))}$$
+
+Qualquer função periódica contínua ou razoavelmente descontínua pode ser representada por um polinômio trigonométrico com qualquer grau de precisão. Para obter uma alta precisão, o número de termos deve ser correspondentemente grande. Quando _n_ tende ao infinito, o polinômio trigonométrico se transforma em uma série de Fourier.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 5.24. Taxas médias logarítmicas de ataque de sarampo para cada mês e polinômio trigonométrico ajustado (diagrama superior). Gráfico separado dos componentes (diagrama inferior)."}
+knitr::include_graphics("./image/Fig5.24.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Fourier series calculator](https://www.wolframalpha.com/input?i=Fourier+series&assumption=%7B%22F%22%2C+%22FourierSeries%22%2C+%22fourierVariable%22%7D+-%3E%22x%22&assumption=%7B%22C%22%2C+%22Fourier+series%22%7D+-%3E+%7B%22Calculator%22%7D&assumption=%7B%22F%22%2C+%22FourierSeries%22%2C+%22fourierFunction%22%7D+-%3E%22abs%28x%29%22&assumption=%7B%22F%22%2C+%22FourierSeries%22%2C+%22fourierLimit%22%7D+-%3E%227%22){target="_blank"}
+
+Ver Derryberry, 2014, Chapter 12: FITTING FOURIER SERIES.
+
+Ver Shumway & Stoffer, 2019, Example 1.6. fMRI Imaging: `astsa::fmri`
+
+## Exemplo: Velocidade do fluxo sanguíneo em animal humano
+
+```{r echo=FALSE, out.width="90%"}
+knitr::include_graphics("./image/Paisal2019.png")
+```
+
+```{r echo=FALSE, out.width="80%", fig.cap="Fig. 5. Forma de onda de velocidade da artéria carótida na condição de fluxo fisiológico de NBP, PH e HS1. NBP condition represents the systolic and diastolic blood pressure of heart about 117/71 mmHg. Curve fitting toolbox in MATLAB."}
+knitr::include_graphics("./image/Fig5.png")
+```
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/Table1.png")
+```
+
+```{r }
+# NBP
+w <- 8.302
+a0 <- 0.3782
+a <- c(-0.1812, 0.1276, -0.08981, 0.04347, 
+       -0.05412, 0.02642, 0.008946, -0.009005)
+b <- c(-0.07725, 0.01466, 0.004295, -0.06679, 
+       0.05679, -0.01878, 0.01869, -0.01888)
+h <- seq(1,8)
+t <- 0
+plot(t, a0 + a %*% cos(h*t*w) + b %*% sin(h*t*w), 
+     xlab="Time [s]", ylab="Velocity [m/s]", xlim=c(0,0.8), 
+     ylim=c(0,1), cex=0.4,
+     main="Fig. 5. Velocity waveform of carotid artery at 
+     physiological flow condition of 
+     Normal Blood Pressure")
+for(t in seq(0, 0.8, 0.0001)) {
+points(t, a0 + a %*% cos(h*t*w) + b %*% sin(h*t*w), cex=0.4)
+}
+```
+
+# Bibliografia: Aula03: Funções potência, exponencial, logarítmica e periódica
+
+* Attinger, EO et al. (1966) Use of Fourier series for the analysis of biological systems. _Biophysical journal_ 6(3): 291-304.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulos 2 e 14.
+* Derryberry, DR (2014) _Basic data analysis for time series with R_. NJ: Wiley.
+* Moran, D et al. (1995) Calculation of mean arterial pressure during exercise as a function of heart rate. _Applied Human Science_ 14(6): 293-95.
+* Paisal, MSA et al. (2019) An analysis of blood pressure waveform using windkessel model for normotensive and hypertensive conditions in carotid artery. _Journal of Advanced Research in Fluid Mechanics and Thermal Sciences_ 57(1): 69-85.
+* Potkay, JA (2008) Long term, implantable blood pressure monitoring systems. _Biomedical microdevices_ 10: 379-92.
+* Shumway, RH & Stoffer, DS (2019) _Time series: A data analysis approach using R_. USA: Chapman-Hall.
+* Siqueira, JO (1999) _Determinação entrópica do preço racional da opção européia simples ordinária sobre ação e bond: uma aplicação da teoria da informação em finanças em condição de incerteza_. Tese de Doutorado, Faculdade de Economia, Administração e Contabilidade, Universidade de São Paulo, São Paulo. doi:10.11606/T.12.1999.tde-08032005-004652. Recuperado em 2023-05-06, de www.teses.usp.br
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+
+* The Fourier Transform: https://www.vermontveterinarycardiology.com/index.php/for-cardiologists/for-cardiologists?id=229
+* Parker, K: Chapter 12: The systemic arteries: https://kparker.bg-research.cc.ic.ac.uk/homepage/Mechanics%20of%20the%20Circulation/Chap_12/_Chapter_12a.htm
+ 
+* Mean arterial pressure: https://en.m.wikipedia.org/wiki/Mean_arterial_pressure
+* Mean Arterial Pressure (MAP) Calculator: https://www.learningaboutelectronics.com/Articles/Mean-arterial-pressure-MAP-calculator.php
+* Alex Yartsev (2015) Systolic, diastolic and mean arterial blood pressure: https://derangedphysiology.com/main/cicm-primary-exam/required-reading/cardiovascular-system/Chapter%20035/systolic-diastolic-and-mean-arterial-blood-pressure
+* Richard E. Klabunde: Mean Arterial Pressure: https://www.cvphysiology.com/Blood%20Pressure/BP006
+
+# Gráfico no YouTube
+
+* [Glass of Numbers: How to Graph Any Polar Curves: Cardioid Example r = 1 + cos(theta)](https://www.youtube.com/watch?v=wEfJ8e1CQrs){target="_blank"}
+
+# Função em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- c(-1,0,1,exp(1),NA) # exp(1) = 2.718282...
+abs(x) # 1.000000 0.000000 1.000000 2.718282       NA
+try(sqrt(x)) # NaN 0.000000 1.000000 1.648721       NA
+try(log(x)) # NaN -Inf    0    1   NA
+cos(x) # 0.5403023  1.0000000  0.5403023 -0.9117339         NA
+factorial(4) # 1*2*3*4 = 24
+gamma(4) # 1*2*3 = 6
+beta(4,3) # 0.01666667
+gamma(4)*gamma(3)/(gamma(4+3)) # 0.01666667
+
+# https://towardsdatascience.com/overview-of-40-mathematical-functions-in-r-4b4e138685ff
+curve(exp(x), from = -10, to = 10, main = "exp(x)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(x+0, from = -10, to = 10, main = "x")
+curve(abs(x), from = -10, to = 10, main = "|x|")
+curve(x^2, from = -10, to = 10, main = "x^2")
+curve(x^3, from = -10, to = 10, main = "x^3")
+curve(x^4, from = -10, to = 10, main = "x^4")
+curve(x^5, from = -10, to = 10, main = "x^5")
+curve(x^(1/2), from = -10, to = 10, main = "x^(1/2)")
+curve(x^(1/3), from = -10, to = 10, main = "x^(1/3)")
+curve(1/x, from = -10, to = 10, main = "1/x")
+curve(1/(x^2), from = -10, to = 10, main = "1/(x^2)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(factorial(x), from = -10, to = 10, main = "x!")
+curve(2^x, from = -10, to = 10, main = "2^x")
+curve(1/sqrt(x), from = -10, to = 10, main = "1/x^(1/2)")
+curve(exp(-x), from = -10, to = 10, main = "e^(-x)")
+curve(log(x), from = -10, to = 10, main = "ln(x)")
+curve(exp(x), from = -10, to = 10, main = "e^x")
+curve(log2(x), from = -10, to = 10, main = "log2(x)")
+curve(log10(x), from = -10, to = 10, main = "log10(x)")
+curve(x*log(x), from = -10, to = 10, main = "x*ln(x)")
+curve(log(x)^2, from = -10, to = 10, main = "ln(x)^2")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(1 / (1 + exp(-x)), from = -10, to = 10, main = "sigmoid(x)")
+curve(10 / (1 + exp(-x)), from = -10, to = 10, main = "10*sigmoid(x)")
+curve(tanh(x), from = -10, to = 10, main = "tanh(x)")
+curve(exp(x) / sum(exp(x)), from = -10, to = 10, main = "softmax(x)")
+curve(pmax(0, x), from = -10, to = 10, main = "rectifier(x)")
+curve(log(1 + exp(x)), from = -10, to = 10, main = "softplus(x)")
+curve(sign(x), from = -10, to = 10, main = "sign(x)")
+curve(floor(x), from = -10, to = 10, main = "floor(x)")
+curve(round(x), from = -10, to = 10, main = "round(x)")
+curve(ceiling(x), from = -10, to = 10, main = "ceiling(x)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(sin(x), from = -10, to = 10, main = "sin(x)")
+curve(sinpi(x), from = -10, to = 10, main = "sin(pi*x)")
+curve(sinh(x), from = -10, to = 10, main = "sinh(x)")
+curve(asinh(x), from = -10, to = 10, main = "asinh(x)")
+curve(cos(x), from = -10, to = 10, main = "cos(x)")
+curve(cospi(x), from = -10, to = 10, main = "cos(pi*x)")
+curve(cosh(x), from = -10, to = 10, main = "cosh(x)")
+curve(acosh(x), from = -10, to = 10, main = "acosh(x)")
+curve(tan(x), from = -10, to = 10, main = "tan(x)")
+curve(tanpi(x), from = -10, to = 10, main = "tan(pi*x)")
+
+```

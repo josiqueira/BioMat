@@ -1,0 +1,1424 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 4: Método gráfico" 
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula04.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula04.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r eval=TRUE,  echo=TRUE, warning=FALSE, error=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(readxl, warn.conflicts=FALSE))
+suppressMessages(library(labelled, warn.conflicts=FALSE))
+suppressMessages(library(RColorBrewer, warn.conflicts=FALSE))
+suppressMessages(library(MASS, warn.conflicts=FALSE))
+suppressMessages(library(dplyr, warn.conflicts=FALSE))
+suppressMessages(library(car, warn.conflicts=FALSE))
+suppressMessages(library(DescTools, warn.conflicts=FALSE))
+suppressMessages(library(plotly, warn.conflicts=FALSE))
+suppressMessages(library(plot3D, warn.conflicts=FALSE))
+suppressMessages(library(scatterplot3d, warn.conflicts=FALSE))
+suppressMessages(library(HistData, warn.conflicts=FALSE))
+suppressMessages(library(latex2exp, warn.conflicts=FALSE))
+suppressMessages(library(rayshader, warn.conflicts=FALSE))
+suppressMessages(library(reshape2, warn.conflicts=FALSE))
+suppressMessages(library(colorspace, warn.conflicts=FALSE))
+suppressMessages(library(dichromat, warn.conflicts=FALSE))
+suppressMessages(library(shinyjs, warn.conflicts=FALSE))
+
+# https://www.r-bloggers.com/2021/03/regplane3d-plotting-3d-regression-predictions-in-r/
+## devtools
+if(!("devtools" %in% installed.packages()))
+  install.packages("devtools")
+library(devtools)
+## regplane3D
+if(!("regplane3D" %in% installed.packages()))
+  devtools::install_github("denis-cohen/regplane3D")
+library(regplane3D)
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+* [French curve: Wikipedia](https://en.wikipedia.org/wiki/French_curve){target="_blank"}
+
+* [How To Make A Basic Bodice Pattern For Beginners: YouTube](https://www.youtube.com/watch?v=PnnNEH4x8kw){target="_blank"}
+
+```{r echo=FALSE, out.width="50%", fig.cap="Curvas francesas"}
+knitr::include_graphics("./image/curvafrancesa.png")
+```
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+
+__4.	Método gráfico (Capítulo 7)__
+
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+# Adicionar
+
+* [Desmos: calculadora gráfica](https://www.desmos.com/?lang=pt-BR){target="_blank"}
+* [Desmos 2D](https://www.desmos.com/calculator?lang=pt-BR){target="_blank"}
+* [Desmos 3D](https://www.desmos.com/3d?lang=pt-BR){target="_blank"} 
+
+# Escala não linear
+
+O olho humano é muito rápido em reconhecer padrões e formas. 
+
+As informações contidas nas relações matemáticas geralmente podem ser apresentadas em forma gráfica para melhor compreensão.
+
+A menos que seja necessária uma alta precisão, a representação gráfica, como diagramas e nomogramas, pode substituir longas tabelas de funções. Às vezes, até cálculos numéricos tediosos podem ser evitados com o emprego de ferramentas gráficas.
+
+Já estamos familiarizados com gráficos retangulares e polares. Eles são vantajosos porque mostram claramente os intervalos onde uma função é crescente ou decrescente, onde máximos e mínimos estão localizados etc.
+
+Mas também há desvantagens. Às vezes falta espaço apropriado para o alcance de uma função. Ou a relação de mais de duas variáveis deve ser apresentada no plano. Nesses casos, as escalas não lineares ajudam consideravelmente.
+
+```{r echo=FALSE, out.width="90%", fig.cap="Fig. 7.2. Uma escala logarítmica versus uma escala linear"}
+knitr::include_graphics("./image/Fig7.2.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+log(2, base=10)
+log10(2)
+10^0.30103
+```
+
+## Régua de cálculo (_slide rule_)
+
+* [Slide rule: Wikipedia](https://en.wikipedia.org/wiki/Slide_rule){target="_blank"}
+
+* [Slide Rule - Proportion, Percentage, Squares And Square Roots (1944): YouTube](https://www.youtube.com/watch?v=dT7bSn03lx0&t=493s){target="_blank"}
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/reguacalculo.png")
+```
+
+Foi inventada pelo matemático inglês William Oughtred, em 1622, baseando-se na tábua de logaritmos que fora criada por John Napier pouco antes, em 1614.
+
+A régua de cálculo é um dispositivo de cálculo que se baseia na sobreposição de escalas logarítmicas. Os cálculos são realizados por meio de uma técnica mecânica analógica que permite a elaboração dos cálculos por meio de guias deslizantes graduadas, ou seja, réguas logarítmicas que deslizam umas sobre as outras, e os valores mostrados em suas escalas são relacionados através da ligação por um cursor dotado de linhas estrategicamente dispostas, que têm a função de correlacionar as diversas escalas da régua de cálculo.
+
+#  Gráfico semi-logarítmico
+
+## Exemplo 7.2.2: Taxa de mortalidade por faixa etária nos EUA em 1960 
+
+Agora ilustramos o uso de uma escala logarítmica no caso em que uma variável abrange uma ampla faixa. Uma apresentação linear seria virtualmente impossível. A taxa de mortalidade medida em incidência por 100.000 habitantes varia entre cerca de 1 e 10<sup>4</sup> em função da idade (Fig. 7.5).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.5. Gráfico semilogarítmico da taxa de mortalidade dependente da idade para 100.000 pessoas nos Estados Unidos por volta de 1960. "}
+knitr::include_graphics("./image/Fig7.5.png")
+```
+
+## Exemplo 7.2.3: concentração plasmática após a injeção de 0.5 g de tiossulfato
+
+Para ilustrar tal transformação, consideramos um método de determinação do volume de plasma sanguíneo em um corpo humano ou animal. Uma quantidade conhecida de tiossulfato é injetada na corrente sanguínea. Se o tiossulfato se misturasse homogeneamente com o plasma sanguíneo sem qualquer perda para outras partes do corpo, seria fácil calcular o volume de sangue a partir da concentração de tiossulfato no plasma.
+
+Em vez disso, a substância é continuamente excretada pelos rins, enquanto a mistura do tiossulfato com o plasma dificilmente se completa antes de decorridos 10 minutos. Para lidar com este problema, várias medições da concentração de tiossulfato são feitas e um método gráfico é aplicado para extrapolar retroativamente. Seguindo Randall (1958 ou 1962, p. 67), consideramos um experimento: Em um animal, 0.5 g de tiossulfato foi injetado. Dez minutos após a injeção e em intervalos sucessivos de 10 minutos, foram obtidas as seguintes concentrações plasmáticas de tiossulfato: 44 38 33 28 25 mg/100 ml.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.6. Gráfico semilogarítmico da concentração plasmática após a injeção de 0.5 g de tiossulfato."}
+knitr::include_graphics("./image/Fig7.6.png")
+```
+
+Como de costume, a excreção pelo rim leva a uma diminuição exponencial da concentração. Portanto, plotamos os dados em um sistema de coordenadas semilogarítmicas (Fig. 7.6). Os pontos estão em uma linha reta com considerável precisão. Estamos interessados na concentração como era antes do rim começar a excretar tiossulfato.
+
+Portanto, extrapolamos os dados retroativamente para obter a concentração plasmática no momento da injeção. Assim, obtemos aproximadamente 50 mg/100 ml. 
+
+Seja _V_ o volume plasmático total do animal. Então
+
+$$V= \dfrac{0.5 \;\text{g} \times 100 \;\text{ml} }{50 \;\text{mg}}= 1000 \;\text{ml}=1.0 \;\text{l}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- seq(10,50,10)
+y <- c(44, 38, 33, 28, 25)
+plot(x, y,
+     xlab="Time after Injection (min)",
+     ylab="Plasma Concentration (mg/100 ml)",
+     xlim=c(0,60),
+     ylim=c(20,60))
+plot(x, y,
+     xlab="Time after Injection (min)",
+     ylab="log Plasma Concentration (mg/100 ml)",
+     xlim=c(0,60),
+     ylim=c(20,60),
+     log="y")
+plot(x, log(y),
+     xlab="Time after Injection (min)",
+     ylab="log Plasma Concentration (mg/100 ml)",
+     xlim=c(0,60),
+     ylim=c(3,4.25))
+fit <- lm(log(y)~x)
+summary(fit)
+abline(reg=fit)
+abline(v=0, lty=2)
+origem <- data.frame(x=0)
+V <- 0.5*100/(exp(predict(fit, origem)[[1]])*1e-3)
+V
+```
+
+#  Gráfico logarítmico duplo
+
+* [Log–log plot: Wikipedia](https://en.wikipedia.org/wiki/Log%E2%80%93log_plot){target="_blank"}
+
+Quando ambos os eixos de um sistema de coordenadas têm escalas logarítmicas, ele é chamado de logarítmico duplo. O termo gráfico log-log também é usado. 
+
+$$X = \log(x), \; \; Y = \log(y)$$
+
+Então a Fig. 7.7 ilustra três formas de apresentação:
+
+```{r echo=FALSE, out.width="100%", fig.cap="Fig. 7.7. Três apresentações de um sistema de coordenadas logarítmicas duplas."}
+knitr::include_graphics("./image/Fig7.7.png")
+```
+
+## Exemplo 7.3.1: 
+
+Como primeira aplicação biológica, estudamos a relação entre o comprimento e a massa de [_Heterodon nasicus_](https://en.wikipedia.org/wiki/Western_hognose_snake){target="_blank"} (cobra hognose ocidental). Suponha que todas as cobras desta espécie, sejam jovens ou velhas, tenham a mesma forma. Então,  sua massa _W_ deve ser proporcional ao cubo de seu comprimento _L_, i.e., 
+
+$$W=aL^{3}$$
+
+com uma certa constante _a_. Aplicando logaritmo obtemos
+
+$$\log(W) = \log(a) + 3\log(L)$$
+
+Esta é uma relação linear entre $\log(L)$ e $\log(W)$. Portanto, um gráfico logarítmico duplo é uma linha reta com inclinação 3. As medições reais mostram que os pontos que representam cobras individuais se desviam ligeiramente de uma linha reta (ver Fig. 7.8).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.8. Linhas de regressão de massa total versus comprimento ajustadas a uma amostra de 158 machos e 167 fêmeas de cobras hognose ocidentais (_Heterodon nasicus_) de Harvey County, Kansas. Os machos são representados por círculos preenchidos e as fêmeas por círculos abertos. Os círculos pequenos representam um único registro e os símbolos maiores representam de dois a quatro registros. Tanto a abscissa quanto a ordenada estão em escala logarítmica."}
+knitr::include_graphics("./image/Fig7.8.png")
+```
+
+```{r echo=FALSE, out.width="90%", fig.cap=""}
+knitr::include_graphics("./image/LM_snake1.png")
+```
+
+* [bij2001-sup-0001-si.txt - data file](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/biolinnean/108/1/10.1111_j.1095-8312.2012.02001.x/1/bij2001-sup-0001-si.txt?Expires=1717627377&Signature=AM--5qwnD~K4gV~9ZVBqw33~ONjeZxikZ~BDclkUauYd9193qQKZraV3kDQV7Z8GAQFuaDso3aJGd1vQp0gyu~~R7QbNOXja97sS3xGQYGArNlYBnswHn9SFOFNeRelr6VFndpZJ2rYHgonOFIiTC6a9Q0XT~WITRX0jo4Q-xiOukWFy5tmhGgrGX1D3zm9Y8JNQ1DHmtndC1KyBXl3PGBqQ~fYoENCEHMkGqskTPDYcrWJMAjXqzi4kUmekrN3oday9w1r3BvnU7d7kicbrc85ltWPal~SkmDJmr~TqZBH4vJAjkXqUnhVdb791XoFVWxJw6Ut35nBaC9wpNspeKQ__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA){target="_blank"}
+
+* [bij2001-sup-0001-si.pdf - data file](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/biolinnean/108/1/10.1111_j.1095-8312.2012.02001.x/1/bij2001-sup-0001-si.pdf?Expires=1717627457&Signature=esiGUgECqO4P3N-CEOOGNFF1MdgTIKr57AvIrsDxoLh5Ae6~Psinhz6VuuwC4EEqCcwScOgM5sxu912fYKJDvne~MBz1PqqMVV3QFuRSpO0N23ZbU9XpuGp3AAvgI0Ludesy84RL3J4mGe64bnDzATmXCdVw7hMTnBAqHPkP74aVwYjXgb8p-lrU5KQ51c7aDKQdZ2hXpp4pohc-5qMjfrLN6CGVPDOvlA0iIZT3O-APkrO3NuE2mA0ZqAGL~eNq1Je6mNIUJ802d5CLptUZHkhizmnOLKS-5WAqfzW-RmWyTHgTE19BvSsfJioPZpfwxbjJHTlQk5kVyjt~INl77Q__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA){target="_blank"}
+
+```{r echo=FALSE, out.width="90%", fig.cap=""}
+knitr::include_graphics("./image/LM_snake2.png")
+```
+
+```{r echo=FALSE, out.width="90%", fig.cap=""}
+knitr::include_graphics("./image/LM_snake3.png")
+```
+
+```{r echo=FALSE, out.width="90%", fig.cap=""}
+knitr::include_graphics("./image/LM_snake4.png")
+```
+
+## Exemplo 7.3.2: calor de animais de sangue quente em relação à massa
+
+Bertalanffy (1957) é uma das mais importantes referências sobre este assunto.
+
+Traçamos a produção diária média de calor de animais de sangue quente em relação à massa corporal média (Fig. 7.9). Se forem usadas escalas logarítmicas para ambas as quantidades, os pontos estarão muito próximos de uma linha reta.
+
+Isso indica que a relação pode ser bem aproximada por uma função de potência.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.9. A produção diária de calor de animais de sangue quente plotados contra a massa corporal em escalas logarítmicas."}
+knitr::include_graphics("./image/Fig7.9.png")
+```
+
+A produção diária de calor nos animais de sangue quente (endotérmicos) está diretamente relacionada à taxa metabólica. A taxa metabólica representa a quantidade de energia que o corpo gasta para realizar processos vitais, e esta energia é principalmente liberada como calor. Nos animais endotérmicos, a taxa metabólica é influenciada por fatores como:
+
+1. **Tamanho Corporal:** Em geral, animais menores têm uma taxa metabólica por unidade de massa mais alta, pois precisam gerar mais calor para manter sua temperatura corporal.
+
+2. **Atividade Física:** O nível de atividade afeta significativamente a taxa metabólica. Exercício e movimentação aumentam a produção de calor.
+
+3. **Temperatura Ambiente:** Para manter a homeostase térmica, animais endotérmicos aumentam sua taxa metabólica em ambientes frios para gerar mais calor, enquanto reduzem em ambientes quentes.
+
+4. **Dieta e Digestão:** O processo de digestão também aumenta a produção de calor, chamado de efeito térmico dos alimentos.
+
+Assim, a produção diária de calor reflete a taxa metabólica basal (energia necessária para manter funções vitais básicas em repouso) mais a energia utilizada para atividade física e outros processos, como digestão.
+
+Conforme COMAP, 2003, p. 653-6,
+
+$$M\propto V \propto L^3$$
+
+Então:
+
+$$M^{1/3}\propto V^{1/3}\propto L$$
+
+ou
+
+$$L\propto M^{1/3}$$
+
+A taxa metabólica, _P_, é proporcional à área da superfície do corpo, _S_. Então:
+
+$$P\propto S\propto L^2\propto \left(M^{1/3}\right)^2=M^{2/3}$$
+
+Espera-se que a taxa metabólica seja proporcional à potência 2/3 da massa corporal, $P\propto M^{2/3}$.
+
+No entanto, conforme Fig. 7.9, a potência estimada é aproximadamente 3/4, i.e., $P\propto M^{3/4}$.
+
+## Exemplo: Índice de Massa Corpórea (Quociente de Quetelet)
+
+O Índice de Massa Corporal (IMC), também conhecido como Quociente de Quetelet, foi desenvolvido em 1832 pelo matemático e estatístico belga Adolphe Quetelet. A história e desenvolvimento do IMC são interessantes e refletem a evolução da compreensão da relação entre peso e saúde.
+
+O Índice de Massa Corporal (IMC) é uma medida usada para avaliar se uma pessoa está com um peso saudável em relação à sua altura. Ele é calculado dividindo-se pela massa corporal total (MCT) da pessoa em quilogramas (kg) pelo quadrado de sua altura em metros (m²). A fórmula é a seguinte:
+
+\[ \text{IMC} = \dfrac{\text{MCT (kg)}}{\text{altura (m)}^2} \]
+
+### Exemplo de Cálculo
+
+Se uma pessoa tem 70 kg e 1,75 m de altura, o IMC é calculado como:
+
+\[ \text{IMC} = \dfrac{70}{1,75^2} \approx \dfrac{70}{3,06} \approx 22,9 kg/m^2 \]
+
+Portanto, essa pessoa estaria na categoria de "Peso normal".
+
+### Categorias de IMC
+
+Segundo a Organização Mundial da Saúde (OMS), as categorias de IMC são:
+
+- **Abaixo do peso**: IMC < 18,5
+- **Peso normal**: IMC entre 18,5 e 24,9
+- **Sobrepeso**: IMC entre 25 e 29,9
+- **Obesidade Grau I**: IMC entre 30 e 34,9
+- **Obesidade Grau II**: IMC entre 35 e 39,9
+- **Obesidade Grau III (Obesidade Mórbida)**: IMC ≥ 40
+
+"Se o homem aumentasse igualmente em todas as dimensões, seu peso em diferentes idades seria proporcional ao cubo de sua altura. No entanto, isso não é o que realmente observamos. O aumento de peso é mais lento, exceto durante o primeiro ano após o nascimento; então, a proporção que acabamos de mencionar é observada de maneira bastante regular. Mas, após esse período, e até próximo à idade da puberdade, o peso aumenta quase como o quadrado da altura. O desenvolvimento do peso volta a ser muito rápido na puberdade e quase para após os vinte e cinco anos. Em geral, não erramos muito ao supor que, durante o desenvolvimento, os quadrados do peso em diferentes idades são proporcionais às quintas potências da altura; o que naturalmente leva à conclusão, ao manter a densidade específica constante, de que o crescimento transversal do homem é menor do que o vertical." 
+
+> Quetelet (1842), _apud_ Eknoyan, 2008, p. 49
+
+# Transformação log ou log-log?
+
+Para uma função exponencial, aplicamos semilogarítmica, mas para uma função potência, um gráfico logarítmico duplo. 
+
+Em cada caso, o gráfico da função é uma linha reta.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# exponencial
+curve(2^(-x),1,20,
+      main="Função exponencial",
+      xlab="x", ylab="y")
+curve(2^(-x),1,20,
+      main="Função exponencial",
+      xlab="x", ylab="log(x)",
+      log="y")
+x <- 1:20
+y <- 2^(-x)
+DescTools::PlotLog(y ~ x, log = "y")
+
+# potencia
+curve(x^2,1,20,
+      main="Função potência",
+      xlab="x", ylab="y")
+curve(x^2,1,20,
+      main="Função potência",
+      xlab="log(x)", ylab="log(x)",
+      log="xy")
+x <- 1:20
+y <- x^2
+DescTools::PlotLog(y ~ x)
+```
+
+```{r}
+# Average brain and body weights for 28 species of land animals.
+DescTools::PlotLog(brain ~ body, 
+                   data=MASS::Animals,
+                   xlim=c(.01, 1e5), 
+                   ylim=c(.1, 1e4), 
+                   main="Animal brain/body size",
+                   pch=21, bg="grey", cex=1.5)
+```
+
+# Gráfico triangular
+
+* [Ternary plot: Wikipedia](https://en.wikipedia.org/wiki/Ternary_plot){target="_blank"}
+* [Create Ternary Plots in R](https://cran.r-project.org/web/packages/Ternary/vignettes/Ternary.html){target="_blank"}
+* [Hands-on Exercise 8: Creating Ternary Plot with R](https://rpubs.com/tskam/ternary_plot){target="_blank"}
+
+Começamos esta seção com uma proposição geométrica: seja _P_ um ponto em um triângulo equilátero. Então a soma das distâncias de _P_ dos três lados é igual à altura do triângulo. Em outras palavras: a soma das distâncias permanece constante quando movemos o ponto _P_ de qualquer posição para qualquer outra posição dentro do triângulo.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.10. A soma das três distâncias _h_<sub>1</sub>, _h_<sub>2</sub> e _h_<sub>3</sub> de um ponto _P_ dos lados de um triângulo equilátero é igual a _h_, a altura do triângulo."}
+knitr::include_graphics("./image/Fig7.10.png")
+```
+
+A Fig. 7.11 mostra como esse gráfico é construído. As três variáveis podem ser a concentração de três componentes A, B, C de uma substância. Eles somam 100%.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.11. Gráfico trilinear para traçar concentrações variáveis de três componentes de uma substância."}
+knitr::include_graphics("./image/Fig7.11.png")
+```
+
+## Exemplo 7.4.1: três tipos de células filamentosas
+
+Nos tentáculos de _Hydra attenuata Pall._ (um pólipo de água doce) existem três tipos de nematocistos (células filamentosas): os estenotelos relativamente grandes, os isorhizas e os desmonemes, ambos um pouco menores. Todos os três tipos foram contados nos cinco tentáculos de indivíduos do sexo feminino. Os resultados são:
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/tab.png")
+```
+
+Como temos três componentes, é bastante conveniente plotar as porcentagens em um gráfico trilinear (Fig. 7.12).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.12. Distribuição de nematocistos nos cinco tentáculos de um indivíduo fêmea _Hydra atenua Pall._"}
+knitr::include_graphics("./image/Fig7.12.png")
+```
+
+## Exemplo 7.4.2
+
+Aplicações interessantes de gráficos trilineares também são
+conhecidas na genética. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.13. As porcentagens dos genótipos AA, Aa, aa plotadas em um gráfico trilinear. Populações panmíticas são representadas por pontos caindo em uma parábola."}
+knitr::include_graphics("./image/Fig7.13.png")
+```
+
+Sejam _A_ e _a_ dois genes no mesmo locus. Os indivíduos são então homozigotos _AA_, _aa_ ou heterozigotos _Aa_. Sejam _p_<sub>AA</sub>, _p_<sub>aa</sub>, _p_<sub>Aa</sub> as porcentagens dos três genótipos em uma população.
+
+Então, por definição 
+
+$$p_{AA}+p_{aa}+p_{Aa}=100\%$$
+
+Cada população é representada por um ponto em um gráfico trilinear cuja altura é 100% e cujas coordenadas são _p_<sub>AA</sub>, _p_<sub>aa</sub>, _p_<sub>Aa</sub> Sob a hipótese de panmixia (acasalamento aleatório) a lei de Hardy-Weinberg afirma que 
+
+$$p_{Aa}^{2}=4p_{AA}p_{aa}$$
+
+Pode-se mostrar que as populações que satisfazem esta última equação são representadas por pontos localizados em uma parábola (Fig. 7.13).
+
+O equilíbrio de Hardy-Weinberg (também princípio de Hardy-Weinberg, ou lei de Hardy-Weinberg) é a base da genética de populações. Foi demonstrado independentemente por Godfrey Harold Hardy na Inglaterra e por Wilhelm Weinberg, na Alemanha, em 1908. Afirma que, em uma população mendeliana, dentro de determinadas condições, as frequências alélicas permanecerão constantes ao passar das gerações. Independentemente de um gene ser raro ou frequente, sua frequência permanecerá a mesma com relação aos outros desde que essas condições sejam mantidas. Por pura intuição poder-se-ia supor que alelos raros se tornariam cada vez mais raros e que alelos frequentes aumentassem cada vez mais sua frequência, simplesmente por já serem raros ou comuns, mas o princípio de Hardy-Weinberg demonstra matematicamente que isso não ocorre. (https://pt.wikipedia.org/wiki/Equil%C3%ADbrio_de_Hardy-Weinberg)
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/HW2.png")
+```
+
+```{r echo=FALSE, out.width="70%", }
+knitr::include_graphics("./image/HW.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot p^2, 2p(1−p), (1−p)^2, 0<=p<=1
+](https://www.wolframalpha.com/input?i=plot+p%5E2%2C+2p%281%E2%88%92p%29%2C+%281%E2%88%92p%29%5E2%2C+0%3C%3Dp%3C%3D1){target="_blank"}
+
+# Plotar função em WolframAlpha
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [Function Visualization
+](https://reference.wolfram.com/language/guide/FunctionVisualization.html){target="_blank"}
+
+* [R. Bigoni: 2D Graphics
+](https://www.robertobigoni.it/English/Matematica/WolframAlpha/wa06.html){target="_blank"}
+
+# Gráfico de funções justapostas em WolframAlpha
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [plot piecewise [{{0.02x, 0<=x<=500},{0.04x-10, 500<x<=3000},{0.05x-40, x>3000}}] 
+](https://www.wolframalpha.com/input?i=plot+piecewise+%5B%7B%7B0.02x%2C+0%3C%3Dx%3C%3D500%7D%2C%7B0.04x-10%2C+500%3Cx%3C%3D3000%7D%2C%7B0.05x-40%2C+x%3E3000%7D%7D%5D+){target="_blank"}
+
+* [plot piecewise [{{0.02x, 0<=x<=500},{0.04x-10, 500<x<=3000},{0.05x-40, x>3000}}] from 0 to 4000
+](https://www.wolframalpha.com/input?i=plot+piecewise+%5B%7B%7B0.02x%2C+0%3C%3Dx%3C%3D500%7D%2C%7B0.04x-10%2C+500%3Cx%3C%3D3000%7D%2C%7B0.05x-40%2C+x%3E3000%7D%7D%5D+from+0+to+4000){target="_blank"}
+
+* [Piecewise[{{x^2, x >= 1}, {1, x < 1}}]
+](https://www.wolframalpha.com/input?i=Piecewise%5B%7B%7Bx%5E2%2C+x+%3E%3D+1%7D%2C+%7B1%2C+x+%3C+1%7D%7D%5D){target="_blank"}
+
+* [Piecewise[{{x^2, x > 1}, {1, x < 1}}]
+](https://www.wolframalpha.com/input?i=Piecewise%5B%7B%7Bx%5E2%2C+x+%3E+1%7D%2C+%7B1%2C+x+%3C+1%7D%7D%5D){target="_blank"}
+
+* [plot Piecewise[{{2,-2<x <2}, {x,2<= x < 3}}] x=-5 to 5
+](https://www.wolframalpha.com/input?i=plot+Piecewise%5B%7B%7B2%2C-2%3Cx+%3C2%7D%2C+%7Bx%2C2%3C%3D+x+%3C+3%7D%7D%5D+x%3D-5+to+5){target="_blank"}
+
+* [Plot[Piecewise[{{x^2, x <0}, {x, x > 0}}], {x,-2,2}]
+](https://www.wolframalpha.com/input?i=Plot%5BPiecewise%5B%7B%7Bx%5E2%2C+x+%3C0%7D%2C+%7Bx%2C+x+%3E+0%7D%7D%5D%2C+%7Bx%2C-2%2C2%7D%5D){target="_blank"}
+
+# Gráfico de função parametrizada em WolframAlpha
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+[Plot[Table[k x^2 + k, {k, -3, 3}], {x, -2, 2}]
+](https://www.wolframalpha.com/input?i=Plot%5BTable%5Bk+x%5E2%2Bk%2C%7Bk%2C-3%2C3%7D%5D%2C%7Bx%2C-2%2C2%7D%5D){target="_blank"}
+
+# Função `plot` do R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+[Function plot in R
+](https://r-coder.com/plot-r/){target="_blank"}
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/plot.png")
+```
+
+# $\LaTeX$ em gráfico do R
+
+É muito comum a necessidade de exibir expressões matemáticas no título dos gráficos. Para isso, você pode usar a função `expression`. Você pode procurar todas as opções disponíveis para usar a notação matemática do tipo $\LaTeX$ chamando `?plotmath`.
+
+No entanto, a sintaxe da função é bem diferente da sintaxe do $\LaTeX$. Se preferir, você pode usar a função $\TeX$ do pacote `latex2exp`. No entanto, observe que esta função converte a notação $\TeX$ em notação de função de expressão, portanto, os símbolos e a notação disponíveis são os mesmos em ambas as funções.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# https://cran.r-project.org/web/packages/latex2exp/vignettes/using-latex2exp.html
+# https://www.cmor-faculty.rice.edu/~heinken/latex/symbols.pdf
+plot(latex2exp::TeX(r'(A $\LaTeX$ fórmula: $\frac{2hc^2}{\lambda^5}\frac{1}{e^{\frac{hc}{\lambda k_B T}} - 1}$)'), 
+     cex=2, main="")
+
+x <- seq(0, 4, length.out=100)
+alpha <- 1:5
+
+plot(x, xlim=c(0, 4), ylim=c(0, 10), 
+     xlab='x', ylab=latex2exp::TeX(r'($\alpha  x^\alpha$, where $\alpha \in \{1 \ldots 5\}$)'), 
+     type='n', main=latex2exp::TeX(r'(Using $\LaTeX$ for plotting in base graphics!)', bold=TRUE))
+
+for (a in alpha) {
+  lines(x, a*x^a, col=a)
+}
+
+legend('topleft', 
+       legend=latex2exp::TeX(sprintf(r'($\alpha = %d$)', alpha)), 
+       lwd=1, 
+       col=alpha)
+```
+
+# Gráfico 3D com curva de nível e outros gráficos 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [Function Visualization
+](https://reference.wolfram.com/language/guide/FunctionVisualization.html){target="_blank"}
+
+* [R. Bigoni: 3D Graphics
+](https://www.robertobigoni.it/English/Matematica/WolframAlpha/wa06.html){target="_blank"}
+
+* [Data Visualization in R by Michael Friendly, 2018](https://www.datavis.ca/courses/RGraphics/R-Graphics1-2x2.pdf){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 7.26. Apresentação em perspectiva de três pontos de uma superfície mostrando a inter-relação teórica dos genótipos do hospedeiro e do patógeno no controle da gravidade de uma doença."}
+knitr::include_graphics("./image/Fig7.26.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+HistData::SnowMap(density=FALSE,
+        main="Snow's Cholera Map with Pump Neighborhoods")
+HistData::SnowMap(density=TRUE,
+        main="Snow's Cholera Map, Death Intensity")
+```
+
+## Exemplo: Transporte fluvial de produto granular
+
+Quatrocentos metros cúbicos de um produto granular devem ser transportados para outro lado do rio por meio de um serviço de ferryboat. Qualquer quantidade do produto pode ser transportada em uma viagem que custa dez centavos por viagem. Os ancoradouros do ferryboat estão construídos de modo que o contêiner no qual o produto vai ser transportado deve ter meio metro de profundidade, ao passo que a largura e o comprimento podem variar. Os custos por metro quadrado das superfícies terminais (da parte da frente à parte detrás), laterais e do fundo do contêiner são R$ 20, R$ 10 e R$ 10, respectivamente. Se o tamanho do contêiner for pequeno, seu custo poderá ser baixo, mas o número de viagens será maior, aumentando o custo do transporte e vice-versa. 
+
+Quais são os valores do comprimento e largura em metro do contêiner, isto é, quais as dimensões do contêiner que minimizam o custo total do transporte do produto granular?
+
+```{r echo=FALSE, out.width="70%", fig.cap="Dimensões do contêiner."}
+knitr::include_graphics("./image/conteiner.png")
+```
+
+Solução:
+
+$a$ : largura da base retangular do contêiner (m)
+
+$b$ : comprimento da base retangular do contêiner (m)
+
+A função do custo total de transporte do produto granular por via fluvial é dada por:
+
+$$C(a,b)=\dfrac{80}{ab}+20a+10b+10ab$$
+
+O contêiner de 0.5 m de altura, 1 m de largura e 2 m de comprimento, isto é, de 1 m<sup>3</sup>, realiza 400 viagens. O custo total mínimo do transporte fluvial de produto granular é R$ 100, isto é, $C_{\text{min}}(1,2)=100$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+f <- function(a, b) {
+  80 / (a * b) + 20 * a + 10 * b + 10 * a * b
+}
+a_values <- seq(0.5, 2, length.out = 100)
+b_values <- seq(1, 3, length.out = 100)
+grid <- base::expand.grid(a = a_values, b = b_values)
+grid$z <- base::with(grid, f(a, b))
+grid_melt <- reshape2::melt(grid, id.vars = c("a", "b"), 
+                            measure.vars = "z")
+
+ggplot_contour <- ggplot2::ggplot(grid_melt, 
+                                       ggplot2::aes(x = a, y = b, 
+                                                    z = value)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::geom_contour(color = "black") +
+  ggplot2::scale_fill_gradientn(colours = grDevices::terrain.colors(10)) +
+  ggplot2::labs(title = "Gráfico de Contorno", 
+                x = "a", y = "b", fill = "C") +
+  ggplot2::theme_minimal()
+print(ggplot_contour)
+rayshader::plot_gg(ggplot_contour, 
+                   multicore = TRUE, 
+                   zoom = 0.8, phi = 40, theta = 30)
+rayshader::render_snapshot(clear = FALSE)
+fig <- plotly::plot_ly(x = ~a_values, y = ~b_values, z = ~base::matrix(grid$z, nrow = 100)) %>%
+  plotly::add_surface(
+    contours = list(
+      z = list(
+        show = TRUE,
+        usecolormap = TRUE,
+        highlightcolor = "#ff0000",
+        project = list(z = TRUE)
+      )
+    )
+  ) %>%
+  plotly::layout(
+    scene = list(
+      xaxis = list(title = "a"),
+      yaxis = list(title = "b"),
+      zaxis = list(title = "C"),
+      camera = list(
+        eye = list(x = 1.87, y = 0.88, z = -0.64)
+      )
+    ),
+    title = "Superfície 3D da Função"
+  )
+fig
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[minimize 80/(a b) + 20 a+ 10 b + 10 a b for a>0 and b>0](https://www.wolframalpha.com/input?i=minimize+80%2F%28a+b%29+%2B+20+a%2B+10+b+%2B+10+a+b+for+a%3E0+and+b%3E0){target="_blank"}
+
+[Plot[80/ab+20a+10b+10ab, {a,0.5,2}, {b,1,3}]](https://www.wolframalpha.com/input?i=Plot%5B80%2Fab%2B20a%2B10b%2B10ab%2C+%7Ba%2C0.5%2C2%7D%2C+%7Bb%2C1%2C3%7D%5D){target="_blank"}
+
+[contour plot 80/(a b) + 20 a+ 10 b + 10 a b from a=0.5 to a=2 from b=1 to b=3 axes label "a" "b" plot legend](https://www.wolframalpha.com/input?i=contour+plot+80%2F%28a+b%29+%2B+20+a%2B+10+b+%2B+10+a+b+from+a%3D0.5+to+a%3D2+from+b%3D1+to+b%3D3+axes+label+%22a%22+%22b%22+plot+legend){target="_blank"}
+
+* [Maungawhau / Mount Eden: Wikipedia](https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Mount Eden é o vulcão mais alto de Auckland, Nova Zelândia, oferecendo algumas das melhores vistas de toda a cidade. Ele chega a 196 metros (643 pés) de altura e foi formado há cerca de 30.000 anos."}
+knitr::include_graphics("./image/volcano.png")
+```
+
+R é uma linguagem de programação voltada à manipulação, análise e visualização de dados. Foi criado originalmente por Ross Ihaka e por Robert Gentleman no departamento de Estatística da Universidade de Auckland, Nova Zelândia. (https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o))
+
+```{r}
+# datasets::volcano
+# Maunga Whau (Mt Eden) is one of about 50 volcanos in the Auckland volcanic
+# field. This data set gives topographic information for Maunga Whau on a
+# 10m by 10m grid.
+# A matrix with 87 rows and 61 columns, rows corresponding to grid lines
+# running east to west and columns to grid lines running south to north.
+print(volcano)
+fig <- plotly::plot_ly(z = ~volcano) %>% plotly::add_surface(
+  contours = list(
+    z = list( 
+      show=TRUE,
+      usecolormap=TRUE,
+      highlightcolor="#ff0000",
+      project=list(z=TRUE)
+    )
+  )
+)
+fig <- fig %>% plotly::layout(
+  scene = list(
+    camera=list(
+      eye = list(x=1.87, y=0.88, z=-0.64)
+    )
+  )
+)
+
+fig
+
+rx <- range(x <- 10*1:nrow(volcano))
+ry <- range(y <- 10*1:ncol(volcano))
+ry <- ry + c(-1, 1) * (diff(rx) - diff(ry))/2
+tcol <- terrain.colors(12)
+plot(x = 0, y = 0, type = "n", xlim = rx, ylim = ry, xlab = "", ylab = "")
+u <- par("usr")
+rect(u[1], u[3], u[2], u[4], col = "lightblue", border = "black")
+contour(x, y, volcano, col = "black", lty = "solid", add = TRUE,
+        vfont = c("sans serif", "plain"))
+title("A Topographic Map of Maunga Whau", font = 4)
+abline(h = 200*0:4, v = 200*0:4, col = "white", lty = 2, lwd = 0.1)
+
+## contourLines produces the same contour lines as contour
+plot(x = 0, y = 0, type = "n", xlim = rx, ylim = ry, xlab = "", ylab = "")
+u <- par("usr")
+rect(u[1], u[3], u[2], u[4], col = "lightblue", border = "black")
+contour(x, y, volcano, col = "black", lty = "solid", add = TRUE,
+        vfont = c("sans serif", "plain"))
+line.list <- contourLines(x, y, volcano)
+invisible(lapply(line.list, lines, lwd=3, col=adjustcolor(2, .3)))
+abline(h = 200*0:4, v = 200*0:4, col = "white", lty = 2, lwd = 0.1)
+
+
+filled.contour(volcano, color.palette = terrain.colors, asp = 1)
+title(main = "volcano data: filled contour map")
+filled.contour(x, y, volcano,
+               color.palette = function(n) hcl.colors(n, "terrain"),
+               plot.title = title(main = "The Topography of Maunga Whau",
+                                  xlab = "Meters North", ylab = "Meters West"),
+               plot.axes = { axis(1, seq(100, 800, by = 100))
+                 axis(2, seq(100, 600, by = 100)) },
+               key.title = title(main = "Height\n(meters)"),
+               key.axes = axis(4, seq(90, 190, by = 10)))  # maybe also asp = 1
+mtext(paste("filled.contour(.) from", R.version.string),
+      side = 1, line = 4, adj = 1, cex = .66)
+
+## gráfico de curva de nivel com ggplot2
+ggvolcano = volcano %>% 
+  reshape2::melt() %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_tile(ggplot2::aes(x=Var1,y=Var2,fill=value)) +
+  ggplot2::geom_contour(ggplot2::aes(x=Var1,y=Var2,z=value),color="black") +
+  ggplot2::scale_x_continuous("X",expand = c(0,0)) +
+  ggplot2::scale_y_continuous("Y",expand = c(0,0)) +
+  ggplot2::scale_fill_gradientn("Z",colours = terrain.colors(10)) +
+  ggplot2::coord_fixed()
+ggvolcano
+
+##transformar em 3D
+rayshader::plot_gg(ggvolcano, 
+                   multicore = TRUE, 
+                   # raytrace = TRUE, 
+                   # width = 7, 
+                   # height = 4, 
+                   # scale = 300, 
+                   # windowsize = c(1400, 866), 
+                   zoom = 0.8, 
+                   phi = 40, 
+                   theta = 30)
+rayshader::render_snapshot(clear = TRUE)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# scatterplot3d: 3D graphics - R software and data visualization
+# http://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
+data(iris)
+head(iris)
+# Basic 3d graphics
+scatterplot3d::scatterplot3d(iris[,1:3])
+# Change the angle of point view
+scatterplot3d::scatterplot3d(iris[,1:3], angle = 55)
+scatterplot3d::scatterplot3d(iris[,1:3],
+              main="3D Scatter Plot",
+              xlab = "Sepal Length (cm)",
+              ylab = "Sepal Width (cm)",
+              zlab = "Petal Length (cm)")
+scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color="steelblue")
+
+shapes <- c(16, 17, 18) 
+shapes <- shapes[as.numeric(iris$Species)]
+scatterplot3d::scatterplot3d(iris[,1:3], pch = shapes)
+
+colors <- c("#999999", "#E69F00", "#56B4E9")
+colors <- colors[as.numeric(iris$Species)]
+scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+
+scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color = colors,
+              grid=TRUE, box=FALSE)
+
+# 1. Source the function
+source('http://www.sthda.com/sthda/RDoc/functions/addgrids3d.r')
+# 2. 3D scatter plot
+scatterplot3d::scatterplot3d(iris[, 1:3], pch = 16, grid=FALSE, box=FALSE)
+# 3. Add grids
+addgrids3d(iris[, 1:3], grid = c("xy", "xz", "yz"))
+
+scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, type="h", 
+              color=colors)
+
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+legend(s3d$xyz.convert(7.5, 3, 4.5), legend = levels(iris$Species),
+       col =  c("#999999", "#E69F00", "#56B4E9"), pch = 16)
+
+# "right" position
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+legend("right", legend = levels(iris$Species),
+       col =  c("#999999", "#E69F00", "#56B4E9"), pch = 16)
+
+# Use the argument inset
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+legend("right", legend = levels(iris$Species),
+       col = c("#999999", "#E69F00", "#56B4E9"), pch = 16, inset = 0.1)
+
+# "bottom" position
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+legend("bottom", legend = levels(iris$Species),
+       col = c("#999999", "#E69F00", "#56B4E9"), pch = 16)
+
+# Custom point shapes
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = shapes)
+legend("bottom", legend = levels(iris$Species),
+       pch = c(16, 17, 18), 
+       inset = -0.25, xpd = TRUE, horiz = TRUE)
+
+# Custom colors
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+legend("bottom", legend = levels(iris$Species),
+       col =  c("#999999", "#E69F00", "#56B4E9"), pch = 16, 
+       inset = -0.25, xpd = TRUE, horiz = TRUE)
+
+# Custom shapes/colors
+s3d <- scatterplot3d::scatterplot3d(iris[,1:3], pch = shapes, color=colors)
+legend("bottom", legend = levels(iris$Species),
+       col =  c("#999999", "#E69F00", "#56B4E9"), 
+       pch = c(16, 17, 18), 
+       inset = -0.25, xpd = TRUE, horiz = TRUE)
+
+# Add point labels
+scatterplot3d::scatterplot3d(iris[,1:3], pch = 16, color=colors)
+text(s3d$xyz.convert(iris[, 1:3]), labels = rownames(iris),
+     cex= 0.7, col = "steelblue")
+```
+
+```{r}
+# Descrição
+# 
+# Este conjunto de dados fornece medições de diâmetro, altura e volume de madeira em 31 cerejeiras-pretas derrubadas. Observe que o diâmetro (em polegadas) é rotulado erroneamente como Girth nos dados. 
+# É medido a 4 pés 6 em acima do solo.
+# 
+# Um quadro de dados com 31 observações em 3 variáveis.
+# 
+# Girth: Diâmetro da árvore (em vez de circunferência, na verdade) em polegadas
+# 
+# Height: Altura numérica em pés
+# 
+# Volume: volume numérico de madeira em pés cúbicos
+
+# Add regression plane and supplementary points
+
+data(trees) # Diameter, Height and Volume for Black Cherry Trees
+head(trees)
+# 3D scatter plot
+s3d <- scatterplot3d::scatterplot3d(trees, type = "h", color = "blue",
+                     angle=55, pch = 16)
+# Add regression plane
+my.lm <- lm(trees$Volume ~ trees$Girth + trees$Height)
+s3d$plane3d(my.lm)
+# Add supplementary points
+s3d$points3d(seq(10, 20, 2), seq(85, 60, -5), seq(60, 10, -10),
+             col = "red", type = "h", pch = 8)
+```
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+* __Executar no RStudio: scatter3d_car.R__
+
+```{r eval=FALSE}
+# Descrição
+# 
+# O _dataframe_ Duncan tem 45 linhas e 4 colunas.
+# 
+# Dados sobre o prestígio e outras características de 45 ocupações 
+# nos Estados Unidos em 1950.
+# 
+# Este quadro de dados contém as seguintes colunas:
+# 
+# type
+#  Tipo de ocupação. Um fator com os seguintes níveis: profissional,
+#   profissional e gerencial; wc, colarinho branco; bc, colarinho azul.
+# 
+# income
+#  Porcentagem de titulares ocupacionais no Censo dos EUA de 1950 que
+#   ganhavam US$ 3.500 ou mais por ano (cerca de US$ 36.000 em dólares
+#   americanos de 2017).
+# 
+# education
+#  Porcentagem de titulares ocupacionais em 1950 que concluíram o ensino
+#   médio (o que, se fôssemos cínicos, diríamos que é aproximadamente
+#   equivalente a um doutorado em 2017)
+# 
+# prestige
+#  Porcentagem de entrevistados em uma pesquisa social que classificaram a
+#   ocupação como “boa” ou melhor em prestígio
+
+car::scatter3d(prestige ~ income + education, data=Duncan, id=list(n=3))
+car::scatter3d(prestige ~ income + education | type, data=Duncan)
+car::scatter3d(prestige ~ income + education | type, surface=FALSE,
+            ellipsoid=TRUE, revolutions=3, data=Duncan)
+car::scatter3d(prestige ~ income + education, fit=c("linear", "additive"),
+            data=Prestige)
+car::scatter3d(prestige ~ income + education | type,
+            radius=(1 + women)^(1/3), data=Prestige)
+
+local({
+  set.seed(123)
+  Sigma <- matrix(c(
+    1, 0.5,
+    0.5, 1),
+    2, 2
+  )
+  X <-  MASS::mvrnorm(200, mu=c(0,0), Sigma=Sigma)
+  D <- data.frame(
+    x1 = X[, 1],
+    x2 = X[, 2]
+  )
+  D$y <- with(D, 10 + 1*x1 + 2*x2 + 3*x1*x2 + rnorm(200, sd=3))
+  # plot true regression function
+  car::scatter3d(y ~ x1 + x2, D, 
+                 reg.function=10 + 1*x + 2*z + 3*x*z,
+                 surface=FALSE, revolutions=2)
+})
+
+# Amazing interactive 3D scatter plots - R software and data visualization
+# http://www.sthda.com/english/wiki/amazing-interactive-3d-scatter-plots-r-software-and-data-visualization
+
+data(iris)
+head(iris)
+sep.l <- iris$Sepal.Length
+pet.l <- iris$Petal.Length
+sep.w <- iris$Sepal.Width
+grp <- iris$Species
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w,
+          point.col = "blue", surface=FALSE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          grid = FALSE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          grid = FALSE, fit = "smooth")
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          grid = FALSE, surface = FALSE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          surface=FALSE, ellipsoid = TRUE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          surface=FALSE, grid = FALSE, ellipsoid = TRUE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          surface=FALSE, grid = FALSE, ellipsoid = TRUE,
+          surface.col = c("#999999", "#E69F00", "#56B4E9"))
+colors <- RColorBrewer::brewer.pal(n=3, name="Dark2")
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          surface=FALSE, grid = FALSE, ellipsoid = TRUE,
+          surface.col = colors)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          point.col = "blue", surface=FALSE,
+          xlab = "Sepal Length (cm)", ylab = "Petal Length (cm)",
+          zlab = "Sepal Width (cm)")
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+               point.col = "blue", surface=FALSE,
+               xlab = "Sepal Length (cm)", ylab = "Petal Length (cm)",
+               zlab = "Sepal Width (cm)",
+               axis.scales = FALSE)
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+               point.col = "blue", surface=FALSE,
+               xlab = "Sepal Length (cm)", ylab = "Petal Length (cm)",
+               zlab = "Sepal Width (cm)",
+               axis.scales = FALSE,
+               axis.col = c("black", "black", "black"))
+car::scatter3d(x = sep.l, y = pet.l, z = sep.w, groups = grp,
+          surface=FALSE, labels = rownames(iris), id.n=nrow(iris))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+Dados <- readxl::read_excel("PrePos.xlsx")
+Dados <- dplyr::mutate_if(Dados, is.character, as.factor)
+Dados <- dplyr::mutate_at(Dados, dplyr::vars(ID), as.factor)
+Dados$Grupo <- factor(Dados$Grupo,
+                      levels=c("Placebo", "Tratamento"),
+                      labels=c("Placebo", "Tratamento"))
+print(labelled::look_for(Dados[,-1]))
+print.data.frame(Dados[order(Dados$Grupo),])
+print(psych::describeBy(Dados[,3:4], Dados$Grupo, mat=1, na.rm=TRUE, digits=2))
+
+# https://plotly.com/r/ml-regression/
+Dados$Grupo.num <- as.numeric(Dados$Grupo)-1
+out <- summary(fit <- lm(Pos ~ Grupo.num + Pre, data=Dados))
+print(out)
+fitpoints <- predict(fit)
+cf <- coef(out)
+grid.lines <- 5
+x <- seq(min(Dados$Grupo.num), 
+         max(Dados$Grupo.num), 
+         length.out = grid.lines)
+y <- seq(min(Dados$Pre), 
+         max(Dados$Pre), 
+         length.out = grid.lines)
+response <- function(x,y){
+  cf[1] +
+    cf[2]*x +
+    cf[3]*y
+}
+z.pred <- outer(x, y, response)
+plotly::plot_ly(Dados, x = ~Grupo.num, y = ~Pre, z = ~Pos ) %>%
+  plotly::add_markers(size = 5) %>%
+  plotly::add_surface(x=x, y=y, z=z.pred)
+
+
+# https://rpubs.com/pjozefek/576206
+Dados <- na.omit(Dados)
+Dados$Grupo.num <- as.numeric(Dados$Grupo)-1
+out <- summary(fit <- lm(Pos ~ Grupo.num + Pre, data=Dados))
+fitpoints <- predict(fit)
+cf <- coef(out)
+grid.lines <- 5
+x <- seq(min(Dados$Grupo.num), 
+         max(Dados$Grupo.num), 
+         length.out = grid.lines)
+y <- seq(min(Dados$Pre), 
+         max(Dados$Pre), 
+         length.out = grid.lines)
+response <- function(x,y){
+  cf[1] +
+    cf[2]*x +
+    cf[3]*y
+}
+z.pred <- outer(x, y, response)
+plot3D::persp3D(x = x, 
+                y = y, 
+                z = z.pred,
+                ticktype = "detailed", 
+                border=NA,
+                facets=NA,
+                shade=0.5,
+                lighting=TRUE,
+                phi = 0, 
+                theta = 35, 
+                xlab = "Grupo", 
+                ylab = "Pre", 
+                zlab = "Pos^", 
+                clab = "Pos", 
+                main = "Delineamento Pré-Pós",
+                contour = FALSE, 
+                cex.axis = 0.75, 
+                cex.lab = 0.75)
+plot3D::scatter3D(x = Dados$Grupo.num, 
+                  y = Dados$Pre, 
+                  z = Dados$Pos, 
+                  theta=0,
+                  phi=35,
+                  bty="b2",
+                  cex=0.5,
+                  expand=0.7,
+                  colvar=FALSE,
+                  surf = list(x = x, y = y, z = z.pred,  
+                              facets = NA, 
+                              fit = fitpoints, 
+                              col="gray",
+                              # col=plot3D::ramp.col(col=c("dodgerblue3",
+                              #                            "seagreen2"), 
+                              #                      n=300, 
+                              #                      alpha=0.9), 
+                              border="black"), 
+                  add = TRUE, 
+                  type = "h", 
+                  pch = 19, 
+                  col = "black", 
+                  lwd = 2, 
+                  colkey = FALSE)
+
+## ---- Estimation ----
+fit <- lm(Pos ~ Grupo.num + Pre, data=Dados)
+n <- nrow(Dados)
+## ---- Axis inputs ----
+## Group.num
+Grupo.num_axis <- regplane3D::pretty_axis_inputs(
+  axis_range = range(Dados$Grupo.num),
+  base = 1,
+  nlines_suggest = 5L,
+  multiply = 1
+)
+## FMAULpre
+Pre_axis <- regplane3D::pretty_axis_inputs(
+  axis_range = range(Dados$Pre),
+  base = 10,
+  nlines_suggest = 5L,
+  multiply = 1
+)
+## ---- Prediction ----
+pred <-
+  array(NA, dim = c(length(Grupo.num_axis$seq), 
+                    length(Pre_axis$seq), 3L))
+for (Grupo.num in seq_along(Grupo.num_axis$seq)) {
+  for (Pre in seq_along(Pre_axis$seq)) {
+    pred_tmp <- predict.lm(
+      fit,
+      newdata = data.frame(Grupo.num = Grupo.num_axis$seq[Grupo.num],
+                           Pre = Pre_axis$seq[Pre]),
+      se.fit = TRUE
+    )
+    # Applied linear statistical model - Kutner et al - 5e - 2004, p. 63
+    # Applied Multivariate Statistical Analysis - Johnson & Wichern - 6e - 2007, p. 212
+    pred[Grupo.num, Pre, ] <- c(
+      pred_tmp$fit,
+      pred_tmp$fit - sqrt(((n-1)/(n-2))*2*qf(0.95,2,n-2)) * pred_tmp$se.fit,
+      pred_tmp$fit + sqrt(((n-1)/(n-2))*2*qf(0.95,2,n-2)) * pred_tmp$se.fit
+    )
+  }
+}
+## ---- Plot ----
+par(mar = c(2.1, 2.1, 4.1, 0.1))
+regplane3D::plane3D(
+  z = pred,
+  x = Grupo.num_axis$seq,
+  y = Pre_axis$seq,
+  zlab = "Pos",
+  xlab = "Grupo",
+  ylab = "Pre",
+  zlim = c(-10, 60),
+  xlim = Grupo.num_axis$range,
+  ylim = Pre_axis$range,
+  xnlines = Grupo.num_axis$nlines,
+  ynlines = Pre_axis$nlines,
+  main = "Delineamento Pré-Pós",
+  theta = -45,
+  phi = 9
+)
+plot3D::points3D(
+  z = Dados$Pos,
+  x = Dados$Grupo.num,
+  y = Dados$Pre,
+  add = TRUE,
+  col = adjustcolor("black", alpha.f = .3),
+  pch = 19
+)
+plot3D::text3D(
+  z = Dados$Pos+2.5,
+  x = Dados$Grupo.num,
+  y = Dados$Pre,
+  labels = Dados$ID,
+  add = TRUE,
+  cex = 0.6
+)
+
+yzmin <- min(c(c(pred),Pre_axis$range),na.rm=TRUE)*0.98
+yzmax <- max(c(c(pred),Pre_axis$range),na.rm=TRUE)*1.02
+quinas2z <- rep(NA,4)
+idx <- 0
+for (c.row in c(1,nrow(pred[,,2])))
+{
+  for (c.col in c(1,ncol(pred[,,2])))
+  {
+    idx <- idx+1
+    quinas2z[idx] <- pred[c.row,c.col,2]
+  }
+}
+quinas3z <- rep(NA,4)
+idx <- 0
+for (c.row in c(1,nrow(pred[,,3])))
+{
+  for (c.col in c(1,ncol(pred[,,3])))
+  {
+    idx <- idx+1
+    quinas3z[idx] <- pred[c.row,c.col,3]
+  }
+}
+yzminH0 <- max(quinas2z[c(1,3)])
+yzmaxH0 <- min(quinas3z[c(2,4)])
+
+par(mar = c(2.1, 2.1, 4.1, 0.1))
+regplane3D::plane3D(
+  z = pred,
+  x = Grupo.num_axis$seq,
+  y = Pre_axis$seq,
+  zlab = "Pos",
+  xlab = "Grupo",
+  ylab = "Pre",
+  zlim = c(yzmin, yzmax),
+  xlim = Grupo.num_axis$range,
+  ylim = c(yzmin, yzmax),
+  xnlines = Grupo.num_axis$nlines,
+  ynlines = Pre_axis$nlines,
+  main = "Delineamento Pré-Pós",
+  theta = 45,
+  phi = 9
+)
+quinas_x <- Grupo.num_axis$seq[c(1,1,length(Grupo.num_axis$seq),length(Grupo.num_axis$seq))]
+quinas_y <- Pre_axis$seq[c(1,length(Pre_axis$seq),1,length(Pre_axis$seq))]
+# plot3D::points3D(
+#   z = quinas2z,
+#   x = quinas_x,
+#   y = quinas_y,
+#   add = TRUE,
+#   col = adjustcolor("black", alpha.f = .3),
+#   pch = 19
+# )
+# plot3D::points3D(
+#   z = quinas3[c(1,2,3,4)],
+#   x = quinas_x,
+#   y = quinas_y,
+#   add = TRUE,
+#   col = adjustcolor("black", alpha.f = .3),
+#   pch = 19
+# )
+plot3D::lines3D(
+  z = c(yzminH0,yzminH0,yzmaxH0,yzmaxH0,yzminH0),
+  x = c(0,1,1,0,0),
+  y = c(yzminH0,yzminH0,yzmaxH0,yzmaxH0,yzminH0),
+  col="darkblue",
+  lty=2,
+  add = TRUE
+)
+plot3D::points3D(
+  z = Dados$Pos,
+  x = Dados$Grupo.num,
+  y = Dados$Pre,
+  add = TRUE,
+  col = adjustcolor("black", alpha.f = .3),
+  pch = 19
+)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[3d plot em WolframAlpha](https://www.wolframalpha.com/input/?i=3d+plot){target="_blank"}
+
+[Plotar função 3D em WolframAlpha](https://www.wolframalpha.com/widgets/view.jsp?id=553061fa72293c232bd1cd1f1e34140a){target="_blank"}
+
+[ParametricPlot3D em WolframAlpha](https://www.wolframalpha.com/input/?i=ParametricPlot3D){target="_blank"}
+
+[SphericalPlot3D em WolframAlpha](https://www.wolframalpha.com/input?i=SphericalPlot3D){target="_blank"}
+
+[Gráficos 2D e 3D Melhorados em WOLFRAM MATHEMATICA](https://www.wolfram.com/mathematica/new-in-8/enhanced-2d-and-3d-graphics/index.html.pt-br?footer=lang){target="_blank"}
+
+[B-spline curve and its control points in 3D em WOLFRAM MATHEMATICA](https://reference.wolfram.com/language/ref/BSplineCurve.html){target="_blank"}
+
+[B-spline surface in 3D em WOLFRAM MATHEMATICA](https://reference.wolfram.com/language/ref/BSplineSurface.html){target="_blank"}
+
+# Método gráfico no YouTube 
+
+* [Glass of Numbers: How to Graph Any Polar Curves: Cardioid Example r = 1 + cos(theta)](https://www.youtube.com/watch?v=wEfJ8e1CQrs){target="_blank"}
+
+* [Fillah Alamsyah: Draw Heart With Math Equation](https://www.youtube.com/watch?v=yokZ4BPa8fM&list=WL&index=2){target="_blank"}
+
+# Cor em R
+
+```{r}
+# https://www.stat.ubc.ca/~jenny/STAT545A/block14_colors.html
+head(colors()); tail(colors())
+colors()
+
+# colorspace::choose_color() # Executar no RStudio
+
+RColorBrewer::display.brewer.all()
+RColorBrewer::display.brewer.pal(n = 8, name = 'Dark2')
+RColorBrewer::brewer.pal(n = 8, name = "Dark2")
+
+# Collapses red-green or green-blue color distinctions 
+# to approximate the effect of the three forms of 
+# dichromacy: protanopia and 
+# deuteranopia (red-green color blindness), and 
+# tritanopia (green-blue color blindness).
+dichromat::colorschemes
+## from example(pie)
+par(mfrow = c(2, 2))
+pie.sales <- c(0.12, 0.3, 0.26, 0.16, 0.04, 0.12)
+names(pie.sales) <- c("Blueberry", "Cherry",
+                      "Apple", "Boston Cream", "Other", "Vanilla Cream")
+pie(pie.sales, # default colors
+    col = c("white", "lightblue", "mistyrose", "lightcyan", "lavender", "cornsilk"))
+pie(pie.sales,
+    col = c("purple", "violetred1", "green3", "cornsilk", "cyan", "white"))
+pie(pie.sales, col = dichromat::dichromat(
+  c("white", "lightblue", "mistyrose", "lightcyan", "lavender", "cornsilk")))
+pie(pie.sales, col = dichromat::dichromat(
+  c("purple", "violetred1", "green3", "cornsilk", "cyan", "white")))
+
+## standard color schemes
+pie(rep(1,10), col = heat.colors(10))
+pie(rep(1,10), col = dichromat::dichromat(heat.colors(10)))
+pie(rep(1,8),  col = palette())
+pie(rep(1,8),  col = dichromat::dichromat(palette()))
+
+pie(rep(1,15), col = topo.colors(15))
+pie(rep(1,15), col = dichromat::dichromat(topo.colors(15)))
+pie(rep(1,15), col = terrain.colors(15))
+pie(rep(1,15), col = dichromat::dichromat(terrain.colors(15)))
+
+pie(rep(1,15), col = cm.colors(15))
+pie(rep(1,15), col = dichromat::dichromat(cm.colors(15)))
+
+## color ramp schemes
+bluescale <- colorRampPalette(c("#FFFFCC", "#C7E9B4", "#7FCDBB",
+                                "#40B6C4", "#2C7FB8" , "#253494"))
+redgreen <- colorRampPalette(c("red", "green3"))
+pie(rep(1,15), col = bluescale(15))
+pie(rep(1,15), col = dichromat::dichromat(bluescale(15)))
+
+par(mfrow = c(2, 4))
+x <- matrix(rnorm(10 * 10), 10)
+image(1:10, 1:10, x, col = bluescale(10), main = "blue-yellow scale")
+image(1:10, 1:10, x, col = dichromat::dichromat(bluescale(10), "deutan"), main = "deutan")
+image(1:10, 1:10, x, col = dichromat::dichromat(bluescale(10), "protan"), main = "protan")
+image(1:10, 1:10, x, col = dichromat::dichromat(bluescale(10), "tritan"), main = "tritan")
+
+image(1:10, 1:10, x, col = redgreen(10), main = "red-green scale")
+image(1:10, 1:10, x, col = dichromat::dichromat(redgreen(10), "deutan"), main = "deutan")
+image(1:10, 1:10, x, col = dichromat::dichromat(redgreen(10), "protan"), main = "protan")
+image(1:10, 1:10, x, col = dichromat::dichromat(redgreen(10), "tritan"), main = "tritan")
+```
+
+# Bibliografia: Aula04: Método gráfico
+
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Bertalanffy, L von (1957) Quantitative Laws in Metabolism and Growth.
+_The Quarterly Review of Biology_ 32(3): 217-231.
+* Consortium for Mathematics and its Applications - COMAP (2003) _For all practical purposes: Mathematical literacy in today´s world_. 6th ed. USA: WH Freeman.
+* Eknoyan, G (2008) Adolphe Quetelet (1796-1874)--the average man and indices of obesity. _Nephrology, dialysis, transplantation : official publication of the European Dialysis and Transplant Association - European Renal Association_ 23(1): 47–51. https://doi.org/10.1093/ndt/gfm517
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulos 2 e 14.
+* Quetelet, A (1842) A Treatise on Man and the Development of his
+Faculties. Reprinted in 1968 by Burt Franklin, New York.
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+
+

@@ -1,0 +1,2462 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 6: Derivada e Integral"
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula06.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula06.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no 
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r eval=TRUE,  echo=TRUE, warning=FALSE, error=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(stringr, warn.conflicts=FALSE))
+suppressMessages(library(DescTools, warn.conflicts=FALSE))
+suppressMessages(library(nlsr, warn.conflicts=FALSE))
+suppressMessages(library(Deriv, warn.conflicts=FALSE))
+suppressMessages(library(calculus, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+“Muito menos, ninguém de senso se daria ao trabalho de definir a tecelagem só por amor da própria arte de tecer. Mas o que a maioria não percebe, segundo penso, é que algumas coisas apresentam semelhanças naturais, muito fáceis de apontar aos que pedem explicações de certas realidades, quando não queremos ter trabalho de grandes explanações; ao passo que para as mais importantes verdades e da mais alta relevância, não existe imagem capaz de fornecer aos homens uma ideia clara que, para completa satisfação do espírito, bastaria apresentar a quem nos interroga, com a devida acomodação a qualquer dos sentidos. Por isso mesmo, precisamos esforçar-nos para ficar em condições de dar ou compreender a razão de cada coisa. As realidades imateriais, as maiores e as mais belas, só nos podem ser claramente reveladas por meio da razão, nada mais, sendo a elas que se refere tudo o que dissemos até agora. Mas, é muito mais fácil tratar das coisas pequenas do que das grandes.”
+ 
+> PLATÃO (cerca de 400 a.C., 285de-286ab) _Diálogos: político ou da realeza_. Tradução de Carlos Alberto Nunes. Universidade Federal do Pará.
+
+# Adicionar
+
+* [Desmos: calculadora gráfica](https://www.desmos.com/?lang=pt-BR){target="_blank"}
+* [Desmos 2D](https://www.desmos.com/calculator?lang=pt-BR){target="_blank"}
+* [Desmos 3D](https://www.desmos.com/3d?lang=pt-BR){target="_blank"} 
+
+* Derivada da razão: numerador é determinante do Wronskiano
+  * [Wronskian: Wikipedia](https://en.wikipedia.org/wiki/Wronskian)
+
+* Exercicios de aplicacoes do Calculo - Bernardo.pdf
+
+* Derivadas de funções de uma ou mais variáveis - Flemming - 2014.pdf
+
+* [Estudo do Cálculo e Aplicações, Erick Bernardo](https://web.icmc.usp.br/SMA/Portal%20SMA/Material%20Didatico/Exercicios%20de%20aplicacoes%20do%20Calculo.pdf)
+
+* [Understanding The Third Derivative Geometrically](https://www.youtube.com/watch?v=SovllrJUQ64)
+
+* [Taxa do holofote oscilante.pdf](https://www.ime.usp.br/~brolezzi/disciplinas/20191/mat1351/223-225.pdf){target="_blank"}
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+
+__6.	Derivada e integral (Capítulo 9 e 10)__
+
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+<!-- # Adicionar -->
+
+<!-- * Chapter 7: Acceleration and Curvature: What Is Calculus About - Sawyer - 1962 -->
+
+<!-- * 5.3.1. Model 5.1: A Nonlinear Delayed Logistic Model e 5.3.3. Model 5.3: Delayed Nonlinear Competing Species, p. 371:  -->
+<!--   * Explorations of mathematical models in biology with MATLAB - Shahin - 2014.pdf -->
+  
+# Introdução
+
+O cálculo diferencial e integral é baseado na noção de taxa de variação. 
+
+A noção aparece implicitamente em palavras como taxa de crescimento, crescimento relativo, velocidade, aceleração, taxa de reação, densidade e inclinação de uma curva.
+
+As ferramentas matemáticas oriundas do cálculo diferencial e integral denominadas limite, derivada e integral (antiderivada) são usadas para as análises qualitativa, quantitativa e gráfica de função.
+
+A função é analisável localmente por esses instrumentos matemáticos, isto é, em cada ponto de seus valores possíveis, isto é, de seu domínio prático. 
+
+Do ponto de vista aplicado, o conhecimento qualitativo e quantitativo da função em todo seu domínio prático é necessário para garantir a obtenção da solução adequada e correta do problema. Esse conhecimento da função expressa-se pela intelecção de sua anatomia após tê-la dissecado com o uso do limite, da derivada e da integral. A intelecção não é necessariamente visual, pois com o uso dessas ferramentas do cálculo é possível compreender, mesmo sem desenhar o gráfico da função, sua anatomia por meio da visualização intelectual que pode ser treinada. Na medida do possível, as visualizações gráficas em duas ou três dimensões são analisadas nos problemas.
+
+Atualmente, há programas de computação científica que calculam limite, derivada e integral de forma numérica e também simbólica. Os programas que realizam ambas as computações são o WolframAlpha, Mathematica, Maple, Scilab, Matlab e R. As calculadoras científicas avançadas também realizam ambas computações.
+
+# Derivada
+
+* [Derivative: Wikipedia](https://en.wikipedia.org/wiki/Derivative){target="_blank"}
+
+O objetivo é mostrar as aplicações de derivada na análise de uma função.
+
+Uma função relaciona matematicamente as variáveis independentes com a dependente. Esse relacionamento expresso por meio de uma fórmula matemática tem informações úteis para a solução do problema. 
+
+Essas informações são: 
+
+a. domínios teórico e prático das variáveis independentes, 
+a. imagens teórica e prática da variável dependente, 
+a. assíntota, 
+a. raiz, 
+a. declividade, 
+a. concavidade, 
+a. pontos extremantes de máximo e mínimo, 
+a. curvatura, 
+a. função aproximativa de Taylor e 
+a. elasticidade.
+
+## Taxa de crescimento
+
+* [Exponential growth: Wikipedia](https://en.wikipedia.org/wiki/Exponential_growth){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.1. A velocidade média &Delta;s/&Delta;t é representada pela inclinação média de uma curva em um sistema de coordenadas cartesianas."}
+knitr::include_graphics("./image/Fig9.1.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.4. Como x<sub>2</sub> &rarr; x<sub>1</sub> a linha _l_ tende para a tangente _t_ ao gráfico em (x<sub>1</sub>, x<sub>2</sub>). A inclinação _a_ = &Delta;y/&Delta;x de _l_ tende para a inclinação da tangente."}
+knitr::include_graphics("./image/Fig9.4.png")
+```
+
+## Diferenciação 
+
+* [Differential calculus: Wikipedia](https://en.wikipedia.org/wiki/Differential_calculus){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.6. Uma abordagem alternativa para encontrar a derivada."}
+knitr::include_graphics("./image/Fig9.6.png")
+```
+
+Se a derivada da função $f(x)$ existe, então ela é chamada de diferenciável em $x$.
+
+Para que a função $f(x)$ seja diferenciável em $x$, é necessário que o seguinte limite exista:
+
+$$\begin{align}
+f^{\prime}(x)&=\lim_{h\to0}{\dfrac{f(x+h)-f(x)}{h}}\\
+f^{\prime}(x)&=f_x(x)=\dfrac{df(x)}{dx}
+\end{align}$$
+
+### Exemplo: derivada de $f(x)=x^2$
+
+$$f^{\prime}(x)=\lim_{h\to0}{\dfrac{(x+h)^2-x^2}{h}}=\lim_{h\to0}{\dfrac{2xh+h^2}{h}}=\lim_{h\to0}{(2x+h)}=2x$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.7. Tangentes à parábola com a equação y = x<sup>2</sup>. A inclinação das tangentes é 2x."}
+knitr::include_graphics("./image/Fig9.7.png")
+```
+
+Portanto, a função $f(x)=x^2$ é diferenciável em todos os pontos do domínio.
+
+# Significados da primeira derivada
+
+A primeira derivada de uma função \( f(x) \), denotada por \( f^{\prime}(x) \), fornece informações sobre a taxa de variação instantânea da função em relação à variável \( x \). De maneira intuitiva, ela mede quão rápido e em que direção o valor de \( f(x) \) está mudando à medida que \( x \) varia.
+
+Aqui estão alguns pontos-chave para entender intuitivamente a primeira derivada:
+
+1. **Inclinação da Tangente**: A primeira derivada em um ponto \( x \) é a inclinação da reta tangente à curva da função \( f(x) \) naquele ponto. Isso significa que \( f^{\prime}(x) \) nos diz se a função está subindo (derivada positiva), descendo (derivada negativa) ou se é plana (derivada zero) naquele ponto.
+
+2. **Velocidade de Mudança**: Se pensarmos na função \( f(x) \) como uma descrição da posição de um objeto ao longo do tempo, a derivada \( f^{\prime}(x) \) representa a velocidade do objeto nesse instante. Ou seja, como a posição está mudando com o tempo.
+
+3. **Sensibilidade**: A derivada também pode ser vista como uma medida de sensibilidade da função \( f(x) \) em relação a mudanças em \( x \). Um valor alto de \( f^{\prime}(x) \) significa que uma pequena mudança em \( x \) resultará em uma grande mudança em \( f(x) \).
+
+4. **Geometria**: Visualmente, se você desenhar uma linha reta que toca a curva \( f(x) \) apenas em um ponto e tem a mesma inclinação da curva nesse ponto, essa linha é a reta tangente. A inclinação dessa reta tangente é exatamente o valor de \( f^{\prime}(x) \) naquele ponto.
+
+Em resumo, a primeira derivada fornece uma visão local da mudança de uma função, permitindo entender como a função se comporta em torno de um ponto específico.
+
+A função da reta tangente no ponto $x_0$ é:
+
+$$t(x)=\left(f(x_0)-f^{\prime}(x_0)x_0\right)+f^{\prime}(x_0)x$$
+
+Note que:
+
+* se $x=x_0$, então $t(x_0)=f(x_0)$
+* se $x=x_0+1$, então $t(x_0+1)=\left(f(x_0)-f^{\prime}(x_0)x_0\right)+f^{\prime}(x_0)(x_0+1)=f(x_0)+f^{\prime}(x_0)$
+
+Então:
+
+$$t(x_0+1)-t(x_0)=f^{\prime}(x_0)$$
+
+Note também que $t(x_0+1)\approx f(x_0+1)$.
+
+Portanto, a primeira derivada em $x_0$ é aproximadamente igual à variação de variável dependente $f(x)$ causada pela variação de 1 unidade da variável independente $x$.
+
+```{r}
+# Definindo a função e sua derivada
+f <- function(x) {
+  return(x^2)
+}
+
+f_prime <- function(x) {
+  return(2 * x)
+}
+
+# Pontos de interesse
+x0 <- 1  # ponto onde queremos a tangente
+x1 <- x0 + 1
+
+# Calculando os valores da função e da reta tangente
+y0 <- f(x0)
+slope <- f_prime(x0)
+tangent_line <- function(x) {
+  return((y0 - slope * x0) + slope * x)
+}
+
+# Valores para o gráfico
+x_vals <- seq(x0 - 2, x0 + 2, length.out = 400)
+f_vals <- f(x_vals)
+tangent_vals <- tangent_line(x_vals)
+
+# Valores específicos de x e t(x)
+x_specific <- c(x0, x1)
+t_specific <- tangent_line(x_specific)
+f_specific <- f(x_specific)
+
+# Plot
+plot(x_vals, f_vals, type = "l", col = "blue", lwd = 2, 
+     xlab = "x", ylab = "y", main = "Representação Gráfica da Função e da Reta Tangente")
+lines(x_vals, tangent_vals, col = "black", lwd = 2, lty = 1)
+points(x_specific, f_specific, col = "red", pch = 19)
+points(x_specific, t_specific, col = "green", pch = 19)
+
+# Adicionando anotações para clareza
+text(x0, y0, labels = paste0("f(x0)=", round(y0, 2)), 
+     pos = 2, col = "red")
+text(x1, f_specific[2], labels = paste0("f(x0+1)=", 
+                                        round(f_specific[2], 2)), 
+     pos = 2, col = "red")
+text(x1, t_specific[2], labels = paste0("t(x0+1)=", 
+                                        round(t_specific[2], 2)), 
+     pos = 4, col = "black")
+
+# Adicionando a legenda
+legend("topright", legend = c("f(x) = x^2", "Tangente em x0", "Pontos na função f(x)", "Pontos na tangente t(x)"), 
+       col = c("blue", "black", "red", "green"), 
+       lty = c(1, 1, NA, NA), pch = c(NA, NA, 19, 19), bty = "n")
+```
+
+## Continuidade e diferenciabilidade
+
+Se $f$ é diferenciável em $a$, então $f$ também deve ser contínua em $a$.
+
+A afirmação de que se uma função $f$ é diferenciável em um ponto $a$, então ela também deve ser contínua nesse ponto, é uma propriedade fundamental da análise matemática. A diferenciabilidade é uma condição mais forte que a continuidade. Para que uma função seja diferenciável em um ponto, não apenas a função deve ser contínua (ou seja, não deve haver "saltos" ou descontinuidades nesse ponto), mas também deve ser possível calcular uma tangente (ou seja, uma derivada) que descreva a taxa de variação da função nesse ponto.
+
+A ideia-chave aqui é que a existência de uma derivada em um ponto implica uma mudança "suave" da função em torno desse ponto, o que não é possível se houver uma descontinuidade (ou "salto"). A continuidade garante que a função se aproxime do seu valor em $a$ conforme nos aproximamos de $a$, enquanto a diferenciabilidade garante que essa aproximação seja feita de maneira suave, com uma taxa de variação bem definida.
+
+### Exemplo da Função Degrau
+
+A função degrau, também conhecida como função Heaviside ou função degrau unitário, tem uma forma funcional simples que expressa seu comportamento de "salto". A forma básica da função degrau \( H(x) \) pode ser definida como:
+
+\[
+H(x) = \begin{cases} 
+0, & \text{se } x < 0 \\
+1, & \text{se } x \geq 0 
+\end{cases}
+\]
+
+Esta definição descreve uma função que é 0 para todos os valores negativos de \( x \) e 1 para \( x \) igual a zero e todos os valores positivos de \( x \). É um exemplo claro de uma função que exibe uma descontinuidade em \( x = 0 \), passando de 0 para 1 instantaneamente sem assumir nenhum valor intermediário.
+
+No contexto da sua pergunta sobre a função degrau que retorna o valor 1 para todo \( x \) menor que \( a \) e um valor diferente (por exemplo, 10) para todo \( x \) maior ou igual a \( a \), a forma funcional poderia ser adaptada da seguinte maneira:
+
+\[
+f(x) = \begin{cases} 
+1, & \text{se } x < a \\
+10, & \text{se } x \geq a 
+\end{cases}
+\]
+
+Nesta versão modificada, \( a \) serve como o ponto de "salto" da função, onde ela muda abruptamente de 1 para 10. Essa função ilustra a ideia de uma função degrau generalizada, onde o "degrau" ocorre em um ponto \( a \) específico, e os valores que a função assume de cada lado do degrau são especificados (1 para \( x < a \) e 10 para \( x \geq a \)). 
+
+Portanto, a natureza descontínua da função degrau em $a$ impede que ela tenha uma derivada nesse ponto, ilustrando vividamente a relação entre continuidade e diferenciabilidade.
+
+Como exemplo, escolher um ponto $a$ e seja $f$ a função degrau que retorna o valor 1 para todo $x$ menor que $a$, e retorna um valor diferente 10 para todo $x$ maior ou igual a $a$. $f$ não pode ter uma derivada em $a$. 
+
+```{r}
+# Definir os valores de x
+x <- seq(0, 10, by = 0.01)
+
+# Definir a função degrau
+y <- ifelse(x < 5, 1, 10)
+
+# Plotar a função degrau
+plot(x, y, ylim = c(0, 11), 
+     xlab = "x", ylab = "f(x)", 
+     main = "Função Degrau", 
+     col = "black")
+
+# Adicionar o ponto vazio (aberto) em (5, 1)
+points(5, 1, col = "black", pch = 1, cex = 2)
+
+# Adicionar o ponto cheio em (5, 10)
+points(5, 10, col = "black", pch = 16, cex = 2)
+```
+
+Para a função degrau definida como:
+
+\[
+f(x) = \begin{cases} 
+1, & \text{se } x < a \\
+10, & \text{se } x \geq a 
+\end{cases}
+\]
+
+Queremos examinar os limites laterais da derivada no ponto \( x = a \).
+
+#### Limite pela esquerda:
+
+Para \( x \) aproximando-se de \( a \) pela esquerda (\( h \to 0^- \)):
+
+\[
+\lim_{h \to 0^-} \frac{f(a+h) - f(a)}{h} = \lim_{h \to 0^-} \frac{10 - 1}{h} = \lim_{h \to 0^-} \frac{9}{h}
+\]
+
+Quando \( h \) se aproxima de 0 pela esquerda (valores negativos de \( h \)), o valor de \( \frac{9}{h} \) tende a \(-\infty\).
+
+#### Limite pela direita:
+
+Para \( x \) aproximando-se de \( a \) pela direita (\( h \to 0^+ \)):
+
+\[
+\lim_{h \to 0^+} \frac{f(a+h) - f(a)}{h} = \lim_{h \to 0^+} \frac{10 - 10}{h} = \lim_{h \to 0^+} \frac{0}{h}
+\]
+
+Quando \( h \) se aproxima de 0 pela direita (valores positivos de \( h \)), temos uma forma indeterminada \( \frac{0}{0^+} \). Nesse caso, matematicamente, o limite não é definido de forma clara. A expressão \(\frac{0}{h}\) onde \( h \to 0^+ \) não tem um valor finito e não pode ser diretamente avaliada.
+
+Portanto, os limites laterais são:
+
+- Pela esquerda: \(\lim_{h \to 0^-} \frac{9}{h} = -\infty\)
+- Pela direita: \(\lim_{h \to 0^+} \frac{0}{h}\) é indeterminado.
+
+#### Conclusão:
+
+A derivada de \( f(x) \) em \( x = a \) não existe porque os limites laterais não são iguais e a função é descontínua nesse ponto. A descontinuidade impede que a função seja diferenciável em \( x = a \).
+
+Aqui está a correção detalhada sobre por que os limites laterais não resultam em valores finitos iguais:
+
+- O limite pela esquerda \(\lim_{h \to 0^-} \frac{9}{h} = -\infty\) mostra uma divergência negativa.
+- O limite pela direita \(\lim_{h \to 0^+} \frac{0}{h}\) é uma forma indeterminada \( \frac{0}{0} \).
+
+Portanto, devido à diferença de comportamento dos limites laterais e à descontinuidade em \( x = a \), a derivada não existe nesse ponto.
+
+### Exemplo da Função de Valor Absoluto
+
+No entanto, mesmo que uma função seja contínua em um ponto, ela pode não ser diferenciável ali. Por exemplo, a função de valor absoluto dada por
+$f(x)=|x|$ é contínua em $x=0$, mas não é diferenciável aí. Se $h$ for positivo, então a inclinação da linha secante de 0 a $h$ é um; se $h$ for negativo, então a inclinação da linha secante de 0 a $h$ é -1. Isso pode ser visto graficamente como uma "quina" ou uma "cúspide" no gráfico em $x=0$. 
+
+A função de valor absoluto é contínua, mas falha em ser diferenciável em $x = 0$, uma vez que as inclinações da tangente não se aproximam do mesmo valor pela esquerda e pela direita.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+curve(abs(x), -5, 5, ylab="|x|")
+```
+
+### Exemplo: $\sqrt[3]{x}$ versus $x^{\frac{1}{3}}$
+
+* [How are they different? Cube root vs the exponent of 1/3](https://youtu.be/44kBz2-rfhM?si=BV7joaVA5sr-mk6M){target="_blank"}
+
+Mesmo uma função com um gráfico suave não é diferenciável em um ponto onde sua tangente é vertical: Por exemplo, as funções $f(x)=\sqrt[3]{x}$ e $f(x)=x^{\frac{1}{3}}$ não são diferenciáveis em $x=0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+curve(x^(1/3), -3, 3, ylab="x^(1/3)")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cuberoot(-1)](https://www.wolframalpha.com/input?i=cuberoot%28-1%29){target="_blank"}
+
+[cuberoot(x)](https://www.wolframalpha.com/input?i=cuberoot%28x%29){target="_blank"}
+
+[derivative cuberoot(x) ](https://www.wolframalpha.com/input?i=derivative+cuberoot%28x%29+){target="_blank"}
+
+[derivative cuberoot(x) at x=0](https://www.wolframalpha.com/input?i=derivative+cuberoot%28x%29+at+x%3D0){target="_blank"}
+
+[(-1)^(1/3)](https://www.wolframalpha.com/input?i=%28-1%29%5E%281%2F3%29){target="_blank"}
+
+[x^(1/3)](https://www.wolframalpha.com/input?i=x%5E%281%2F3%29){target="_blank"}
+
+[derivative x^(1/3)](https://www.wolframalpha.com/input?i=derivative+x%5E%281%2F3%29+){target="_blank"}
+
+[derivative x^(1/3) at x=0](https://www.wolframalpha.com/input?i=derivative+x%5E%281%2F3%29+at+x%3D0){target="_blank"}
+
+$$\Diamond$$
+
+Resumindo, uma função que tem derivada é contínua, mas existem funções contínuas que não têm derivada.
+
+A maioria das funções que ocorrem na prática têm derivadas em todos os pontos ou em quase todos os pontos. No início da história do cálculo, muitos matemáticos assumiram que uma função contínua era diferenciável na maioria dos pontos. Sob condições suaves (por exemplo, se a função for monótona ou Lipschitz), isso é verdade. No entanto, em 1872, Weierstrass encontrou o primeiro exemplo de uma função contínua em todos os lugares, mas diferenciável em nenhum lugar. Este exemplo agora é conhecido como função de Weierstrass.
+
+* [List of derivatives: Wikipedia](https://en.wikipedia.org/wiki/List_of_derivatives_and_integrals_in_alternative_calculi){target="_blank"}
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/derivativerules.png")
+```
+
+## Regras de derivação
+
+* [Differentiation rules: Wikipedia](https://en.wikipedia.org/wiki/Differentiation_rules){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[(k f(x))'](https://www.wolframalpha.com/input?i=%28k+f%28x%29%29%27){target="_blank"}
+
+[(f(x)+g(x))'](https://www.wolframalpha.com/input?i=%28f%28x%29%2Bg%28x%29%29%27){target="_blank"}
+
+[(f(x) g(x))'](https://www.wolframalpha.com/input?i=%28f%28x%29+g%28x%29%29%27){target="_blank"}
+
+[(f(x)/g(x))'](https://www.wolframalpha.com/input?i=%28f%28x%29%2Fg%28x%29%29%27){target="_blank"}
+
+[f(g(x))'](https://www.wolframalpha.com/input?i=f%28g%28x%29%29%27){target="_blank"}
+
+[(f(x)^g(x))'](https://www.wolframalpha.com/input?i=%28f%28x%29%5Eg%28x%29%29%27){target="_blank"}
+
+## Derivada implícita
+
+Uma relação pode ter a derivada definida por meio da derivada implícita.
+
+### Exemplo: Derivada de circunferência
+
+Qual é a derivada implícita da circunferência $x^2+y^2=1$ no ponto $(x,y)=\left(\dfrac{\sqrt{2}}{2},\dfrac{\sqrt{2}}{2}\right)$?
+
+Diferenciando ambos os lados da equação em relação a $x$ e considerando que $y(x)$, temos:
+
+$$\begin{align}
+\dfrac{d}{dx}x^2+\dfrac{d}{dx}y^2=\dfrac{d}{dx}1\\
+2x+2y\dfrac{dy}{dx}&=0\\
+\dfrac{dy}{dx}&=-\dfrac{x}{y}\\
+\dfrac{dy}{dx}\bigg|_{x = \frac{\sqrt{2}}{2}, y = \frac{\sqrt{2}}{2}} &= -1
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[x^2 + y^2 = 1](https://www.wolframalpha.com/input?i=x%5E2+%2B+y%5E2+%3D+1){target="_blank"}
+
+[differentiate x^2 + y^2 = 1 with respect to x](https://www.wolframalpha.com/input?i=differentiate+x%5E2+%2B+y%5E2+%3D+1+with+respect+to+x){target="_blank"}
+
+Derivada implícita em $(x,y)=\left(\dfrac{\sqrt{2}}{2},\dfrac{\sqrt{2}}{2}\right)$:
+
+![Gráfico da Derivada Implícita](https://www.wolframcloud.com/obj/6b25858f-6d20-4d79-be4c-f60f21847255)
+
+## Taxas relacionadas
+
+* [Related rates](https://en.wikipedia.org/wiki/Related_rates){target="_blank"}
+
+* [related rates: the streetlight and shadow problem: brbp](https://www.youtube.com/watch?v=xe6MAJB7CPI){target="_blank"}
+
+* [Related Rates in Calculus](https://www.youtube.com/watch?v=j6I3EXiKB2A&list=WL&index=5){target="_blank"}
+
+* [Lição 5: Solução de problemas de taxas relacionadas](https://pt.khanacademy.org/math/ap-calculus-ab/ab-diff-contextual-applications-new/ab-4-5/e/related-rates){target="_blank"}
+
+As variáveis \(x\) e \(y\) estão relacionadas numa equação e são funções de uma terceira variável \(t\), que frequentemente representa o tempo. A diferenciação implícita pode ser usada para relacionar \(\frac{dx}{dt}\) e \(\frac{dy}{dt}\). Este tipo de problema é dito envolver taxas relacionadas.
+
+### Exemplo: Aumento da sombra de uma pessoa andando
+
+Suponha que uma pessoa de 2 metros de altura está andando para longe de um poste de luz de 5 metros de altura a uma velocidade de 1.5 m/s. Queremos determinar a taxa de variação do comprimento da sombra da pessoa no momento em que ela está a 6 metros do poste.
+
+_Solução_:
+
+1. **Definindo as variáveis:**
+   - Seja \(x\) a distância da pessoa até o poste (em metros).
+   - Seja \(y\) o comprimento da sombra da pessoa (em metros).
+   - \(t\) é o tempo (em segundos).
+
+2. **Relacionando as variáveis:**
+   - Usamos a semelhança de triângulos. O triângulo formado pelo poste e a sombra no chão é semelhante ao triângulo formado pela pessoa e sua sombra.
+
+   \[
+   \dfrac{5}{x + y} = \dfrac{2}{y}
+   \]
+
+3. **Diferenciação implícita:**
+   - Primeiro, simplificamos a relação:
+
+   $$\begin{align}
+   5y &= 2(x + y) \\
+   5y &= 2x + 2y \\
+   3y&= 2x\\
+   y &= \dfrac{2}{3}x\\
+   \end{align}$$
+
+   - Diferenciamos ambos os lados da equação em relação a \(t\):
+
+   $$\dfrac{d}{dt}\left(y = \dfrac{2}{3}x\right) \\
+   \dfrac{dy}{dt} = \dfrac{2}{3} \dfrac{dx}{dt}$$
+
+4. **Substituindo as taxas:**
+   - Sabemos que \(\dfrac{dx}{dt} = 1.5 \text{ m/s}\).
+   - Então,
+
+   \[
+   \dfrac{dy}{dt} = \frac{2}{3} \times 1.5 = 1 \text{ m/s}
+   \]
+
+Portanto, a taxa de variação do comprimento da sombra da pessoa é de 1 m/s quando ela está a 6 metros do poste.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[differentiate V(t) = (4/3) pi r(t)^3  with respect to t](https://www.wolframalpha.com/input?i=differentiate+V%28t%29+%3D+%284%2F3%29+pi+r%28t%29%5E3++with+respect+to+t){target="_blank"}
+
+## Elasticidade
+
+* [Elasticity of a function](https://en.wikipedia.org/wiki/Elasticity_of_a_function){target="_blank"}
+
+De modo geral, a fórmula da elasticidade e de seu valor aproximado (usando a aproximação linear de Taylor) em $x$  de uma função $f$  é a seguinte:
+
+$$\begin{align}
+\eta(x)&=\left| \dfrac{f\left(x+0.01x\right)-f(x)}{f(x)}\times 100\right| \approx \\
+&\approx \left| x\dfrac{f^{\prime}(x)}{f(x)}\right|=\left| \dfrac{\dfrac{df(x)}{dx}}{\dfrac{f(x)}{x}}\right|\approx \left| \dfrac{\dfrac{\Delta f(x)}{\Delta x}}{\dfrac{f(x)}{x}}\right|\\
+\eta(x)&\approx\left| \dfrac{\dfrac{\Delta f(x)}{\Delta x}}{\dfrac{f(x)}{x}}\right|
+\end{align}$$
+
+A elasticidade aproximada $|x f^{\prime}(x)/f(x)|$ é denominada elasticidade instantânea ou pontual.
+
+A elasticidade instantânea da função $f$ no ponto $(x,f(x))$ é expressa matematicamente por:
+
+$$\eta(x)=\left|x\dfrac{f^{\prime}(x)}{f(x)}\right|$$
+
+A variação de 1% de $x$ causa a variação aproximada de $\eta(x)$% de $f(x)$.
+
+A elasticidade no ponto $(x,f(x))$ é: 
+
+1. Elástica se o valor absoluto da elasticidade é maior que 1, isto é,  $\eta(x)>1$; 
+2. Inelástica se o valor absoluto da elasticidade é menor que 1, ou seja,  $\eta(x)<1$; 
+3. Isoelástica se o valor absoluto da elasticidade é igual a 1, isto é,  $\eta(x)=1$; 
+4. Totalmente inelástica se a elasticidade é nula, isto é, $\eta(x)=0$;
+5. Totalmente elástica se ela é infinita, isto é, $\eta(x)=\infty$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* Função linear: $f(x)=a+bx$
+
+$$\eta(x)=\left| \dfrac{bx}{a+bx}\right|$$
+
+[|(x D[a+bx,x])/(a+bx)|](https://www.wolframalpha.com/input?i=%7C%28x+D%5Ba%2Bbx%2Cx%5D%29%2F%28a%2Bbx%29%7C){target="_blank"}
+
+* Função recíproca: $f(x)=\dfrac{b}{x}$
+
+$$\eta(x)=1$$
+
+[|(x D[a+b/x,x])/(a+b/x)| /. a = 0](|(x D[a+b/x,x])/(a+b/x)| /. a = 0){target="_blank"}
+
+* Função recíproca com constante: $f(x)=a+\dfrac{b}{x}$
+
+$$\eta(x)=\left| \dfrac{b}{b+ax}\right|$$
+
+[|(x D[a+b/x,x])/(a+b/x)|](https://www.wolframalpha.com/input?i=%7C%28x+D%5Ba%2Bb%2Fx%2Cx%5D%29%2F%28a%2Bb%2Fx%29%7C){target="_blank"}
+
+* Função linear-log: $f(x)=a+b\;\ln(x)$
+
+$$\eta(x)=\left| \dfrac{b}{a+b\;\ln(x)}\right|$$
+
+[abs((x D[a+b log(x),x])/(a+b log(x)))](https://www.wolframalpha.com/input?i=abs%28%28x+D%5Ba%2Bb+log%28x%29%2Cx%5D%29%2F%28a%2Bb+log%28x%29%29%29){target="_blank"}
+
+* Função log-linear: $\ln(f(x))=a+bx$
+
+$$\eta(x)=\left| bx\right|$$
+
+* Função log-log: $\ln(f(x))=a+b\;\ln(x)$
+
+$$\eta(x)=\left| b\right|$$
+
+* Função log-recíproca: $\ln(f(x))=a+\dfrac{b}{x}$
+
+$$\eta(x)=\left| \dfrac{b}{x}\right|$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* $f(x)=a+b\;\cos(x)$
+
+[abs((x D[a+bcos(x),x])/(a+b cos(x)))](https://www.wolframalpha.com/input?i=abs%28%28x+D%5Ba%2Bbcos%28x%29%2Cx%5D%29%2F%28a%2Bb+cos%28x%29%29%29){target="_blank"}
+
+* $f(x)=a \; e^{bx}$
+
+[abs((x D[a exp(bx), x])/(a exp(bx)))](https://www.wolframalpha.com/input?i=abs%28%28x+D%5Ba+exp%28bx%29%2C+x%5D%29%2F%28a+exp%28bx%29%29%29){target="_blank"}
+
+## Antiderivada
+
+```{r echo=FALSE, out.width="50%", fig.cap="Fig. 9.9. Toda função y = x<sup>2</sup> + c é uma antiderivada de f'(x) = 2x."}
+knitr::include_graphics("./image/Fig9.9.png")
+```
+
+```{r echo=FALSE, out.width="50%", fig.cap=""}
+knitr::include_graphics("./image/antiderivativetable.png")
+```
+
+# Integral
+
+* [Integral: Wikipedia](https://en.wikipedia.org/wiki/Integral){target="_blank"}
+
+A integral calcula a área entre a função e o eixo das abscissas. As áreas acima e abaixo do eixo das abscissas são, respectivamente, positiva e negativa. 
+
+A operação inversa da derivada é antiderivada ou integral. A integral é útil para o cálculo de área de função e para resolver equações com derivadas como incógnitas. Uma equação com derivadas como incógnitas é chamada equação diferencial. Atualmente, muitos problemas envolvendo integração podem ser resolvidos por programas de computação numérica e simbólica. 
+
+Como vimos, as principais motivações para a introdução do cálculo diferencial são problemas de taxa de crescimento, taxa de reação, concentração, velocidade e aceleração. 
+
+Seja $A$ a área desconhecida da região R. A pode ser aproximada
+pelas áreas de $n$ retângulos que estão dentro da região R ou pelas áreas de n retângulos que cobrem R completamente. No primeiro caso, a área total é muito pequena, no segundo caso, muito grande. Denotamos essas aproximações por $A_l$ (limite inferior) e por $A_u$ (limite superior). 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.12. Região R entre uma curva e o segmento [a, b] no eixo x. A área é encontrada por um processo de  limite."}
+knitr::include_graphics("./image/Fig9.12.png")
+```
+
+Da Fig. 9.12 deduzimos:
+
+$$\begin{align}
+A_l&=\sum_{i=1}^{n}y_i\Delta x \\
+A_u&=\sum_{i=0}^{n-1}y_i\Delta x \\
+A_u-A_l&=y_0\Delta x-y_n\Delta x \\
+A_u-A_l&=(f(a)-f(b))\Delta x \\
+\lim_{\Delta x\to\infty}{\left(A_u-A_l\right)}&=\lim_{\Delta x\to\infty}{(f(a)-f(b))}\Delta x\\
+\lim_{\Delta x\to\infty}{\left(A_u-A_l\right)}&=0
+\end{align}$$
+
+Portanto, $A_u$ e $A_l$ tendem para o mesmo limite. Então:
+
+$$A=\lim_{\Delta x\to\infty}{A_l}=\lim_{\Delta x\to\infty}{A_u}$$
+
+Este limite comum é expresso com o símbolo de integral da seguinte forma:
+
+$$A=\int_{a}^{b}{f(x)}dx$$
+
+$A_{a}^{x}=F(x)$, se $f(x)>0$, é uma função de $x$ que é chamada de área da função. 
+
+Note que $A_{a}^{a}=F(a)=0$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.13. A área de uma região entre uma curva e um intervalo [a, x] em função de x."}
+knitr::include_graphics("./image/Fig9.13.png")
+```
+
+A derivada da área $F(x)$ é a função $f(x)$:
+
+$$F^{\prime}(x)=f(x)$$
+
+A função da área $F(x)$ é uma determinada antiderivada de $f(x)$.
+
+Seja $I(x)$ uma antiderivada arbitrária de $f(x)>0$ e $c\in \mathbb{R}$ no intervalo $[a,b]$, então:
+
+$$\begin{align}
+F(x)&=I(x)+c \\
+F(x)&=I(x)-I(a), \;\text{pois}\; F(a)=0=I(a)+c \\
+F(b)&=A_a^b=I(b)-I(a) \\
+\int_{a}^{b}{f(x)}dx&=I(b)-I(a)
+\end{align}$$
+
+Integrando é a função $f(x)$ a ser integrada.
+
+Variável de integração é $x$.
+
+Intervalo de integração é $[a,b]$.
+
+
+A antiderivada $I(x)$ é também chamada de integral indefinida:
+
+$$I(x)=\int{f(x)}dx$$
+
+A integral definida é expressa da seguinte maneira:
+
+$$F(x)=\int_{a}^{x}{f(t)}dt$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [integral x](https://www.wolframalpha.com/input?i=integral+x+){target="_blank"}
+
+* [integral x from 0 to 1](https://www.wolframalpha.com/input?i=integral+x+from+0+to+1){target="_blank"}
+
+* [integral x^2+3 x](https://www.wolframalpha.com/input?i=integral+x%5E2%2B3+x){target="_blank"}
+
+* [integral x^2+3 x, x from 0 to 5](https://www.wolframalpha.com/input?i=integral+x%5E2%2B3+x%2C+x+from+0+to+5){target="_blank"}
+
+* [integral sin(x) from 0 to pi](https://www.wolframalpha.com/input?i=integral+sin%28x%29+){target="_blank"}
+
+* [integral sin(x) from 0 to pi](https://www.wolframalpha.com/input?i=integral+sin%28x%29+from+0+to+pi){target="_blank"}
+
+O Teorema Fundamento do Cálculo (TFC) é expresso pelas seguintes igualdades equivalentes:
+
+$$\begin{align}
+\dfrac{d}{dx}\int_{a}^{x}{f(t)}dt&=f(x) \\
+\int_{a}^{x}{F^{\prime}(t)}dt&=F(x)
+\end{align}$$
+
+TFC mostra que diferenciação e integração são operações inversas.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [integral t from a to x](https://www.wolframalpha.com/input?i=integral+t+from+a+to+x){target="_blank"}
+
+* [derivative integral t from a to x](https://www.wolframalpha.com/input?i=derivative+integral+t+from+a+to+x){target="_blank"}
+
+No entanto, para abranger várias aplicações, é essencial ter em mente um conceito mais "abstrato" de integrais. A interpretação geométrica por áreas exige que atribuamos uma área negativa a uma região abaixo do eixo x.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.14. Áreas de regiões acima do eixo x são positivas, de regiões abaixo do eixo x negativas."}
+knitr::include_graphics("./image/Fig9.14.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [integral x from -1 to 1](https://www.wolframalpha.com/input?i=integral+x+from+-1+to+1){target="_blank"}
+
+* [integral sin(x) from 0 to 2pi](https://www.wolframalpha.com/input?i=integral+sin%28x%29+from+0+to+2pi){target="_blank"}
+
+## Propriedadas de integral
+
+1. $\int_a^b{f(x)dx}= \int_a^c{f(x)dx}+\int_c^b{f(x)dx}$
+1. $\int_a^b{f(x)dx}= -\int_b^a{f(x)dx}$
+1. $\int kf(x)dx=k\int f(x)dx$
+1. $\int(f(x)+g(x))dx=\int f(x)dx+\int g(x)dx$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+## Integral em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+curve(1*x, 0, 5)
+
+# Integral numerica
+
+f <- function(x) x
+integrate(f, 0, 1)
+integrate(f, 0, 5)
+try(integrate(f, 0, Inf))
+```
+
+## Listas de integrais
+
+[Tábua de integrais: Wikipedia](https://pt.wikipedia.org/wiki/T%C3%A1bua_de_integrais){target="_blank"}
+
+[List of integrals: Wikipedia](https://en.wikipedia.org/wiki/Lists_of_integrals){target="_blank"}
+
+[List of integrals of exponential functions: Wikipedia](https://en.wikipedia.org/wiki/List_of_integrals_of_exponential_functions){target="_blank"}
+
+[List of definite integrals: Wikipedia](https://en.wikipedia.org/wiki/List_of_definite_integrals){target="_blank"}
+
+# Derivada segunda
+
+* [Second derivative: Wikipedia](https://en.wikipedia.org/wiki/Second_derivative){target="_blank"}
+
+## Derivada de primeira ordem
+
+Se a função $f$ é diferenciável em $x$, então o valor da inclinação da reta tangente em $f(x)$ é $f^{\prime}(x)$. 
+
+Se $f^{\prime}(x)>0$, então a inclinação é positiva, i.e., a função $f$ é crescente em $x$.
+
+Se $f^{\prime}(x)<0$, então a inclinação é negativa, i.e., a função $f$ é decrescente em $x$.
+
+Se $f^{\prime}(x)=0$, então a inclinação é nula, i.e., a função $f$ é estacionária em $x$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.15. Uma função permanece estacionária quando f'(x) = 0. No caso (a) onde é um ponto máximo, no caso (b) um ponto mínimo, e no caso (c) um ponto de inflexão."}
+knitr::include_graphics("./image/Fig9.15.png")
+```
+
+## Derivada de segunda ordem
+
+A derivada segunda é taxa de mudança da inclinação.
+
+$$\dfrac{d^2f(x)}{dx^2}=f^{\prime\prime}(x)$$
+
+Se $f^{\prime\prime}(x)<0$, a curva é convexa para cima e côncavo para baixo em $x$ ($\cap$).
+
+Se $f^{\prime\prime}(x)>0$, a curva é côncava para cima e convexa para baixo em $x$ ($\cup$).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.16. A concavidade e a convexidade de uma curva podem ser julgadas pelo sinal da segunda derivada f''(x)."}
+knitr::include_graphics("./image/Fig9.16.png")
+```
+
+Se $f^{\prime\prime}(x)=0$, a curva tem mudança de concavidade em $x$ (ponto de inflexão).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.17. Nos pontos de inflexão P<sub>1</sub> e P<sub>2</sub>, a segunda derivada é zero."}
+knitr::include_graphics("./image/Fig9.17.png")
+```
+
+## Curvatura
+
+* [Curvature: Wikipedia](https://en.wikipedia.org/wiki/Curvature){target="_blank"}
+* [Radius of curvature: Wikipedia](https://en.wikipedia.org/wiki/Radius_of_curvature){target="_blank"}
+* [Curvature: OpenStax](https://openstax.org/books/calculus-volume-3/pages/3-3-arc-length-and-curvature){target="_blank"}
+
+Cada ponto do gráfico da função tem sua própria curvatura. 
+
+A análise de cada ponto do gráfico de uma função é chamada análise local.
+
+Essa análise pode ser realizada em um ponto do gráfico que pertença a uma linha lisa, isto é, em um ponto que não seja uma ponta ou canto vivo do gráfico. 
+
+Quanto menor o valor absoluto da função da curvatura em um ponto do gráfico, mais retilínea (achatada ou aproximadamente reta) é a vizinhança do gráfico onde está o ponto analisado. 
+
+Por outro lado, quanto maior o valor absoluto da função da curvatura em um ponto do gráfico, mais curvilínea é a vizinhança do gráfico onde está o ponto analisado. 
+
+A magnitude da curvatura está diretamente relacionada com a rapidez de variação da inclinação da reta tangente da função no ponto.
+
+Se $\kappa(x)<0$, então a função $f(x)$ é côncava (&cap;) em $x$.
+
+Se $\kappa(x)>0$, então a função $f(x)$ é convexa (&cup;) em $x$.
+
+$$\kappa(x)=\dfrac{f^{\prime\prime}(x)}{\left(1 + \left( f^{\prime}(x)\right)^{2}\right)^{\frac{3}{2}}}$$
+
+A unidade de medida da curvatura é radiano por unidade de comprimento da linha do gráfico. A circunferência da curvatura ou circunferência osculadora de uma curva em um ponto $(x, f(x))$  do gráfico é a circunferência de raio $r(x)=1/|\kappa(x)|$ tangente ao gráfico nesse ponto e situada no lado côncavo do gráfico. 
+
+O centro da circunferência osculadora é o ponto  $(x_c,y_c)$, sendo 
+
+$$\begin{align}
+x_c&=x+\dfrac{f^{\prime}(x)}{f^{\prime\prime}(x)}\left( 1+ \left( f^{\prime}(x)\right)^{2}\right) \\
+y_c&=f(x)+\dfrac{1+ \left( f^{\prime}(x)\right)^{2}}{f^{\prime\prime}(x)}
+\end{align}$$
+
+O lugar geométrico de todos os centros de curvatura é denominado desenvolvida.
+
+A função $f(x)=e^{-x^2}$ tem curvatura: 
+
+$$\kappa(x)=\dfrac{2e^{x^2}(2x^2-1)}{(e^{2x^2} + 4x^2)\sqrt{1 + 4e^{-2x^2}x^2}}$$
+
+O valor da curvatura $\kappa(x)<0$ se $2x^2-1<0$, i.e., se $-1/\sqrt{2}<x<1/\sqrt{2}$. A circunferência que tangencia a curva neste intervalo está abaixo dela. 
+
+O valor da curvatura $\kappa(x)>0$ se $2x^2-1>0$, i.e., se $x< -1/\sqrt{2}$ ou $x >1/\sqrt{2}$. A circunferência que tangencia a curva neste intervalo está acima dela.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Aula08.nb"}
+knitr::include_graphics("./image/exp2.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+funcao <- function(x) {
+  numerador <- 2 * exp(x^2) * (2 * x^2 - 1)
+  denominador <- (exp(2 * x^2) + 4 * x^2) * sqrt(1 + 4 * exp(-2 * x^2) * x^2)
+  return(numerador / denominador)
+}
+curve(exp(-x^2), -2, 2,
+      main="exp(-x^2)")
+curve(funcao, -2, 2,
+      main="Curvatura de exp(-x^2)")
+abline(h=0, lty=2)
+```
+
+A função $f(x)=-e^{-x^2}$ tem curvatura: 
+
+$$\kappa(x)=\dfrac{2e^{x^2}(1-2x^2)}{(e^{2x^2} + 4x^2)\sqrt{1 + 4e^{-2x^2}x^2}}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+funcao <- function(x) {
+  numerador <- 2 * exp(x^2) * (1 - 2 * x^2)
+  denominador <- (exp(2 * x^2) + 4 * x^2) * sqrt(1 + 4 * exp(-2 * x^2) * x^2)
+  return(numerador / denominador)
+}
+curve(-exp(-x^2), -2, 2,
+      main="-exp(-x^2)")
+curve(funcao, -2, 2,
+      main="Curvatura de -exp(-x^2)")
+abline(h=0, lty=2)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [exp(-x^2)](https://www.wolframalpha.com/input?i=exp%28-x%5E2%29){target="_blank"}
+
+* [-exp(-x^2)](https://www.wolframalpha.com/input?i=-exp%28-x%5E2%29){target="_blank"}
+
+* [second derivative exp(-x^2) ](https://www.wolframalpha.com/input?i=second+derivative+exp%28-x%5E2%29){target="_blank"}
+
+* [second derivative -exp(-x^2) ](https://www.wolframalpha.com/input?i=second+derivative+-exp%28-x%5E2%29){target="_blank"}
+
+* [curvature exp(-x^2)](https://www.wolframalpha.com/input?i=curvature+exp%28-x%5E2%29){target="_blank"}
+
+* [curvature -exp(-x^2)](https://www.wolframalpha.com/input?i=curvature+-exp%28-x%5E2%29){target="_blank"}
+
+* [`Solve[D[exp(-x^2), {x,2}]==0, x]`](https://www.wolframalpha.com/input?i=Solve%5BD%5Bexp%28-x%5E2%29%2C+%7Bx%2C2%7D%5D%3D%3D0%2C+x%5D){target="_blank"}
+
+Curvatura de $e^{-x^2}$:
+
+* [`2 e^(x^2) (2 x^2-1)/((e^(2 x^2) + 4 x^2) sqrt(1 + 4 e^(-2 x^2) x^2))`](https://www.wolframalpha.com/input?i=2+e%5E%28x%5E2%29+%282+x%5E2-1%29%2F%28%28e%5E%282+x%5E2%29+%2B+4+x%5E2%29+sqrt%281+%2B+4+e%5E%28-2+x%5E2%29+x%5E2%29%29){target="_blank"}
+
+* [`2 e^(x^2) (2 x^2-1)/((e^(2 x^2) + 4 x^2) sqrt(1 + 4 e^(-2 x^2) x^2)) /. x=1/sqrt(2)+0.1`](https://www.wolframalpha.com/input?i=2+e%5E%28x%5E2%29+%282+x%5E2-1%29%2F%28%28e%5E%282+x%5E2%29+%2B+4+x%5E2%29+sqrt%281+%2B+4+e%5E%28-2+x%5E2%29+x%5E2%29%29+%2F.+x%3D1%2Fsqrt%282%29%2B0.1){target="_blank"}
+
+* [`2 e^(x^2) (2 x^2-1)/((e^(2 x^2) + 4 x^2) sqrt(1 + 4 e^(-2 x^2) x^2)) /. x=1/sqrt(2)-0.1`](https://www.wolframalpha.com/input?i=2+e%5E%28x%5E2%29+%282+x%5E2-1%29%2F%28%28e%5E%282+x%5E2%29+%2B+4+x%5E2%29+sqrt%281+%2B+4+e%5E%28-2+x%5E2%29+x%5E2%29%29+%2F.+x%3D1%2Fsqrt%282%29-0.1){target="_blank"}
+
+Curvatura de $-e^{-x^2}$:
+
+* [`2 e^(x^2) (1-2 x^2)/((e^(2 x^2) + 4 x^2) sqrt(1 + 4 e^(-2 x^2) x^2))`](https://www.wolframalpha.com/input?i=2+e%5E%28x%5E2%29+%282+x%5E2-1%29%2F%28%28e%5E%282+x%5E2%29+%2B+4+x%5E2%29+sqrt%281+%2B+4+e%5E%28-2+x%5E2%29+x%5E2%29%29){target="_blank"}
+
+As fórmulas para curvatura de uma relação (e.g., circunferência) podem ser encontradas em Goldman (2005).
+
+## Extremante
+
+Se a função é convexa (côncava) na região e tem extremante, ele é um ponto de mínimo (máximo).
+
+A função $f$ atinge o valor máximo local em $x$ se e somente se $f^{\prime}(x)=0$ e $f^{\prime\prime}(x)<0$. 
+
+Do ponto de vista geométrico, a desiguldade envolvendo a segunda derivada pode ser substituída com vantagem por $\kappa(x)<0$, sendo $\kappa(x)$ o valor da curvatura. Então, a função $f$ atinge o valor máximo local em $x$ se $f^{\prime}(x)=0$ e $\kappa(x)<0$. 
+
+A função $f$ atinge o valor mínimo local em $x$ se $f^{\prime}(x)=0$ e $f^{\prime\prime}(x)>0$. 
+
+De maneira equivalente, a função $f$ atinge o valor mínimo local em $x$ se $f^{\prime}(x)=0$ e $\kappa(x)>0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize x^2](https://www.wolframalpha.com/input?i=optimize+x%5E2){target="_blank"}
+
+* [curvature x^2](https://www.wolframalpha.com/input?i=curvature+x%5E2){target="_blank"}
+
+* [`2/(1 + 4 x^2)^(3/2)`](https://www.wolframalpha.com/input?i=2%2F%281+%2B+4+x%5E2%29%5E%283%2F2%29&assumption=%22ClashPrefs%22+-%3E+%7B%22Math%22%7D){target="_blank"}
+
+* [derivative x^2](https://www.wolframalpha.com/input?i=derivative+x%5E2+){target="_blank"}
+
+* [derivative x^2 at x=0](https://www.wolframalpha.com/input?i=derivative+x%5E2+at+x%3D0){target="_blank"}
+
+* [second derivative x^2](https://www.wolframalpha.com/input?i=second+derivative+x%5E2){target="_blank"}
+
+* [second derivative x^2 at x=0](https://www.wolframalpha.com/input?i=second+derivative+x%5E2+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize -x^2](https://www.wolframalpha.com/input?i=optimize+-x%5E2){target="_blank"}
+
+* [curvature -x^2](https://www.wolframalpha.com/input?i=curvature+-x%5E2){target="_blank"}
+
+* [`-2/(1 + 4 x^2)^(3/2)`](https://www.wolframalpha.com/input?i=-2%2F%281+%2B+4+x%5E2%29%5E%283%2F2%29){target="_blank"}
+
+* [derivative -x^2](hhttps://www.wolframalpha.com/input?i=derivative+-x%5E2){target="_blank"}
+
+* [derivative -x^2 at x=0](https://www.wolframalpha.com/input?i=derivative+-x%5E2+at+x%3D0){target="_blank"}
+
+* [second derivative -x^2](https://www.wolframalpha.com/input?i=second+derivative+-x%5E2){target="_blank"}
+
+* [second derivative -x^2 at x=0](https://www.wolframalpha.com/input?i=second+derivative+-x%5E2+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize x^3](https://www.wolframalpha.com/input?i=optimize+x%5E3){target="_blank"}
+
+* [curvature x^3](https://www.wolframalpha.com/input?i=curvature+x%5E3){target="_blank"}
+
+* [`6 x/(1 + 9 x^4)^(3/2)`](https://www.wolframalpha.com/input?i=6+x%2F%281+%2B+9+x%5E4%29%5E%283%2F2%29){target="_blank"}
+
+* [derivative x^3](https://www.wolframalpha.com/input?i=derivative+x%5E3){target="_blank"}
+
+* [derivative x^3 at x=0](https://www.wolframalpha.com/input?i=derivative+x%5E3+at+x%3D0){target="_blank"}
+
+* [second derivative x^3](https://www.wolframalpha.com/input?i=second+derivative+x%5E3){target="_blank"}
+
+* [second derivative x^3 at x=0](https://www.wolframalpha.com/input?i=second+derivative+x%5E3+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize x^3-x](https://www.wolframalpha.com/input?i=optimize+x%5E3-x+){target="_blank"}
+
+* [curvature x^3-x ](https://www.wolframalpha.com/input?i=curvature+x%5E3-x+){target="_blank"}
+
+* [`plot 6 x/(2 - 6 x^2 + 9 x^4)^(3/2) from x=-2 to x=2`](https://www.wolframalpha.com/input?i=plot+6+x%2F%282+-+6+x%5E2+%2B+9+x%5E4%29%5E%283%2F2%29+from+x%3D-2+to+x%3D2){target="_blank"}
+
+* [derivative x^3-x](https://www.wolframalpha.com/input?i=derivative+x%5E3-x){target="_blank"}
+
+* [derivative x^3-x at x=1/3^(1/2)](https://www.wolframalpha.com/input?i=derivative+x%5E3-x+at+x%3D1%2F3%5E%281%2F2%29+){target="_blank"}
+
+* [second derivative x^3-x](https://www.wolframalpha.com/input?i=second+derivative+x%5E3-x){target="_blank"}
+
+* [second derivative x^3-x at x=1/3^(1/2)](https://www.wolframalpha.com/input?i=second+derivative+x%5E3-x+at+x%3D1%2F3%5E%281%2F2%29+){target="_blank"}
+
+* [derivative x^3-x](https://www.wolframalpha.com/input?i=derivative+x%5E3-x){target="_blank"}
+
+* [derivative x^3-x at x=-1/3^(1/2)](https://www.wolframalpha.com/input?i=derivative+x%5E3-x+at+x%3D-1%2F3%5E%281%2F2%29+){target="_blank"}
+
+* [second derivative x^3-x at x=-1/3^(1/2)](https://www.wolframalpha.com/input?i=second+derivative+x%5E3-x+at+x%3D-1%2F3%5E%281%2F2%29+){target="_blank"}
+
+* [second derivative x^3-x at x=0](https://www.wolframalpha.com/input?i=second+derivative+x%5E3-x+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [`e^(-x^2)`](https://www.wolframalpha.com/input?i=e%5E%28-x%5E2%29){target="_blank"}
+
+* [`optimize e^(-x^2)`](https://www.wolframalpha.com/input?i=optimize+e%5E%28-x%5E2%29){target="_blank"}
+
+* [`curvature e^(-x^2)`](https://www.wolframalpha.com/input?i=curvature+x%5E3-x+){target="_blank"}
+
+* [`2 e^(x^2) (1 - 2 x^2)/((e^(2 x^2) + 4 x^2) sqrt(1 + 4 e^(-2 x^2) x^2))`](https://www.wolframalpha.com/input?i=2+e%5E%28x%5E2%29+%281+-+2+x%5E2%29%2F%28%28e%5E%282+x%5E2%29+%2B+4+x%5E2%29+sqrt%281+%2B+4+e%5E%28-2+x%5E2%29+x%5E2%29%29){target="_blank"}
+
+* [`derivative e^(-x^2)`](https://www.wolframalpha.com/input?i=derivative+e%5E%28-x%5E2%29){target="_blank"}
+
+* [`derivative e^(-x^2) at x=0`](https://www.wolframalpha.com/input?i=derivative+e%5E%28-x%5E2%29+at+x%3D0){target="_blank"}
+
+* [`second derivative e^(-x^2)`](https://www.wolframalpha.com/input?i=second+derivative+e%5E%28-x%5E2%29){target="_blank"}
+
+* [`second derivative e^(-x^2) at x=0`](https://www.wolframalpha.com/input?i=second+derivative+e%5E%28-x%5E2%29+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize |x|](https://www.wolframalpha.com/input?i=optimize+%7Cx%7C){target="_blank"}
+
+* [curvature |x|](https://www.wolframalpha.com/input?i=curvature+%7Cx%7C){target="_blank"}
+
+* [derivative |x|](https://www.wolframalpha.com/input?i=derivative+%7Cx%7C){target="_blank"}
+
+* [derivative |x| at x=0](https://www.wolframalpha.com/input?i=derivative+%7Cx%7C+at+x%3D0){target="_blank"}
+
+* [second derivative |x|](https://www.wolframalpha.com/input?i=second+derivative+%7Cx%7C){target="_blank"}
+
+* [second derivative |x| at x=0](https://www.wolframalpha.com/input?i=second+derivative+%7Cx%7C+at+x%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [optimize x^(1/3)](https://www.wolframalpha.com/input?i=optimize+x%5E%281%2F3%29){target="_blank"}
+
+* [curvature x^(1/3)](https://www.wolframalpha.com/input?i=curvature+x%5E%281%2F3%29){target="_blank"}
+
+* [`plot 6/sqrt((9 + 1/x^(4/3))/(1/((9 + 1/x^(4/3))^3 x^(14/3)) + (9 (9 + 1/x^(4/3)) x^2)/(1 + 9 x^(4/3))^4)) from x=0 to 2`](https://www.wolframalpha.com/input?i=plot+6%2Fsqrt%28%289+%2B+1%2Fx%5E%284%2F3%29%29%2F%281%2F%28%289+%2B+1%2Fx%5E%284%2F3%29%29%5E3+x%5E%2814%2F3%29%29+%2B+%289+%289+%2B+1%2Fx%5E%284%2F3%29%29+x%5E2%29%2F%281+%2B+9+x%5E%284%2F3%29%29%5E4%29%29+from+x%3D0+to+2){target="_blank"}
+
+* [derivative x^(1/3)](https://www.wolframalpha.com/input?i=derivative+x%5E%281%2F3%29){target="_blank"}
+
+* [derivative x^(1/3) at x=0](https://www.wolframalpha.com/input?i=derivative+x%5E%281%2F3%29+at+x%3D0){target="_blank"}
+
+* [second derivative x^(1/3)](https://www.wolframalpha.com/input?i=second+derivative+x%5E%281%2F3%29){target="_blank"}
+
+* [second derivative x^(1/3) at x=0](https://www.wolframalpha.com/input?i=second+derivative+x%5E%281%2F3%29+at+x%3D0){target="_blank"}
+
+## Derivada na cinemática
+
+Uma partícula se move ao longo de uma linha reta e $s(t)$ é sua distância a partir de um ponto fixo na linha. Então sabemos que a derivada $s^{\prime}(t)$ é a velocidade (instantânea) da partícula:
+
+$$v(t)=s^{\prime}(t)$$
+
+Se a velocidade não for constante, podemos perguntar pela aceleração (instantânea), ou seja, a taxa de variação da velocidade. Portanto, temos que diferenciar $v(t)$ em relação a $t$. Então $v^{\prime}(t)$ é a segunda derivada de $s(t)$ e a primeira derivada de $s^{\prime}(t)$. Assim, a aceleração da partícula é:
+
+$$a(t)=v^{\prime}(t)=s^{\prime\prime}(t)$$
+
+### Exemplo 9.6.5: Um corpo que cai
+
+Para um corpo em queda que não está sujeito à resistência do ar, Galilei encontrou a fórmula:
+
+$$s(t)=\dfrac{g}{2}t^2$$
+
+sendo $t$ o tempo e $s$ a distância vertical percorrida. Quando $t$ é medido em segundo e $s$ em metro, então _g_ = 9.81 m/s<sup>2</sup> na superfície da Terra. Então, $v(t)= gt$ e $a(t) = g$. Portanto, para um corpo em queda, a velocidade aumenta linearmente com o tempo e a aceleração permanece constante durante o movimento.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Comparative gravities of the Earth, Sun, Moon, and planets: https://en.wikipedia.org/wiki/Gravitational_acceleration."}
+knitr::include_graphics("./image/g.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [derivative g t^2/2 for t](https://www.wolframalpha.com/input?i=derivative+g+t%5E2%2F2+for+t){target="_blank"}
+
+* [second derivative g t^2/2 for t](https://www.wolframalpha.com/input?i=second+derivative+g+t%5E2%2F2+for+t){target="_blank"}
+
+### Exemplo 9.6.6: Um corpo que oscila
+
+* [Simple harmonic motion](https://simple.wikipedia.org/wiki/Simple_harmonic_motion){target="_blank"}
+
+Um corpo oscila de tal forma que seu centro de gravidade permanece no eixo $x$ e tem abcissas 
+
+$$x(t) = 1+ \sin\left(\dfrac{2\pi}{T}t\right)$$
+
+sendo _t_ = tempo (seg), _T_ = 3 seg, e _x_ é medido em metro. Para discutir o movimento, primeiro notamos que _x_ está restrito ao intervalo [0 m, 2 m].
+
+Quando o tempo _t_ aumenta de 0 seg para 3 seg, $2\pi t/3$ cresce de 0 a $2\pi$.
+
+Portanto, neste intervalo de tempo, o seno completa um período completo.
+
+Isso acontece novamente de _t_ = 3 seg a _t_ = 6 seg, de _t_ = 6 seg a _t_ = 9 seg etc. Portanto, _x_ é uma função periódica de período _T_ = 3 seg.
+
+Obtemos a velocidade instantânea por diferenciação:
+
+$$v(t) = \dfrac{2\pi}{T}\cos\left(\dfrac{2\pi}{T}t\right)$$
+
+Por exemplo, quando _t_ = 0 seg, a velocidade atinge o valor $v(0)= 2\pi/3$ m/seg.
+
+A aceleração é dada pela segunda derivada:
+
+$$a(t) = -\left(\dfrac{2\pi}{T}\right)^2\sin\left(\dfrac{2\pi}{T}t\right)$$
+
+No instante de tempo _t_ = 0 seg, obtemos $a(0) = 0$ m/s<sup>2</sup>.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [derivative 1+ sin(2 pi t / T) for t](https://www.wolframalpha.com/input?i=derivative+1%2B+sin%282+pi+t+%2F+T%29+for+t){target="_blank"}
+
+* [derivative 1+ sin(2 pi t / 3) for t](https://www.wolframalpha.com/input?i=derivative+1%2B+sin%282+pi+t+%2F3%29+for+t){target="_blank"}
+
+* [second derivative 1+ sin(2 pi t / T) for t](https://www.wolframalpha.com/input?i=second+derivative+1%2B+sin%282+pi+t+%2F+T%29+for+t){target="_blank"}
+
+* [second derivative 1+ sin(2 pi t / 3) for t](https://www.wolframalpha.com/input?i=second+derivative+1%2B+sin%282+pi+t+%2F+3%29+for+t){target="_blank"}
+
+## Condição necessária e condição suficiente
+
+* [Necessity and sufficiency](https://en.wikipedia.org/wiki/Necessity_and_sufficiency){target="_blank"}
+
+A aplicação de derivadas levanta um problema lógico, ou seja, a distinção entre diferentes tipos de condições. Vimos que um ponto de máximo pode ocorrer somente se $f^{\prime}(x) = 0$ (cuidado com as beiradas da função, pois um ponto pode ser de máximo mesmo com derivada primeira não nula: Fig. 9.20, ponto a). Tal condição é dita necessária, pois deve ser satisfeita. Entretanto, a condição $f^{\prime}(x) = 0$ não garante um ponto de máximo, pois poderia indicar também um mínimo ou um ponto de inflexão. Portanto, diz-se que a condição não é suficiente. Uma condição suficiente para um ponto máximo em $x$ é: $f^{\prime}(x) = 0$ e $f^{\prime\prime}(x) < 0$.
+
+As duas noções "condição necessária" e "condição suficiente" são muito convenientes. Eles têm sido padrão em matemática por várias décadas. Agora eles estão entrando nas ciências lentamente. Mais alguns exemplos podem ajudar o leitor a entender a ideia:
+
+a. Para contrair uma doença contagiosa é necessário ter o
+patógeno, mas a condição não é suficiente, porque uma infecção não precisa resultar em doença.
+a. Para se envenenar basta engolir dez gramas de estricnina. No entanto, a condição não é necessária. Uma dose de um grama ainda seria suficiente. Além disso, não precisa ser estricnina. Existem outros produtos químicos que também podem causar envenenamento.
+a. Um triângulo é equilátero se cada ângulo tiver sessenta graus.
+A condição "todos os ângulos medem sessenta graus" é suficiente. Se um ângulo difere de sessenta graus, o triângulo não pode ser equilátero.
+Portanto, a condição também é necessária. Assim, a condição "todos os ângulos medem sessenta graus" é necessária e suficiente para que um triângulo seja equilátero. Uma frase alternativa para expressar a mesma afirmação é a seguinte: Um triângulo é equilátero se, e somente se, todos os três ângulos tiverem sessenta graus de tamanho.
+
+A expressão "se, e somente se," é expressa por _iff_.
+
+### Os casos paradigmáticos de $f(x)=x^4$ e $f(x)=\sqrt[3]{x}$
+
+$f^{\prime\prime}(x)=0$ não é condição necessário e também não é condição suficiente para ponto de inflexão. As funções $f(x)=x^4$ e $f(x)=\sqrt[3]{x}$ em $x=0$ serão usadas para mostrar este resultado.
+
+$f^{\prime}(0)=4x^3=0$ não permite concluir que $x=0$ é um ponto de mínimo, máximo ou de inflexão.  
+
+$f^{\prime\prime}(0)=12x^2=0$ não permite concluir que $x=0$ é um ponto de inflexão, pois claramente ele é um ponto de mínimo. 
+
+Como as primeiras derivadas à direita e à esquerda da vizinhança deste ponto têm sinais, respectivamente, positivo e negativo, então ele é ponto de mínimo.
+
+Outra maneira de concluir isto é pelos sinais positivos da segunda derivada, significando que é côncava para cima.
+
+Além disso, $f^{\prime\prime\prime\prime}(0)=24>0$ permite concluir que ele é um ponto de máximo.
+
+Portanto, segunda derivada nula parece ser condição necessária para ponto de inflexão.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [x^4](https://www.wolframalpha.com/input?i=x%5E4){target="_blank"}
+
+* [first and second derivative of x^4](https://www.wolframalpha.com/input?i=first+and+second+derivative+of+x%5E4){target="_blank"}
+
+* [-x^4](https://www.wolframalpha.com/input?i=-x%5E4){target="_blank"}
+
+* [first and second derivative of -x^4](https://www.wolframalpha.com/input?i=first+and+second+derivative+of+-x%5E4){target="_blank"}
+
+No entanto, no caso da função raiz cúbica, no ponto 0, a curva tem ponto de inflexão, mas as primeira e segunda derivadas não existem.
+
+Portanto, segunda derivada nula não é condição necessária para ponto de inflexão.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[cuberoot(-1)](https://www.wolframalpha.com/input?i=cuberoot%28-1%29){target="_blank"}
+
+[cuberoot(x)](https://www.wolframalpha.com/input?i=cuberoot%28x%29){target="_blank"}
+
+[first and second derivatives of cuberoot(x)  ](https://www.wolframalpha.com/input?i=first+and+second+derivatives+of+cuberoot%28x%29+){target="_blank"}
+
+[first and second derivatives of cuberoot(x) at x=0](https://www.wolframalpha.com/input?i=first+and+second+derivatives+of+cuberoot%28x%29+at+x%3D0){target="_blank"}
+
+## Função aproximativa de Taylor
+
+* [Taylor series](https://en.wikipedia.org/wiki/Taylor_series){target="_blank"}
+
+Em geral, uma função é curvilínea, isto é, seu gráfico não é o de uma reta. Além disso, a função pode não ser polinomial. Sendo assim, uma forma de simplificar a análise local de uma função é aproximá-la em cada ponto por uma função Taylor afim ou quadrática. Essas funções aproximativas são funções polinomiais de ordem 1 e 2, respectivamente. 
+
+De modo geral, a função afim aproximativa da função $f$  no ponto $(x_0,f(x_0))$  é a dada pela seguinte fórmula:
+
+$$t(x)=f(x_0)-f^{\prime}(x_0)x_0+f^{\prime}(x_0)x=f(x_0)+f^{\prime}(x_0)(x-x_0)$$
+
+De modo geral, a função quadrática aproximativa da função $f$  no ponto $(x_0,f(x_0))$  é a dada pela seguinte fórmula:
+
+$$p(x)=f(x_0)+f^{\prime}(x_0)(x-x_0)+\dfrac{1}{2}f^{\prime\prime}(x_0)(x-x_0)^{2}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [Taylor e^x](https://www.wolframalpha.com/input?i=Taylor+e%5Ex){target="_blank"}
+
+  * [Taylor e^x at x=1](https://www.wolframalpha.com/input?i=Taylor+e%5Ex+at+x%3D1){target="_blank"}
+
+* [Taylor log(x)](https://www.wolframalpha.com/input?i=Taylor+log%28x%29+){target="_blank"}
+
+* [Taylor cos(x)](https://www.wolframalpha.com/input?i=Taylor+cos%28x%29+){target="_blank"}
+
+# Derivada de função mista (_piecewise_)
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [Plot[Piecewise[{{x^2, x < 0}, {x, x >= 0}}], {x,-2,2}]
+](https://www.wolframalpha.com/input?i=Plot%5BPiecewise%5B%7B%7Bx%5E2%2C+x+%3C+0%7D%2C+%7Bx%2C+x+%3E%3D+0%7D%7D%5D%2C+%7Bx%2C-2%2C2%7D%5D){target="_blank"}
+
+* [D[Piecewise[{{x^2, x < 0}, {x, x >= 0}}], x]
+](https://www.wolframalpha.com/input?i=D%5BPiecewise%5B%7B%7Bx%5E2%2C+x+%3C+0%7D%2C+%7Bx%2C+x+%3E%3D+0%7D%7D%5D%2C+x%5D){target="_blank"}
+
+# Otimização
+
+* [Mathematical optimization: Wikipedia](https://en.wikipedia.org/wiki/Mathematical_optimization){target="_blank"}
+
+Durante a evolução, todas as funções de um organismo que são essenciais para sobreviver em condições severas devem ser maximizadas. Por outro lado, o "custo", como a necessidade de alimentos e proteção, deve ser minimizado. Assim, nas plantas, as folhas devem receber o máximo de luz solar e as raízes devem ter acesso ao máximo de minerais possível. Por outro lado, o tempo necessário para se adaptar às novas condições deve ser mínimo. Nos animais, a capacidade de obter alimento e de se proteger contra inimigos deve ser a mais alta possível, enquanto a suscetibilidade a doenças deve ser minimizada.
+
+A partir desses poucos exemplos, vemos que a natureza busca a economia na medida em que algumas quantidades são maximizadas e outras minimizadas. Se tal quantidade puder ser expressa como uma função de outras variáveis, o cálculo diferencial fornece um método para encontrar valores extremos, isto é, máximos e mínimos.
+
+Também temos que considerar um tipo diferente de extremo, ou seja, extremos tomados em pontos de fronteira. No ponto R da Fig. 9.20 a função atinge um máximo, pois todos os pontos vizinhos da curva são mais baixos. Da mesma forma, em S a função atinge um mínimo.
+
+A propriedade de um ponto ser um ponto extremo é puramente local.
+
+Assim, falamos de máximos e mínimos locais. Muitas vezes, no entanto, somos solicitados a encontrar o máximo mais alto e o mínimo mais baixo. Então estamos preocupados com o máximo absoluto e o mínimo absoluto.
+
+Na Fig. 9.20, o máximo absoluto é tomado em R e o mínimo absoluto em P. Os dois extremos absolutos determinam o alcance da função.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.20. Valores extremos de uma função."}
+knitr::include_graphics("./image/Fig9.20.png")
+```
+
+## Exemplo 9.7.3: Célula da colmeia de abelha
+
+A célula da colmeia é um prisma hexagonal regular com uma extremidade aberta e um ápice triédrico (ver Fig. 9.21 a). 
+
+Podemos construir a superfície começando com uma base hexagonal regular abcdef com lado _s_ (Fig. 9.21 b). 
+
+Sobre a base levantamos um prisma reto de uma certa altura _h_ com a parte superior ABCDEF.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.21. A célula da abelha."}
+knitr::include_graphics("./image/Fig9.21.png")
+```
+
+A base hexagonal abcdef é a extremidade aberta.
+
+As abelhas formam as faces usando cera. 
+
+Quando o volume é dado, é econômico poupar cera e, portanto, escolher o ângulo de inclinação, $\theta=\measuredangle NVX$, de forma que a área da superfície da célula da abelha seja minimizada.
+
+Esta área é função da variável ângulo $\theta$ e, portanto, a denotamos por $f(\theta)$:
+
+$$f(\theta) = 6 h s+\dfrac{3}{2}s^2 \left(\dfrac{\sqrt{3}}{\sin(\theta)}-\cot(\theta)\right)$$
+
+O valor do ângulo que minimiza a área da superfície da célula da abelha, que independe de $s$ e $h$, é:
+
+$$\theta^*= \arccos\left(\dfrac{1}{\sqrt{3}}\right) \approx 0.9553 \;\text{rad} \approx 54.74^\circ$$
+
+$$f(\theta^{*})=\dfrac{3}{2} s \left(\sqrt{2} s + 4 h \right)$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [D[6 h s+(3/2) s^2 (sqrt(3)/sin(x)-cot(x)),x]](https://www.wolframalpha.com/input?i=D%5B6+h+s%2B%283%2F2%29+s%5E2+%28sqrt%283%29%2Fsin%28x%29-cot%28x%29%29%2Cx%5D){target="_blank"}
+
+  * Resultado: $f^{\prime}(\theta)=\dfrac{3}{2} s^2 \csc^2(\theta)\left(1-\sqrt{3} \cos(\theta)\right)$
+
+* [6 h s+(3/2) s^2 (sqrt(3)/sin(x)-cot(x)) /. x=arccos(1/sqrt(3))](https://www.wolframalpha.com/input?i=6+h+s%2B%283%2F2%29+s%5E2+%28sqrt%283%29%2Fsin%28x%29-cot%28x%29%29+%2F.+x%3Darccos%281%2Fsqrt%283%29%29){target="_blank"}
+
+* [D[6 h s+(3/2) s^2 (sqrt(3)/sin(x)-cot(x)),{x,2}] ](https://www.wolframalpha.com/input?i=D%5B6+h+s%2B%283%2F2%29+s%5E2+%28sqrt%283%29%2Fsin%28x%29-cot%28x%29%29%2C%7Bx%2C2%7D%5D+){target="_blank"}
+
+A expressão \( f^{\prime\prime}(\theta)=\frac{3}{2} s^2 \csc(\theta) \left(-2 \cot(\theta) \csc(\theta) + \sqrt{3} (\cot^2(\theta) + \csc^2(\theta))\right) \) é positiva para todos os \( \theta \) exceto \( \theta \neq n\pi \), com \( n \in \mathbb{Z} \).
+
+Vale a pena comparar o resultado com o ângulo real escolhido pelo
+abelhas. É difícil medir esse ângulo. No entanto, a média de todos medições não difere significativamente do valor teórico. Portanto, as abelhas preferem fortemente o ângulo ideal. É improvável que o resultado seja devido ao acaso. Podemos supor que a pressão da seleção natural teve um efeito no ângulo $\theta$.
+
+## Exemplo 9.7.4: Pombo-correio
+
+É sabido que os pombos-correio evitam voar sobre grandes áreas de água, a menos que sejam forçados a fazê-lo. A razão para esse comportamento não é conhecida no momento. No nosso exemplo, supomos que os pombos preferem um desvio em torno de um lago, pois durante o dia o ar cai sobre a água fria, fenômeno que aumenta a energia necessária para manter a altitude em vôo.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.22. Um pombo solto de um barco faz um desvio ao retornar aos seus 10 pés. Supõe-se que a energia total necessária para regresso (_homing_) seja minimizada."}
+knitr::include_graphics("./image/Fig9.22.png")
+```
+
+Na Fig. 9.22 assumimos que um pombo é solto de um barco (ponto B) flutuando no lado oeste de um lago, enquanto o pombal (ponto L) está localizado na margem sudeste. A rota mais curta de B a L é indicada por uma linha tracejada. No entanto, o pombo faz um desvio. Primeiro ele segue para um certo ponto P na margem sul, não muito longe de B, então segue a margem para leste até L. Para simplificar, supomos que a margem é reta na direção leste-oeste. Surge a pergunta: onde deve ser escolhido o ponto P para minimizar a energia necessária para o voo de B para L? Em outras palavras, qual é o ângulo ideal BPA?
+
+Seja $\theta=\measuredangle APB$, $AB=r$ e $AL=s$.
+
+Denotamos a energia necessária para voar uma unidade de comprimento sobre o lago por $e_1$ e ao longo da margem por $e_2$. Assumimos que nenhum vento horizontal interfere. Pelas razões mencionadas acima, temos $e_1 > e_2$ ou $e_1 = ce_2$ com uma certa constante $c> 1$. A energia necessária para voar de B para P é $e_1 \times BP$ e para continuar de P para L é $e_2 \times PL$. Assim, a energia total E acaba por ser:
+
+$$E(\theta)=e_2\left(s+r\left(\dfrac{c}{\sin(\theta)}-\cot(\theta)\right)\right)$$
+
+$$G(\theta)=\dfrac{c}{\sin(\theta)}-\cot(\theta)$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [D[c/sin(x)-cot(x),x]](https://www.wolframalpha.com/input?i=D%5Bc%2Fsin%28x%29-cot%28x%29%2Cx%5D+){target="_blank"}
+
+  * Resultado: $G^{\prime}(\theta)=\csc^2(\theta)(1 - c \cos(\theta))$
+
+$$\theta^{*}= \arccos \left(\dfrac{1}{c} \right)=\arccos \left(\dfrac{1}{2} \right)=\dfrac{\pi}{3}$$
+
+Portanto, $\theta^{*}=\dfrac{\pi}{3}=60^{\circ}$, se $c=2$, é o ângulo que minimiza energia necessária para voar sobre o lago (B para P) e sobre a margem (P para L). 
+
+$$E(\theta^{*})=e_2 \left(s+r\sqrt{c^2-1}\right)$$
+
+$$G^{\prime\prime}(\theta)=\csc(\theta) \left( c \cot^2(\theta) - 2 \cot(\theta) \csc(\theta) + c \csc^2(\theta) \right) = \dfrac{c (\cos^2(\theta) + 1) - 2 \cos(\theta)}{\sin^3(\theta)}$$
+
+A segunda derivada é positiva para $c>1$ e todo $\theta$ que não é múltiplo inteiro de $\pi$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [D[c/sin(x)-cot(x),{x,2}] ](https://www.wolframalpha.com/input?i=D%5Bc%2Fsin%28x%29-cot%28x%29%2C%7Bx%2C2%7D%5D+){target="_blank"}
+
+## Exemplo 9.7.5: Ramificação vascular
+
+O sistema vascular sanguíneo consiste em artérias, arteríolas, capilares e veias. O transporte de sangue do coração por todos os órgãos do corpo e de volta ao coração deve ser o mais eficaz possível. Com um gasto mínimo de energia, o corpo deve ser alimentado rapidamente pelos constituintes do sangue. A otimização deve ser alcançada de várias maneiras. Por exemplo, cada vaso deve ser largo o suficiente para evitar turbulência, e os eritrócitos (hemácias ou glóbulos vermelhos) devem ser mantidos em um tamanho que minimize a viscosidade.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.23. Ramificação dos vasos sanguíneos e a busca de um ângulo ideal."}
+knitr::include_graphics("./image/Fig9.23.png")
+```
+
+Em nosso exemplo, nos restringimos a um problema de otimização especial, o da ramificação vascular. Assumimos que um vaso principal de raio $r_1$ corre ao longo da linha horizontal de A a B na Fig. 9.23. Um ponto C deve ser alcançado por um ramo de um dado raio $r_2$. Para implicitamente, escolhemos B tal que CB é perpendicular a AB. Seja $CB = s$ e seja D o ponto onde o eixo do vaso ramificado intercepta o eixo do vaso principal. Denotamos o ângulo BDC por $\theta$. O problema que consideramos é então: 
+
+Encontre o ângulo $\theta$ que minimiza a resistência total do sangue, $R$, ao longo do caminho ADC. 
+
+Quanto menor a resistência, menos energia é gasta pelo coração que bombeia.
+
+Para resolver o problema, precisamos de uma lei devida a Poiseuille.
+
+$$R(\theta)=k\left( \dfrac{l_0-s\;\cot(\theta)}{r_{1}^{4}}+\dfrac{s}{r_{2}^{4}\;\sin(\theta)} \right)$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [D[k (((l-s cot(x))/a) + s/(b sin(x))),x] ](https://www.wolframalpha.com/input?i=Solve%5BD%5Bk+%28%28%28l-s+cot%28x%29%29%2Fa%29+%2B+s%2F%28b+sin%28x%29%29%29%2Cx%5D%3D%3D0%2Cx%5D){target="_blank"}
+
+$$R^{\prime}(\theta)=\dfrac{ks}{\left(r_{1}r_{2}\right)^{4}}\;\csc(\theta)\left(r_{2}^{4}\;\csc(\theta)-r_{1}^{4}\;\cot(\theta)\right)$$
+
+* [symplify  a csc(x) - b cot(x) = 0](https://www.wolframalpha.com/input?i=symplify++a+csc%28x%29+-+b+cot%28x%29+%3D+0){target="_blank"}
+
+$$\theta^{*}=\arccos\left(\left( \dfrac{r_2}{r_1} \right)^4\right)=\arccos\left(\left( \dfrac{3}{4} \right)^4\right)\approx1.25\;\text{rad}\approx71.55^{\circ}$$
+
+* [arccos((3/4)^4)) ](https://www.wolframalpha.com/input?i=arccos%28%283%2F4%29%5E4%29%29){target="_blank"}
+
+$$R(\theta^{*})= k \left( \dfrac{l_0}{r_1^4} + s\dfrac{\sqrt{1 - \left( \dfrac{r_2}{r_1} \right)^8}}{r_2^4} \right)$$
+
+# Média de função
+
+Em um laboratório, foram tomadas providências para manter a temperatura constante. Uma gravação de temperatura mostrou pequenas flutuações.
+
+Surgiu o problema: como determinar a temperatura média? 
+
+Situações semelhantes ocorrem com frequência em pesquisas. Umidade, intensidade de luz, taxas de reação etc. mudam continuamente. No entanto, geralmente apenas os valores médios são de interesse. 
+
+No estudo dos ritmos biológicos observa-se que todas as atividades corporais variam em intensidade. Para se livrar dos altos e baixos, pode-se pedir intensidades médias. 
+
+Por exemplo, a pergunta pode ser: Qual é o débito médio dos rins por hora?
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.26. A média de uma função contínua u = f(t) ao longo de um intervalo de t<sub>0</sub> a t<sub>1</sub>."}
+knitr::include_graphics("./image/Fig9.26.png")
+```
+
+A média da função $f$ contínua no intervalo $[t_0,t_1]$, $\bar{u}$, é expresso por:
+
+$$\bar{u}=\dfrac{1}{T}\int_{t_0}^{t_1}f(t)dt$$
+
+Uma interpretação geométrica ainda mais forte procederia da seguinte forma: A figura com borda curvilínea é substituída por um retângulo com a
+mesma base _T_ e a mesma área. A altura $\bar{u}$ deste retângulo é a média desejada de _u_.
+
+## Pressão arterial média (PAM)
+
+* Mean arterial pressure: https://en.m.wikipedia.org/wiki/Mean_arterial_pressure
+* Mean Arterial Pressure (MAP) Calculator: https://www.learningaboutelectronics.com/Articles/Mean-arterial-pressure-MAP-calculator.php
+* Alex Yartsev (2015) Systolic, diastolic and mean arterial blood pressure: https://derangedphysiology.com/main/cicm-primary-exam/required-reading/cardiovascular-system/Chapter%20035/systolic-diastolic-and-mean-arterial-blood-pressure
+* Richard E. Klabunde: Mean Arterial Pressure: https://www.cvphysiology.com/Blood%20Pressure/BP006
+
+MAP é determinada por medidas diretas ou indiretas da pressão arterial. A partir do traçado da pressão aórtica ao longo do tempo (ver figura a seguir), a forma do traçado da pressão produz um valor de pressão média (média geométrica) que é menor que a média aritmética das pressões sistólica e diastólica.
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/AP.png")
+```
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics("./image/MAP2.png")
+```
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics("./image/MAP3.png")
+```
+
+Indivíduo adulto masculino com PAM entre 70 e 100 mmHg podem ser considero com pressão normal, sendo que a ideal é 90 mmHg.
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics("./image/PAM71.png")
+```
+
+Este paciente da UTI tem PAM igual a 71 mmHg. Note que PAS = 112 mmHg e PAD = 47. Como foi calculada PAM = 71 mmHg?
+
+```{r}
+BP <- c(112, 47)
+round(DescTools::Hmean(BP),0)
+round(DescTools::Gmean(BP),0)
+round(DescTools::Mean(BP),0)
+```
+
+Em frequências cardíacas normais em repouso, a MAP pode ser aproximada pela seguinte equação (Gauer, 1960):
+ 
+$$MAP=dBP+\dfrac{1}{3}(sBP-dBP)$$
+
+Por exemplo, se a pressão sistólica é 120 mmHg e a pressão diastólica é 80 mmHg (conforme mostrado na figura), então a pressão arterial média (MAP) é de aproximadamente 93 mmHg usando este cálculo. 
+
+```{r}
+BP <- c(120, 80)
+MAP <- BP[2] + (BP[1] - BP[2])/3 # Repouso: HR = 64
+round(MAP,0)
+round(DescTools::Hmean(BP),0)
+round(DescTools::Gmean(BP),0)
+round(DescTools::Mean(BP),0)
+MAP <- BP[2] + (BP[1] - BP[2])/2 # HR = 180
+round(MAP,0)
+```
+
+```{r}
+BP <- c(112, 47)
+MAP <- BP[2] + (BP[1] - BP[2])/3 # Repouso: HR = 64
+round(MAP,0)
+MAP <- BP[2] + (BP[1] - BP[2])/2 # HR = 180
+round(MAP,0)
+```
+
+Em altas frequências cardíacas, entretanto, a MAP está mais próxima da média aritmética das pressões sistólica e diastólica (portanto, quase 100 mmHg neste exemplo) por causa da mudança no formato do pulso da pressão arterial (torna-se mais estreito). 
+
+Para determinar a pressão arterial média com precisão absoluta, são usados circuitos eletrônicos analógicos ou técnicas digitais. Na prática clínica normal, no entanto, as pressões sistólica e diastólica são medidas usando um esfigmomanômetro. 
+
+Conforme Moran et al. (1995),
+
+"Resumo: A pressão arterial média (MAP) é uma característica comum do ciclo cardíaco. Geralmente é avaliado assumindo que o tempo de ejeção do ventrículo esquerdo (sístole) constitui uma proporção constante do ciclo cardíaco (ou seja, 1/3), independentemente da frequência cardíaca (HR).
+
+No entanto, a elevação da FC durante o exercício resulta em redução da duração do período de ejeção e ainda maior redução do período de enchimento ventricular.
+
+Portanto, uma proporção constante de diástole/sístole em várias frequências cardíacas pode ser enganosa. O objetivo deste estudo foi, portanto, avaliar a proporção precisa do período sistólico do ciclo cardíaco em diferentes taxas metabólicas e calcular a PAM de acordo. Vinte indivíduos saudáveis (idade: 20-50 anos) exercitaram-se em diferentes intensidades de trabalho em um cicloergômetro para obter HR na faixa de 55-180 bpm. Durante o passeio, a forma de onda da velocidade do fluxo mitral e aórtico foi registrada por ecocardiografia Doppler; o fluxo mitral na visão apical e o fluxo aórtico na visão apical do eixo longo. 
+
+A pressão arterial foi medida usando um esfigmomanômetro. A fração de sístole (S<sub>t</sub>) do ciclo cardíaco foi relacionada à HR e foi descrita em termos matemáticos como: 
+
+(eq. 6) $S_t=0.01e^{4.14-40.74/HR}$
+
+```{r}
+HR <- 71
+BP
+MAP <- BP[2] + 0.01*exp(4.14-40.74/HR)*(BP[1] - BP[2]) 
+round(MAP,1)
+```
+
+A PAM foi então calculada a partir da pressão arterial diastólica (dBP) e da pressão de pulso (PP) ajustada para S<sub>t</sub> da seguinte forma:
+
+$$\begin{align}
+PP&=sBP-dBP\\
+MAP&=dBP+S_t\times PP \\
+MAP&=dBP+0.01e^{4.14-40.74/HR}\times PP
+\end{align}$$ 
+
+A utilização do modelo sugerido reduz erros na avaliação de diversos parâmetros cardíacos relacionados à pressão arterial, como a resistência periférica, principalmente sob estresse físico-calórico."
+
+```{r echo=FALSE, out.width="70%", fig.cap="Tabela 1 Características gerais dos participantes."}
+knitr::include_graphics("./image/Table_1.png")
+```
+
+Pelo método dos mínimos quadrados a melhor equação preditiva linear S<sub>t</sub>^ = 26.7+ 0.14 HR) explica apenas R<sup>2</sup>=0.54 da variabilidade de S<sub>t</sub> (p < 0.001). Onze outros modelos lineares (por transformação) foram testados no mesmo procedimento. O modelo y=exp(a+b/x) teve o maior R<sup>2</sup>=0.81.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 1 Análise de regressão da porcentagem de tempo de ejeção do ventrículo esquerdo (LV) do ciclo cardíaco em relação à frequência cardíaca."}
+knitr::include_graphics("./image/Fig_1.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Tabela 2 A fração corrigida (S<sub>t</sub>) da sBP do ciclo cardíaco em diferentes HR calculada pela eq. 6."}
+knitr::include_graphics("./image/Table_2.png")
+```
+
+A média da integral da pressão arterial no tempo $t$ ($BP_t$) durante o ciclo cardíaco $[0,\tau]$ é:
+
+(eq. 2) $MAP = \dfrac{1}{\tau} \int_{0}^{\tau}{BP_t dt}$
+
+Supondo que a sístole esteja incluída no intervalo $[0, p \tau]$ e a diástole no intervalo $[p\tau, \tau]$, então (para: $0 < p < 1$):
+
+(eq. 3) $MAP = \dfrac{1}{\tau} \left(\int_{0}^{p\tau}{BP_t dt}+ \int_{p\tau}^{\tau}{BP_t dt}\right)$
+
+portanto, a qualquer momento, o MAP pode ser definido como:
+
+$$MAP = p \left(\dfrac{1}{p\tau}\int_{0}^{p\tau}{BP_t dt}\right)+ (1-p)\left(\dfrac{1}{(1-p)\tau}\int_{p\tau}^{\tau}{BP_t dt}\right)$$
+
+Implementando a eq. 3 em termos de medições de pico de pressão arterial sistólica e diastólica (sBP e dBP, respectivamente) leva a:
+
+(eq. 4) 
+$$\begin{align}
+MAP &= p \times sBP+(1-p)\times dBP\\
+MAP &= dBP+p\:(sBP-dBP)\\
+MAP &= dBP+p\:PP
+\end{align}$$
+
+O intervalo $p$ nas equações 3 e 4 é a fração da sístole (S<sub>t</sub>) do ciclo cardíaco. Foi obtido a partir de uma análise de regressão do tempo de ejeção do ventrículo esquerdo em diferentes frequências cardíacas. O tempo de contração isovolumétrica e o tempo de relaxamento foram incluídos na duração da diástole.
+
+### Modelo de PAM
+
+[![Aortic Pressure with Mean Values](https://www.wolframcloud.com/obj/df570c22-31ac-4f45-87e4-ca5397b9bba2)](https://www.wolframcloud.com/obj/df570c22-31ac-4f45-87e4-ca5397b9bba2)
+
+As três linhas horizontais representam as médias calculadas:
+
+- **Fração Sistólica**: 0.23
+- **Curva Aórtica**: Representa a pressão ao longo do tempo.
+- **Pressão Média Sistólica**: 113.63 mmHg.
+- **Pressão Média Diastólica**: 86.68 mmHg.
+- **PAM = Pressão Média Ponderada**: 92.88 mmHg.
+
+\begin{verbatim}
+(* Define the data points representing the aortic pressure over time *)
+data = {{0, 80}, {0.1, 120}, {0.3, 100}, {0.6, 80}, {1, 80}};
+
+(* Create an interpolation function to model the aortic pressure curve *)
+fit = Interpolation[data, Method -> "Spline"];
+
+(* Set the optimal cutoff point for systole and diastole separation *)
+optimalCutoff = 0.23;
+
+(* Calculate the mean systolic pressure *)
+meanSystole = NIntegrate[fit[x], {x, 0, optimalCutoff}] / optimalCutoff;
+
+(* Calculate the mean diastolic pressure *)
+meanDiastole = NIntegrate[fit[x], {x, optimalCutoff, 1}] / (1 - optimalCutoff);
+
+(* Calculate the weighted mean pressure *)
+weightedMean = (meanSystole * optimalCutoff + meanDiastole * (1 - optimalCutoff)) / 1;
+
+(* Generate the plot with the aortic pressure curve and the three mean pressures *)
+Plot[
+  {fit[x], meanSystole, meanDiastole, weightedMean},
+  {x, 0, 1},
+  PlotRange -> {{0, 1}, {0, 130}},
+  AxesOrigin -> {0, 0},
+  PlotLegends -> None
+]
+\end{verbatim}
+
+
+# Pequena variação
+
+Na análise de sistemas, estudamos a interdependência de várias partes de um organismo. Se o sistema for estável, uma pequena alteração em uma parte gerará apenas pequenas alterações nas outras partes. O problema de determinar pequenas mudanças é resolvido pelo cálculo diferencial, desde que as variáveis sejam contínuas (reais).
+
+A variação relativa também pode ser considerada como medindo o erro relativo e incorrido ao calcular uma quantidade $f(x)$ com um valor impreciso $x$ em vez do valor exato $x +\delta x$.
+
+## Exemplo 9.9.1: Íris do olho 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Iris (anatomy): https://en.wikipedia.org/wiki/Iris_(anatomy)."}
+knitr::include_graphics("./image/iris.png")
+```
+
+Considere a íris do nosso olho que age como um diafragma.
+
+Quanto uma pequena mudança em sua largura afeta a intensidade da luz que entra? 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.28. Um pequeno aumento &delta;r causa uma pequena mudança &delta;I. A razão &delta;I/&delta;r é aproximadamente igual à inclinação da tangente, ou seja, a derivada dI/dr."}
+knitr::include_graphics("./image/Fig9.28.png")
+```
+
+Seja $r$ o raio da pupila. Então sua área (abertura) é proporcional a $r^2$, e o mesmo vale para a intensidade da luz, digamos $I$.
+
+Portanto, $I=cr^2$ para uma constante adequada $c$. Quando $r$ aumenta em um certo incremento $\Delta r$, o incremento correspondente de $I$ é
+
+$$\Delta I = c(r + \Delta r)^2 - c r^2 = 2cr \Delta r + c(\Delta r)^2$$
+
+Agora assumimos que $\Delta r$ é pequeno em comparação com $r$, digamos no máximo um décimo de $r$, i.e., $\Delta r\le0.1 r$. Então $(\Delta r)^2$ é tão pequeno comparado com $r\Delta  r$ que o último termo da equação anterior pode ser desprezado. 
+
+Para indicar que $\Delta r$ deve ser suficientemente pequeno, costuma-se escrever $\delta r$ em vez de $\Delta r$.
+
+Portanto, a equação anterior se transforma na fórmula aproximada:
+
+$$\delta I \approx 2cr\;\delta r$$
+
+Existe, no entanto, uma maneira mais rápida de obter a fórmula anterior.
+
+Para explicar a ideia básica, examinamos a Fig. 9.28. O gráfico da função $\Delta I$ é um pedaço de uma parábola. De um dado ponto P com coordenadas $(r, I)$ procedemos a um novo ponto Q com coordenadas $(r +\delta r, I+ \delta I)$. Porém, chegaríamos quase ao mesmo ponto seguindo a tangente à parábola até o ponto Q' com abcissa $r +\delta r$. Como a inclinação da tangente é:
+
+$$\begin{align}
+\dfrac{dI}{dr}&=2cr\\
+\dfrac{\delta I}{\delta r} &\approx \dfrac{dI}{dr}\\
+\delta I &\approx \dfrac{dI}{dr}\delta r\\
+\delta I &\approx 2cr\;\delta r
+\end{align}$$
+
+Portanto, a ordenada de Q' é $I + 2cr \;\delta r$. 
+
+Observe que a aproximação não seria satisfatória se $\delta r$ fosse da mesma ordem de grandeza que $r$.
+
+$\Diamond$
+
+Em geral, seja $f$ uma função diferenciável de $x$, e seja $\delta x$
+ser um incremento suficientemente próximo de zero, então:
+
+$$\delta f(x)\approx f^{\prime}(x)\;\delta x$$
+
+Em cada aplicação particular, um exame especial é necessário para
+determinar o significado de "suficientemente pequeno". Isso depende das propriedades da função, bem como da precisão desejada.
+
+## Exemplo 9.9.2: Vaso sanguíneo
+
+[Hagen–Poiseuille equation: Wikipedia](https://en.wikipedia.org/wiki/Hagen%E2%80%93Poiseuille_equation){target="_blank"}
+
+No fluxo laminar, a lei de Poiseuille estabelece que a resistência $R$ é proporcional ao comprimento $l$ do vaso e inversamente proporcional à quarta potência de seu raio $r$, ou seja,
+
+$$R(r)=k\dfrac{l}{r^4}$$
+
+$k$ sendo um fator constante determinado pela viscosidade do sangue.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 9.23. Ramificação dos vasos sanguíneos e a busca de um ângulo ideal."}
+knitr::include_graphics("./image/Fig9.23.png")
+```
+
+Como uma pequena mudança $\delta r$ afeta a resistência $R$?
+
+Diferenciamos $R$ em relação a $r$ e obtemos: 
+
+$$\dfrac{dR(r)}{dr}=-\dfrac{4kl}{r^5}$$
+
+Portanto:
+
+$$\delta R(r)\approx\left( -\dfrac{4kl}{r^5}\right) \delta r$$
+
+O resultado afirma que a resistência $R$ diminui à medida que o raio $r$ aumenta.
+
+A taxa de variação é $- 4kl/r^5$.
+
+## Exemplo 9.9.4: Resistência elétrica
+
+A fórmula $\delta f(x)\approx f^{\prime}(x)\;\delta x$ também é utilizada em problemas de propagação de erros.
+
+Suponha que um experimentador seja incapaz de manter constante a resistência elétrica $R$ de um fio. Ele observa flutuações da corrente elétrica dentro de um intervalo $I+\delta I$.
+
+A questão é: podemos estimar o intervalo correspondente $R \pm \delta R$ para a resistência? Em outras palavras: como um erro de $R$ pode estar relacionado a um desvio de $I$?
+
+A lei de Ohm afirma que:
+
+$$R=\dfrac{V}{I}$$
+
+Assumimos que a tensão $V$ é constante. 
+
+Portanto, $R$ é uma função de $I$. 
+
+Diferenciamos $R$ em relação a $I$ e obtemos:
+
+$$\delta R\approx-\dfrac{V}{I^2}\delta I$$
+
+Portanto, o intervalo desejado é $\left[R \mp VI^{-2}\delta I\right]$.
+
+# Taxa de variação relativa e variação relativa
+
+A taxa de variação relativa é uma medida que expressa a taxa de mudança de uma função em relação ao seu valor atual. É especialmente útil em contextos onde estamos interessados em entender como uma quantidade está mudando proporcionalmente ao seu tamanho atual, como no crescimento populacional, taxas de juros, ou reações químicas.
+
+A variação relativa também pode ser considerada como medindo o erro relativo e incorrido ao calcular uma quantidade $f(x)$ com um valor impreciso $x\pm\delta x$ em vez do valor exato $x$.
+
+## Definição Matemática
+
+Seja \( f(x) \) uma função diferenciável. A taxa de variação relativa de \( f(x) \) é definida como:
+
+$$
+\tau(f(x)) = \dfrac{f'(x)}{f(x)}
+$$
+
+Aqui:
+- \( f'(x) \) é a derivada de \( f(x) \), que representa a taxa de variação absoluta de \( f(x) \) em relação a \( x \).
+- \( f(x) \) é o valor da função no ponto \( x \).
+
+A razão \(\dfrac{f'(x)}{f(x)}\) nos dá a taxa de variação relativa, ou seja, como a função está mudando em relação ao seu valor atual.
+
+## Interpretação Intuitiva
+
+A taxa de variação relativa nos diz quão rápido algo está crescendo ou diminuindo proporcionalmente ao seu tamanho atual. Por exemplo, se estamos analisando o crescimento de uma população, a taxa de variação relativa nos dirá a taxa de crescimento em relação ao tamanho atual da população.
+
+## Aplicações
+
+1. **Crescimento Populacional**: 
+   Se \( P(t) \) representa a população no tempo \( t \), a taxa de variação relativa \( \tau(P(t)) \) nos informa a taxa de crescimento da população em relação ao tamanho da população no tempo \( t \).
+
+2. **Economia**: 
+   No contexto econômico, a taxa de variação relativa pode ser usada para medir o crescimento de investimentos ou PIB em relação ao seu valor atual.
+
+3. **Reações Químicas**: 
+   Em cinética química, a taxa de variação relativa pode ser usada para expressar a velocidade de uma reação em relação à concentração dos reagentes.
+
+## Derivação
+
+A derivada da função \( f(x) \) representa a taxa de variação absoluta. Para obter a taxa de variação relativa, dividimos essa taxa de variação absoluta pelo valor atual da função.
+
+Consideremos uma função \( f(x) \) e
+
+seu incremento \(\delta x\). A variação absoluta \(\delta f(x)\) da função é:
+
+$$
+\delta f(x) = f(x + \delta x) - f(x)
+$$
+
+Para pequenos incrementos \(\delta x\), a variação absoluta pode ser aproximada pela derivada:
+
+$$
+\delta f(x) \approx f^{\prime}(x) \delta x
+$$
+
+A variação relativa é a razão entre a variação absoluta \(\delta f(x)\) e o valor da função \(f(x)\):
+
+$$
+\nu(f(x)) = \left|\dfrac{\delta f(x)}{f(x)}\right| \approx \left|\dfrac{f'(x) \delta x}{f(x)}\right| = \left|\tau(f(x)) \delta x\right|
+$$
+
+Aqui, \(\tau(f(x))\) é a taxa de variação relativa.
+
+## Aplicações na Biologia
+
+1. **Crescimento Populacional**:
+   Seja \(P(t)\) o tamanho da população no tempo \(t\). A taxa de variação relativa é:
+
+   $$
+   \tau(P(t)) = \dfrac{P'(t)}{P(t)}
+   $$
+
+   Isso mede a taxa de crescimento da população em relação ao seu tamanho atual. Por exemplo, se a população está crescendo exponencialmente, \(P(t) = P_0 e^{rt}\), onde \(P_0\) é a população inicial e \(r\) é a taxa de crescimento, a taxa de variação relativa é:
+
+   $$
+   \tau(P(t)) = \dfrac{r P_0 e^{rt}}{P_0 e^{rt}} = r
+   $$
+
+   Portanto, para crescimento exponencial, a taxa de variação relativa é constante e igual à taxa de crescimento \(r\).
+
+2. **Metabolismo Celular**:
+   No metabolismo celular, a taxa de variação relativa de uma substância \(S(t)\) pode ser usada para entender como a concentração de \(S(t)\) muda em relação ao seu nível atual. Por exemplo:
+
+   $$
+   \tau(S(t)) = \dfrac{S'(t)}{S(t)}
+   $$
+
+   Isso pode ser útil para modelar a dinâmica de concentrações de substâncias dentro de uma célula.
+
+3. **Crescimento de Plantas**:
+   A taxa de variação relativa pode ser usada para medir o crescimento de uma planta em termos de altura ou biomassa em relação ao seu tamanho atual. Se \(H(t)\) representa a altura da planta no tempo \(t\):
+
+   $$
+   \tau(H(t)) = \dfrac{H'(t)}{H(t)}
+   $$
+
+   Isso pode ajudar a entender como diferentes condições ambientais, como luz e água, afetam o crescimento relativo da planta.
+   
+## Erro Relativo
+
+O erro relativo é uma medida de precisão que compara a diferença entre o valor exato e o valor aproximado com o valor exato. Quando calculamos uma função \( f(x) \) com um valor impreciso \( x \pm \delta x \), a variação relativa \(\nu(f(x))\) pode ser usada para quantificar esse erro relativo.
+
+### Cálculo do Erro Relativo
+
+Se \( \delta f(x) \) é a mudança na função devido a uma pequena alteração \( \delta x \) na entrada, temos:
+
+$$
+\delta f(x) = f(x + \delta x) - f(x)
+$$
+
+Para pequenos \(\delta x\), podemos aproximar \(\delta f(x)\) usando a derivada:
+
+$$
+\delta f(x) \approx f'(x) \delta x
+$$
+
+A variação relativa é então:
+
+$$
+\nu(f(x)) = \left|\dfrac{\delta f(x)}{f(x)}\right| \approx \left|\dfrac{f'(x) \delta x}{f(x)}\right| = \left|\tau(f(x)) \delta x\right|
+$$
+
+Isso mostra que a variação relativa \(\nu(f(x))\) é aproximadamente igual ao produto da taxa de variação relativa \(\tau(f(x))\) e a pequena alteração \(\delta x\).
+
+### Interpretação como Erro Relativo
+
+A variação relativa \(\nu(f(x))\) pode ser considerada como medindo o erro relativo incorrido ao calcular \( f(x) \) com um valor impreciso \( x \pm \delta x \):
+
+$$
+\nu(f(x)) = \left|\dfrac{\delta f(x)}{f(x)}\right| \approx \left|\tau(f(x)) \delta x\right|
+$$
+
+Portanto, a variação relativa nos dá uma estimativa de quanto o valor de \( f(x) \) pode variar proporcionalmente ao seu valor atual quando há uma pequena incerteza na entrada \( x \).
+
+### Conclusão
+
+A variação relativa é uma ferramenta útil para quantificar o erro relativo em cálculos aproximados. Ela oferece uma forma de entender a sensibilidade de uma função \( f(x) \) a pequenas variações em sua entrada \( x \), o que é particularmente importante em áreas que exigem alta precisão, como a engenharia e as ciências exatas.   
+
+## Exemplo 2: Superfície de tumor esférico
+
+Durante um procedimento médico, o tamanho de um tumor aproximadamente esférico é estimado medindo seu diâmetro e usando a fórmula \( A = 4\pi R^2 \) para calcular sua área da superfície. Se o diâmetro for medido como 2.5 cm com um erro máximo de 2%, qual é a variação relativa da área da superfície do tumor?
+
+### Solução A
+
+Uma esfera de raio \( R \) e diâmetro \( D = 2R \) tem a área superficial:
+
+$$
+A = 4\pi R^2 = 4\pi \left( \frac{D}{2} \right)^2 = \pi D^2
+$$
+
+Então, a área superficial usando o diâmetro estimado \( D = 2.5 \) cm é:
+
+$$
+A = \pi (2.5)^2 \approx 19.635 \;\text{cm}^2
+$$
+
+O erro cometido ao calcular essa área usando o diâmetro de 2.5 cm quando o diâmetro real é \( 2.5 + \delta D \) é:
+
+$$
+\delta A = A(2.5 + \delta D) - A(2.5) \approx A^{\prime}(2.5)\delta D
+$$
+
+A medição do diâmetro pode ser incorreta por até 2%, ou seja, até \( 0.02 \times 2.5 = 0.05 \) cm em qualquer direção.
+
+Portanto, o erro máximo na medição do diâmetro é \( \delta D = \pm 0.05 \) cm, e o erro máximo correspondente no cálculo da área é
+
+$$
+\text{Erro máximo na área} = \delta A \approx A^{\prime}(2.5) \times (\pm 0.05)
+$$
+
+Como 
+
+$$
+\begin{align}
+A^{\prime}(D) &= \frac{d}{dD} (\pi D^2) = 2\pi D \\
+A^{\prime}(2.5) &= 2\pi (2.5) \approx 15.708
+\end{align}
+$$
+
+Então
+
+$$
+\text{Erro máximo na área} = 15.708 \times (\pm 0.05) \approx \pm 0.785
+$$
+
+Assim, na pior das hipóteses, o cálculo da área como 19.635 cm² está errado em 0.785 cm², então a área real \( A \in [18.850, 20.420] \).
+
+$$
+\text{Variação relativa da área} = \nu(A(D))=\left|\frac{A^{\prime}(D) }{A(D)}\delta D\right| = \left|\tau(A(D))\delta D\right| \\
+= \frac{15.708 }{19.635}\times (\pm 0.05) = 0.8\times (\pm 0.05)\approx \frac{0.785}{19.635} \approx 0.04
+$$
+
+A variação relativa é aproximadamente igual a 4% da área.
+
+### Solução B
+
+Vamos calcular a taxa de variação relativa para a superfície do tumor esférico neste exemplo.
+
+A taxa de variação relativa, \(\tau(f(x))\), é definida como:
+
+$$
+\tau(f(x)) = \frac{f'(x)}{f(x)}
+$$
+
+No nosso caso, a função \( f(x) \) é a área da superfície \( A(D) = \pi D^2 \), onde \( D \) é o diâmetro.
+
+Primeiro, precisamos da derivada da área em relação ao diâmetro \( D \):
+
+$$
+A(D) = \pi D^2
+$$
+
+$$
+A'(D) = \frac{d}{dD} (\pi D^2) = 2\pi D
+$$
+
+Agora, podemos calcular a taxa de variação relativa:
+
+$$
+\tau(A(D)) = \frac{A'(D)}{A(D)} = \frac{2\pi D}{\pi D^2} = \frac{2}{D}
+$$
+
+Usando o diâmetro estimado \( D = 2.5 \) cm:
+
+$$
+\tau(A(2.5)) = \frac{2}{2.5} = 0.8
+$$
+
+Portanto, a taxa de variação relativa da área da superfície em relação ao diâmetro é \( 0.8 \) cm\(^{-1}\).
+
+A taxa de variação relativa da área da superfície em relação ao diâmetro é uma medida de como a área da superfície de uma esfera muda em relação a pequenas mudanças no diâmetro da esfera. Especificamente, se a taxa de variação relativa é \( 0.8 \, \text{cm}^{-1} \), isso significa que para cada incremento de 1 cm no diâmetro, a área da superfície muda em 0.8 vezes a área atual.
+
+Vamos entender isso mais claramente:
+
+_Interpretação da Taxa de Variação Relativa_
+
+A taxa de variação relativa é dada por:
+
+$$
+\tau(A(D)) = \frac{A'(D)}{A(D)} = \frac{2}{D}
+$$
+
+Quando calculamos isso para \( D = 2.5 \, \text{cm} \):
+
+$$
+\tau(A(2.5)) = \frac{2}{2.5} = 0.8 \, \text{cm}^{-1}
+$$
+
+_Significado_
+
+- **Unidade da Taxa de Variação Relativa**: A unidade \(\text{cm}^{-1}\) significa que esta taxa é uma medida por centímetro de variação no diâmetro.
+- **Valor de 0.8 \(\text{cm}^{-1}\)**: Um valor de \( 0.8 \, \text{cm}^{-1} \) indica que se o diâmetro aumenta em \( \Delta D \, \text{cm} \), a área da superfície aumenta em aproximadamente \( 0.8 \times \Delta D \) vezes a área atual.
+
+_Exemplo Numérico_
+
+Se o diâmetro de um tumor esférico aumenta de 2.5 cm para 2.55 cm (um aumento de 0.05 cm), a área da superfície \( A \) do tumor mudará aproximadamente em:
+
+$$
+\Delta A \approx A \times \tau(A(D)) \times \Delta D
+$$
+
+Para \( D = 2.5 \, \text{cm} \), \( \tau(A(2.5)) = 0.8 \, \text{cm}^{-1} \), e se a área atual é \( A \):
+
+$$
+\Delta A \approx A \times 0.8 \times 0.05
+$$
+
+_Impacto Prático_
+
+Essa taxa ajuda a entender a sensibilidade da área da superfície do tumor a pequenas variações no diâmetro. Uma taxa de 0.8 cm\(^{-1}\) indica que a área da superfície é bastante sensível a mudanças no diâmetro, o que é importante para precisão em medições médicas e tratamento.
+
+_Aplicando a Taxa de Variação Relativa_
+
+Se o diâmetro \( D \) é medido com um erro máximo de 2%, ou seja, \( \delta D = \pm 0.05 \) cm, podemos calcular a variação relativa da área da superfície:
+
+$$
+\nu(A(D)) = \left|\tau(A(D)) \delta D \right| = \left| 0.8 \times 0.05 \right| = 0.04
+$$
+
+A variação relativa da área da superfície é aproximadamente \( 0.04 \) ou 4%. Isso indica que um erro de 2% na medição do diâmetro resulta em uma variação de aproximadamente 4% na área da superfície do tumor.
+
+# Aplicações de funções exponencial e logarítmica
+
+Nenhuma outra função teve uma tal diversidade de aplicações em biociências, como têm as funções exponencial e logarítmica.
+
+A relação entre o número de Euler e o logaritmo natural é:
+
+$$ e\approx 2.72 \\
+\lim_{k \to \infty}{\left( 1+\dfrac{x}{k}\right)^k}=e^x = \exp(x)\\
+\ln(x) = \log_{e}{x} \\
+\ln(e^x)= e^{\ln(x)}=x$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 10.2 Plot of the function y = ln(x). The domain is the positive x axis. The function is monotone increasing."}
+knitr::include_graphics("./image/Fig10.2.png")
+```
+
+A função exponencial é função inversa da logarítmica e vice-versa.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot exp(x), ln(x), x](https://www.wolframalpha.com/input?i=plot+exp%28x%29%2C+ln%28x%29%2C+x){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 10.3. Graph of the exponential function y = e<sup>x</sup> obtained by reflection of the graph of y = ln(x) about the line y = x."}
+knitr::include_graphics("./image/Fig10.3a.png")
+```
+
+```{r echo=FALSE, out.width="40%", fig.cap="Mathematica"}
+knitr::include_graphics("./image/Fig10.3b.png")
+```
+
+`Plot[{Log[x], Exp[x], x},` 
+`{x, -1, 2}, `
+`AspectRatio -> 2.5,`
+`PlotLegends -> "Expressions", `
+`PlotStyle -> {Black, Gray, {Black, Dashed}}, `
+`PlotRange -> 4]`
+ 
+A relação entre as funções recíproca e logarítmica é:
+
+$$\begin{align}
+\int\dfrac{1}{x}dx&=\ln(|x|)+c, \; x\ne0 \\
+\dfrac{d\;\ln(x)}{dx}&=\dfrac{1}{x} \\
+\dfrac{d\;\ln(k x)}{dx}&=\dfrac{1}{x}
+\end{align}$$
+
+A relação entre as funções exponencial e logarítmica é:
+
+$$\begin{align}
+\dfrac{d\;e^{x}}{dx}&=e^{x} \\
+\dfrac{d\;e^{k x}}{dx}&=ke^{kx} \\
+\int{e^{kx}dx}&=\dfrac{e^{kx}}{k}+c \\
+k&\ne0 
+\end{align}$$
+
+As derivadas de funções potência e exponencial, respectivamente, são:
+
+$$\begin{align}
+\dfrac{d \;x^k}{dx}&=\dfrac{d \;e^{k \; \ln(x)}}{dx}=kx^{k-1}, \; x>0 \\
+\dfrac{d \;k^x}{dx}&=\dfrac{d \;e^{x \; \ln(k)}}{dx}=\ln(k)\;k^{x}
+\end{align}$$
+
+```{r echo=FALSE, out.width="90%", fig.cap="Hoffmann et al. (2013, p. 363)"}
+knitr::include_graphics("./image/lnexp.png")
+```
+
+## Exemplo 10.9.1: Incubação de ovo de galinha
+
+Um ovo de galinha foi incubado por três dias a uma temperatura de _a_ = 37° C. Posteriormente, durante um período de 40 minutos, a temperatura _t_ foi reduzida e o número _N_ de batimentos cardíacos por minuto medido:
+
+| _t_ | _N_ |
+|-----:|-----:|
+| 36.3 | 154 |
+| 35.0 | 133 |
+| 33.9 | 110 |
+| 32.4 | 94  |
+| 31.8 | 83  |
+| 31.1 | 82  |
+| 30.4 | 75  |
+| 24.7 | 38  |
+| 24.1 | 36  |
+
+$$\tau=37^{\circ}-t$$
+
+$$\widehat{\log(N)}=5.09695 - 0.119123 \tau$$
+
+sendo $\tau \in [0.7, 12.8]$.
+
+$$\hat{N}=e^{5.09695 - 0.119123 \tau} = 163.522 \; e^{- 0.119123 \tau}$$
+
+Portanto, a função resultante é da forma:
+
+$$\Large N(\tau)= N_{0}e^{-k\tau} \\
+k>0$$
+
+A taxa de decréscimo é:
+
+$$\begin{align}
+\dfrac{dN(\tau)}{dt}&=-kN_{0}e^{-k\tau}=-kN(\tau) \\
+N^{\prime}(\tau)+kN(\tau)&=0
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot {{0.7,154},{2,133},{3.1,110},{4.6,94},{5.2,83},{5.9,82},{6.6,75},{12.3,38},{12.8,36}}](https://www.wolframalpha.com/input?i=plot+%7B%7B0.7%2C154%7D%2C%7B2%2C133%7D%2C%7B3.1%2C110%7D%2C%7B4.6%2C94%7D%2C%7B5.2%2C83%7D%2C%7B5.9%2C82%7D%2C%7B6.6%2C75%7D%2C%7B12.3%2C38%7D%2C%7B12.8%2C36%7D%7D){target="_blank"}
+
+[plot {{0.7, ln(154)},{2,ln(133)},{3.1,ln(110)},{4.6,ln(94)},{5.2,ln(83)},{5.9,ln(82)},{6.6,ln(75)},{12.3,ln(38)},{12.8,ln(36)}}](https://www.wolframalpha.com/input?i=plot+%7B%7B0.7%2C+ln%28154%29%7D%2C%7B2%2Cln%28133%29%7D%2C%7B3.1%2Cln%28110%29%7D%2C%7B4.6%2Cln%2894%29%7D%2C%7B5.2%2Cln%2883%29%7D%2C%7B5.9%2Cln%2882%29%7D%2C%7B6.6%2Cln%2875%29%7D%2C%7B12.3%2Cln%2838%29%7D%2C%7B12.8%2Cln%2836%29%7D%7D){target="_blank"}
+
+[linear fit {{0.7, ln(154)},{2,ln(133)},{3.1,ln(110)},{4.6,ln(94)},{5.2,ln(83)},{5.9,ln(82)},{6.6,ln(75)},{12.3,ln(38)},{12.8,ln(36)}}](https://www.wolframalpha.com/input?i=linear+fit+%7B%7B0.7%2C+ln%28154%29%7D%2C%7B2%2Cln%28133%29%7D%2C%7B3.1%2Cln%28110%29%7D%2C%7B4.6%2Cln%2894%29%7D%2C%7B5.2%2Cln%2883%29%7D%2C%7B5.9%2Cln%2882%29%7D%2C%7B6.6%2Cln%2875%29%7D%2C%7B12.3%2Cln%2838%29%7D%2C%7B12.8%2Cln%2836%29%7D%7D){target="_blank"}
+
+[simplify e^(5.09695 - 0.119123 \\tau)](https://www.wolframalpha.com/input?i=simplify+e%5E%285.09695+-+0.119123+%5Ctau%29){target="_blank"}
+
+[plot 10 e^{-\\tau}, \\tau from 0 to 13 axis label "\\tau" "N"](https://www.wolframalpha.com/input?i=plot+10+e%5E%7B-%5Ctau%7D%2C+%5Ctau+from+0+to+13+axis+label+%22%5Ctau%22+%22N%22){target="_blank"}
+
+[simplify derivative N_0e^(-k\\tau) for \\tau](https://www.wolframalpha.com/input?i=simplify+derivative+N_0e%5E%28-k%5Ctau%29+for+%5Ctau){target="_blank"}
+
+[n'(\\tau) + k n(\\tau) = 0, n(0)=10](https://www.wolframalpha.com/input?i=n%27%28%5Ctau%29+%2B+k+n%28%5Ctau%29+%3D+0%2C+n%280%29%3D10){target="_blank"}
+
+## Exemplo 10.9.5: função de sobrevivência de Gompertz
+
+Uma aplicação mais sofisticada da função exponencial ocorre em relação à mortalidade por causas naturais. A Fig. 10.7 mostra o número de ratos sobreviventes em função do tempo, $t$, (medido em meses). 
+
+Os dados foram coletados de 144 ratos de laboratório da mesma cepa. Todos esses ratos atingiram a idade de sete meses. 
+
+A partir de então foram registradas suas idades no momento da morte natural. 
+
+A função de sobrevivência é uma função degrau, mas pode ser aproximada por uma curva suave de acordo com uma fórmula de Gompertz:
+
+$$N(t)=ae^{-be^{kt}} \\
+k>0,  \; a>0,  \; 0<b<1$$
+
+É essencialmente "uma função exponencial de uma função exponencial". 
+
+O gráfico é em forma de S e, portanto, chamado de curva sigmóide.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 10.7. Sobrevivência de 144 ratos a partir do sétimo mês. Os pontos representam o número observado de ratos sobreviventes em função do tempo (meses). A linha ajustada é uma curva de Gompertz."}
+knitr::include_graphics("./image/Fig10.7.png")
+```
+
+Na fórmula, $t = 0$ não se refere ao nascimento, mas a alguma idade fixa (no nosso exemplo, $t = 0$ significa a idade de 7 meses quando as observações começaram). 
+
+O número inicial de animais é $N_{0} = a e^{-b}$.
+
+A fórmula de Gompertz é usada por atuários que precisam estimar o risco de morte em seguros de vida. 
+
+Tentativas foram feitas para justificar a fórmula por razões biológicas.
+
+$$N^{\prime}(t)=abke^{kt-be^{kt}}= bke^{kt}N(t)\\
+k>0,  \; a>0,  \; 0<b<1$$
+
+O ponto de inflexão é:
+
+$$\begin{align}
+t_i&=-\dfrac{\ln(b)}{k} \\
+N(t_i)&=\dfrac{a}{e}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot 2e^(-0.2 e^t), t from 0 to 4 axis label "t" "N"](https://www.wolframalpha.com/input?i=plot+2e%5E%28-0.2+e%5Et%29%2C+t+from+0+to+4+axis+label+%22t%22+%22N%22){target="_blank"}
+
+[D[a e^(-b e^(k t)), t]](https://www.wolframalpha.com/input?i=D%5Ba+e%5E%28-b+e%5E%28k+t%29%29%2C+t%5D){target="_blank"}
+
+[Solve[D[a e^(-b e^(k t)), t,t]==0,t]](https://www.wolframalpha.com/input?i=Solve%5BD%5Ba+e%5E%28-b+e%5E%28k+t%29%29%2C+t%2Ct%5D%3D%3D0%2Ct%5D){target="_blank"}
+
+[a e^(-b e^(k t)) /. t=-ln(b)/k](https://www.wolframalpha.com/input?i=a+e%5E%28-b+e%5E%28k+t%29%29+%2F.+t%3D-ln%28b%29%2Fk){target="_blank"}
+
+[-ln(0.2)/1,  2/e](https://www.wolframalpha.com/input?i=-ln%280.2%29%2F1%2C++2%2Fe){target="_blank"}
+
+# Função hipérbolica
+
+[LibreTexts: 6.6: Hyperbolic Functions](https://math.libretexts.org/Bookshelves/Calculus/Calculus_3e_(Apex)/06%3A_Techniques_of_Integration/6.06%3A_Hyperbolic_Functions){target="_blank"}
+
+[Hyperbolic functions: Wikipedia](https://en.wikipedia.org/wiki/Hyperbolic_functions){target="_blank"}
+
+Na teoria biológica, há ocasiões em que a soma ou a diferença de $e^x$ e $e^{-x}$ entram em uma fórmula. 
+
+Nessa ocasião, costuma-se reescrever a fórmula fazendo uso das seguintes funções:
+
+Seno hiperbólico: $\sinh(x)=\dfrac{e^{x}-e^{-x}}{2}$
+
+Cosseno hiperbólico: $\cosh(x)=\dfrac{e^{x}+e^{-x}}{2}$
+
+Tangente hiperbólica: $\tanh(x)=\dfrac{\sinh(x)}{\cosh(x)}=\dfrac{e^{x}-e^{-x}}{e^{x}+e^{-x}}$
+
+Cotangente hiperbólica: $\coth(x)=\dfrac{\cosh(x)}{\sinh(x)}=\dfrac{e^{x}+e^{-x}}{e^{x}-e^{-x}}$
+
+Secante hiperbólica: $\text{sech}(x)=\dfrac{1}{\cosh(x)}=\dfrac{2}{e^{x}+e^{-x}}$
+
+Cossecante hiperbólica: $\text{cosech}(x)=\dfrac{1}{\sinh(x)}=\dfrac{2}{e^{x}-e^{-x}}$
+
+Relações:
+
+$$\cosh^{2}(x)-\sinh^{2}(x)=1$$
+
+$$\dfrac{d\;\cosh(x)}{dx}=\sinh(x)$$
+
+$$\dfrac{d\;\sinh(x)}{dx}=\cosh(x)$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 10.8. Gráficos de três funções hiperbólicas."}
+knitr::include_graphics("./image/Fig10.8.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sinh(x)](https://www.wolframalpha.com/input?i=sinh%28x%29){target="_blank"}
+
+[cosh(x)](https://www.wolframalpha.com/input?i=cosh%28x%29){target="_blank"}
+
+[tanh(x)](https://www.wolframalpha.com/input?i=tanh%28x%29){target="_blank"}
+
+[cotanh(x)](https://www.wolframalpha.com/input?i=cotanh%28x%29){target="_blank"}
+
+[sech(x)](https://www.wolframalpha.com/input?i=sech%28x%29){target="_blank"}
+
+[cosech(x)](https://www.wolframalpha.com/input?i=cosech%28x%29){target="_blank"}
+
+[cosh(x)\^2-sinh(x)\^2==1](https://www.wolframalpha.com/input?i=cosh%28x%29%5E2-sinh%28x%29%5E2%3D%3D1){target="_blank"}
+
+[(cosh(x))'](https://www.wolframalpha.com/input?i=%28cosh%28x%29%29%27){target="_blank"}
+
+[(sinh(x))'](https://www.wolframalpha.com/input?i=%28sinh%28x%29%29%27){target="_blank"}
+
+[(tanh(x))'](https://www.wolframalpha.com/input?i=%28tanh%28x%29%29%27){target="_blank"}
+
+[(cotanh(x))'](https://www.wolframalpha.com/input?i=%28cotanh%28x%29%29%27){target="_blank"}
+
+## Exemplo: Função logística padrão
+
+[Logistic function: Wikipedia](https://en.wikipedia.org/wiki/Logistic_function){target="_blank"}
+
+$$f(x)=\dfrac{1}{1+e^{-x}}=\dfrac{1}{2}\left(1+\tanh\left(\dfrac{x}{2}\right)\right)$$
+
+$$f^{\prime}(x)=\dfrac{d}{dx}\dfrac{1}{1+e^{-x}}=f(x)(1-f(x))=\dfrac{1}{4}\text{sech}^2\left(\dfrac{x}{2}\right)$$
+
+## Exemplo: Catenária Aracnídea 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Teia de aranha."}
+knitr::include_graphics("./image/cobweb.png")
+```
+
+[Catenária: Wikipedia](https://pt.wikipedia.org/wiki/Caten%C3%A1ria){target="_blank"}
+
+[Catenary: Wikipedia](https://en.wikipedia.org/wiki/Catenary){target="_blank"}
+
+[Applications of Hyperbolic Functions](https://courses.lumenlearning.com/calculus1/chapter/applications-of-hyperbolic-functions/#:~:text=One%20physical%20application%20of%20hyperbolic,a%20curve%20called%20a%20catenary.){target="_blank"}
+
+Suponha que uma catenária da teia (arco) tem a forma $f(x)=a\;\cosh(x/a)$, $a=30$ mm, para $x\in [-50,50]$ em milímetro (o comprimento horizontal do arco é 100 mm). 
+
+```{r echo=FALSE, out.width="70%", fig.cap="https://en.wikipedia.org/wiki/Catenary"}
+knitr::include_graphics("./image/catenary.png")
+```
+
+O comprimento do arco, $s$, é dado por:
+
+$$\begin{align}
+s&=\int_{-50}^{50}\sqrt{1+(f^{\prime}(x))^2}dx \\
+&=\int_{-50}^{50}\sqrt{1+\left(\sinh\left(\dfrac{x}{30}\right)\right)^2}dx \\
+&=\int_{-50}^{50}\cosh\left(\dfrac{x}{30}\right)dx \\
+&= 30\left(\sinh\left(\dfrac{50}{30}\right)-\sinh\left(-\dfrac{50}{30}\right)\right) \\
+&= 60 \;\sinh\left(\dfrac{5}{3}\right) \\
+s&\approx 153.17\; \text{mm}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[integral (1+(sinh(x/2))\^2)\^0.5, x from -1 to 1](https://www.wolframalpha.com/input?i=integral+%281%2B%28sinh%28x%2F2%29%29%5E2%29%5E0.5%2C+x+from+-1+to+1){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Taylor series a cosh(x/a)](https://www.wolframalpha.com/input?i=Taylor+series+a+cosh%28x%2Fa%29){target="_blank"}
+
+# Lista de fórmulas
+
+```{r echo=FALSE, out.width="70%"}
+knitr::include_graphics("./image/FormulasCap10.png")
+```
+
+# Derivada e Integral em R
+
+Os recursos derivados do R estão no sistema básico (essencialmente as funções `D()` e `deriv()`) e em diferentes pacotes, ou seja, `nlsr`, `Deriv` e `calculus`. 
+
+Ferramentas gerais para aproximações de derivadas são encontradas no pacote `numDeriv` assim como no `optimx`.
+
+* [John C. Nash
+, 2023: Symbolic and analytical derivatives in R](https://cran.r-project.org/web/packages/nlsr/vignettes/R-analytic-derivatives.pdf){target="_blank"}
+
+* [RPubs: Differentiation and integration in R](https://rpubs.com/venkatritch/333327){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+curve(x^2+3*x, 0, 5)
+
+f <- expression(x^2+3*x)
+f_x <- D(f, "x")
+f_x
+f_xx <- D(D(f, "x"), "x")
+f_xx
+
+f_x <- calculus::derivative(f=f, var=c("x"), order=1)
+f_x
+f_xn <- calculus::derivative(f=f, var=c(x=0), order=1)
+f_xn
+f_xx <- calculus::derivative(f=f, var=c("x"), order=2)
+f_xx
+f_xxn <- calculus::derivative(f=f, var=c(x=0), order=2)
+f_xxn
+
+x <- seq(0, 5, 0.5)
+eval(f)
+eval(f_x)
+eval(f_xx)
+
+DD <- function(expr, name, order = 1){
+  if(order < 1) stop("Order must be >= 1")
+  if(order == 1) D(expr, name)
+  else DD(D(expr, name), name, order - 1)
+}
+
+DD(f, "x", 1)
+DD(f, "x", 2)
+DD(f, "x", 3)
+
+f_x <- nlsr::nlsDeriv(f, "x")
+f_x
+
+f_x <- nlsr::nlsDeriv(~ x^2+3*x, "x")
+f_x
+
+f_x <- Deriv::Deriv(f)
+f_x
+
+f_x <- Deriv::Deriv("x^2+3*x")
+f_x
+
+f <- function(x) x^2+3*x
+f_x <- Deriv::Deriv(f)
+f_x
+
+# Simplificação
+
+nlsr::nlsSimplify(quote((a+b) + (a+b))) ## 2 * (a + b)
+nlsr::nlsSimplify(quote((a+b) - (a+b))) ## 0
+nlsr::nlsSimplify(quote(log(exp(a+b)))) ## a + b
+nlsr::nlsSimplify(quote(exp(log(a+b)))) ## a + b
+
+Deriv::Simplify(quote((a+b) + (a+b))) ## 2 * (a + b)
+Deriv::Simplify(quote((a+b) - (a+b))) ## 0
+Deriv::Simplify(quote(log(exp(a+b)))) ## a + b
+Deriv::Simplify(quote(exp(log(a+b)))) ## exp(log(a + b))
+```
+
+# Bibliografia: Aula06: Derivada e Integral
+
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Garﬁnkel, A et al. (2017) _Modeling Life: The Mathematics of Biological Systems_. USA: Springer.
+* Gauer OH (1960) Kreislauf des Blutes. Lehrbuch der Physiologie des Menschen. München: Urban und Schwarzenberg.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulos 2 e 14.
+* Goldman, R (2005) Curvature formulas for implicit curves and surfaces. _Computer Aided Geometric Design_ 22(7): 632-58. https://doi.org/10.1016/j.cagd.2005.06.005.
+* Gradshteyn, IS & Ryzhik, IM (2007) _Table of integrals, series, and products_. 7th ed. USA: Academic.
+* Moran, D et al. (1995) Calculation of mean arterial pressure during exercise as a function of heart rate. _Applied Human Science_ 14(6): 293-95.
+* [Paul's Online Notes: Wikipedia](https://tutorial.math.lamar.edu/){target="_blank"}
+* Poularikas, AD (1999) _The Handbook of Formulas and Tables for Signal Processing_. Boca Raton: CRC/Springer/IEEE. 
+* Potkay, JA (2008) Long term, implantable blood pressure monitoring systems. _Biomedical microdevices_ 10: 379-92.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* Zwillinger, D (1992) _The handbook of integration_. Boston: Jones & Bartlett.
+
+# Derivada e integral no YouTube
+
+* [Dr. Trefor Bazett: Your calculus prof lied to you (probably)](https://www.youtube.com/watch?v=u4kex7hDC2o){target="_blank"}
+* [Bruno Bernal: ¿Qué es la derivada? El concepto gráfico de derivada. ¿Qué es doblegar la  curva?](https://www.youtube.com/watch?v=YH1WfIT6TFg&t=743s){target="_blank"}
+* [BlueDot: ¿QUÉ es LA INTEGRAL?](https://www.youtube.com/watch?v=y6YQSUDTzqE){target="_blank"} 
+* [Bruno Bernal: Curso de Integrales. Capítulo 1: ¿Qué es y para qué sirve la integral? Una propuesta didáctica.](https://www.youtube.com/watch?v=M3Zx9a9gO0c){target="_blank"}
+* [blackpenredpen: What Integration Technique Should I Use? (trig sub, u sub, DI method, partial fractions???)](https://www.youtube.com/watch?v=M5MaGUO0JDs){target="_blank"}
+* [blackpenredpen: delta y vs. dy (differential)](https://www.youtube.com/watch?v=2ooWs_8hzxQ&list=WL&index=3&t=43s){target="_blank"}
+* [Physics for Students- Unleash your power!!: What is the meaning of Greek symbols | Delta, del, d | Greek letters in mathematics | Greek symbols](https://www.youtube.com/watch?v=1wrFF9ssHhk&list=WL&index=20){target="_blank"}
+* [EDGlio: The Art of Approximations](https://www.youtube.com/watch?v=lzMY5eoITIc){target="_blank"}
+* [3Blue1Brown: Séries de Taylor | Capítulo 10, Essência do Cálculo](https://www.youtube.com/watch?v=3d6DsjIBzJ4){target="_blank"}
+* [The Efficient Engineer: Entendendo a Equação de Bernoulli](https://www.youtube.com/watch?v=DW4rItB20h4&list=WL&index=5&t=704s){target="_blank"}
+* [blackpenredpen: Introduction to Hyperbolic Trig Functions](https://www.youtube.com/watch?v=aC5cYc7XhIs){target="_blank"}
+* [Zach Star: The applications of hyperbolic trig | Why do we even care about these things?](https://www.youtube.com/watch?v=Y66Y6ksLP6Y){target="_blank"}

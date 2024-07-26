@@ -1,0 +1,3681 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 10: Matriz e vetor" 
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    footer: "Biomatematica_Aula10.Rmd"
+    font_adjustment: 1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    footer: "Biomatematica_Aula10.Rmd"
+    font_adjustment: -1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{array}
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:", "Usuarios", "Jose", "scilab2023", "bin", "Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r eval=TRUE,  echo=TRUE, warning=FALSE, error=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(matrixcalc, warn.conflicts=FALSE))
+suppressMessages(library(matlib, warn.conflicts=FALSE))
+suppressMessages(library(calculus, warn.conflicts=FALSE))
+suppressMessages(library(MASS, warn.conflicts=FALSE))
+suppressMessages(library(pracma, warn.conflicts=FALSE))
+suppressMessages(library(far, warn.conflicts=FALSE))
+suppressMessages(library(rgl, warn.conflicts=FALSE))
+suppressMessages(library(igraph, warn.conflicts=FALSE))
+suppressMessages(library(igraphdata, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+```{r echo=FALSE, out.width="50%"}
+knitr::include_graphics("./image/algebralinear.png")
+``` 
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+1.	Função e relação (Capítulo 3)
+1.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+1.	Método gráfico (Capítulo 7)
+1.	Série e limite (Capítulo 8)
+1.	Derivada e integral (Capítulo 9 e 10)
+1.	Equação diferencial ordinária (ODE) (Capítulo 11)
+1.	Função de duas ou mais variáveis independentes (Capítulo 12)
+1.	Probabilidade (Capítulo 13)
+
+__10.	Matriz e vetor (Capítulo 14)__
+
+<!-- # Adicionar... -->
+
+<!-- * Algebra linear aplicada em Análise de Teste Diagnóstico: -->
+<!--   * The Basic Four Measures and their Derivates in Dichotomous Diagnostic Tests - Ostrowski & Ostrowski - 2020 -->
+
+<!-- * Exemplo 14.3.4: Genética: Exploration 4.4: A Genetics Model, p. 289: -->
+<!--   * Explorations of mathematical models in biology with MATLAB - Shahin - 2014.pdf -->
+<!--   * Exploration 4.5: A Psychology Model on rats -->
+<!--   * 4.2. Leslie’s age-structured population model, p. 300: -->
+<!--     * 4.1.1. Exploration 4.7 -->
+<!--     * 4.2.3. Exploration 4.8+ -->
+<!--   * 4.3.4. Model 4.3: Plant Population Dynamics, p. 330 -->
+
+<!-- * Linear Algebra and Its Applications with R - Yoshida - 2021.pdf -->
+<!--   * `magick` package in R to demonstrate image processing without getting into details -->
+<!--   * 2.2.5 Conceptual Quizzes -->
+<!--   * 3.1 Introductory Example from Astronomy : library(conics) -->
+<!--   * 4.1 Introductory Example from Data Science: library(factoextra) -->
+<!--   * 6.2.2 Working Examples -->
+<!--     * -->
+<!--   * 8.1 Introductory Example from Optimization: -->
+<!--       * `lpSolve` package -->
+<!--       * In order to draw a polyhedron in $R^2$, we use the `gMOIP` package -->
+<!--   * 9.1 Introductory Example from Network Analysis -->
+<!--     * `igraph` package -->
+<!--     * `igraphdata` package -->
+
+<!-- * 4.4. Matrix Models of Base Substitution, p 138: "We begin by modeling the ancestral sequence probabilistically. Each site in the sequence is one of the four bases A, G, C, or T , chosen randomly according to some probabilities": -->
+<!--     * _Mathematical models in biology: an introduction_ - Allman & Rhodes - 2004.pdf e -->
+<!--     * _Mathematical models in biology: solution manual_ - Allman & Rhodes - 2004.pdf -->
+
+<!-- * Basics of Matrix Algebra for Statistics with R - Fieller - 2015.pdf -->
+
+<!-- * Matrix Operations - Bronson - 1989.pdf -->
+
+# Introdução
+
+[Matrix (mathematics): Wikipedia](https://en.wikipedia.org/wiki/Matrix_(mathematics)){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`matrix`: WolframAlpha](https://www.wolframalpha.com/input?i=matrix+){target="_blank"}
+
+Nas últimas décadas as matrizes tornaram-se indispensáveis em diversas aplicações da matemática à biologia, principalmente na estatística. 
+
+Um caso especial importante de matrizes são os vetores. Vamos nos concentrar em vetores e suas diversas aplicações nas ciências da vida.
+
+Matriz é um arranjo retangular de objetos do mesmo tipo. 
+
+# Aritmética
+
+```{r}
+A <- matrix(c(2, 1, -1,
+              -3, -1, 2,
+              -2,  1, 2), 
+            nrow=3, ncol=3, byrow=TRUE)
+x <- c(2, 3, -1)
+A
+x
+
+# provide implicit or explicit labels
+matlib::printMatEqn("Matriz A" = A, "*", "Vetor x" = x, 
+                    "=", "Vetor b" = A %*% x)
+matlib::printMatEqn(A, "*", x, "=", b = A %*% x)
+matlib::printMatEqn(A, "*", x, "=", A %*% x)
+
+# compare with showEqn
+b <- c(4, 2, 1)
+matlib::printMatEqn(A, x=paste0("x", 1:3),"=", b)
+matlib::showEqn(A, b)
+
+# decimal example
+A <- matrix(c(0.5, 1, 3, 0.75, 2.8, 4), 
+            nrow=2, ncol=3, byrow=TRUE)
+x <- c(0.5, 3.7, 2.3)
+y <- c(0.7, -1.2)
+b <- A %*% x - y
+b
+
+matlib::printMatEqn(A, "*", x, "-", y, "=", b)
+matlib::printMatEqn(A, "*", x, "-", y, "=", b, fractions=TRUE)
+```
+
+# Notação
+
+As matrizes são escritas entre parênteses ou colchetes.
+
+Com barras verticais não representa uma matriz, mas a quantidade
+$ad - bc$. Este símbolo é chamado de determinante.
+
+$$\det\left[\begin{array}{rr} 
+a & b\\
+c & d
+\end{array}\right]=\left|\begin{array}{rr} 
+a & b\\
+c & d
+\end{array}\right|=ad - bc$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`det {{a,b}, {c,d}}`](https://www.wolframalpha.com/input?i=det+%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D){target="_blank"}
+
+[`matrix operations`](https://www.wolframalpha.com/input?i=matrix+operations){target="_blank"}
+
+Uma notação útil são os índices duplos. Suponha que um pesquisador realize um experimento repetidamente sob várias condições usando diferentes tratamentos. Denotamos o número de tratamentos por $m$ e o número de medições em cada tratamento por $n$. Se $n$ e $m$ não forem particularmente pequenos, o alfabeto não conteria letras suficientes para denotar as medidas individuais, nem subscritos simples como em $x_1,x_2,\ldots$ seriam úteis. É conveniente introduzir um segundo subscrito.
+
+Assim, por $x_{23}$ (leia-se: $x$ dois, três) queremos dizer a terceira medição do segundo tratamento. As medidas formam a matriz
+
+$$
+\begin{array}{c c c c c c c}
+ & {\text{Medida}} \\
+ & & 1 & 2 & 3 & \cdots & n \\
+\text{Tratamento} & 1 & x_{11} & x_{12} & x_{13} & \cdots & x_{1n} \\
+ & 2 & x_{21} & x_{22} & x_{23} & \cdots & x_{2n} \\
+ & \vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+ & m & x_{m1} & x_{m2} & x_{m3} & \cdots & x_{mn} \\
+\end{array}
+$$
+
+Cada $x$ é chamado de elemento ou componente da matriz. O elemento geral na $i$-ésima linha e nas $j$-ésimas colunas é $x_{ij}$. O primeiro subscrito designa a linha, o segundo a coluna na qual o elemento está localizado. Em nossa notação, $i$ varia de 1 a $m$, e $j$ varia de 1 a $n$.
+
+Por brevidade, as matrizes são denotadas por letras únicas. Isso pode causar algum mal-entendido, pois as letras frequentemente representam números únicos e não matrizes de números. Portanto, alguma distinção é desejável.
+
+Na livro adotado, são usadas letras em negrito como notações para matrizes. Por exemplo,
+
+$$\textbf{A}=\left[\begin{array}{rrr} 
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}
+\end{array}\right]$$
+
+Para maior clareza, o número de linhas e colunas geralmente é adicionado à notação. Assim, $A$ é uma matriz "2 por 3", simbolicamente $\text{A}_{2\times3}$.
+
+Neste texto, não adotaremos negrito como notação para matriz por ser redundante com o número de linhas e colunas.
+
+Um vetor é uma matriz com o número de linhas ou colunas igual a 1.
+
+# Transposta
+
+Então $u_{1\times4}$ é um vetor linha e $u_{4\times1}$ é um vetor coluna. Note que um vetor linha transposto é um vetor coluna, i.e., $u_{1\times4}^{\prime}=u_{4\times1}$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Transpose[{{a, b, c}}]`](https://www.wolframalpha.com/input?i=Transpose%5B%7B%7Ba%2C+b%2C+c%7D%7D%5D){target="_blank"}
+
+[`Transpose[{{a}, {b}, {c}}}]`](https://www.wolframalpha.com/input?i=Transpose%5B%7B%7Ba%7D%2C+%7Bb%7D%2C+%7Bc%7D%7D%7D%5D){target="_blank"}
+
+[`Transpose[{{a, b, c}, {d, e, f}}]`](https://www.wolframalpha.com/input?i=Transpose%5B%7B%7Ba%2C+b%2C+c%7D%2C+%7Bd%2C+e%2C+f%7D%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- array(letters[1:3], dim=c(1,3))
+y <- array(c(letters[4:5], letters[6:8]), c(2,3))
+x
+prmatrix(x, quote=FALSE, right=TRUE)
+y
+prmatrix(y, quote=FALSE, right=TRUE)
+dim(x)
+class(x)
+dim(y)
+class(y)
+t(x)
+dim(t(x))
+t(y)
+dim(t(y))
+```
+
+# Sistema linear
+
+Sistema de duas equações lineares e duas incógnitas:
+
+$$\begin{align}
+x-5y&=2\\
+3x+4y&=8
+\end{align}$$
+
+$$\left[\begin{array}{rrr} 
+1 & -5\\
+3 & 4
+\end{array}\right]
+\left[\begin{array}{r} 
+x\\
+y
+\end{array}\right]=
+\left[\begin{array}{r} 
+2\\
+8
+\end{array}\right]$$
+
+A primeira matriz contém os coeficientes conhecidos de $x$ e $y$ em sua ordem apropriada. A segunda matriz contém as incógnitas e a última matriz as quantidades conhecidas no lado direito das equações.
+
+A solução é $x=\dfrac{48}{19}\approx 2.526$ e $y=\dfrac{2}{19}\approx 0.105$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`linear system`](https://www.wolframalpha.com/input?i=linear+system){target="_blank"}
+
+[`Solve[{x - 5 y == 2, 3 x + 4 y == 8}, {x, y}]`](https://www.wolframalpha.com/input?i=Solve%5B%7Bx+-+5+y+%3D%3D+2%2C+3+x+%2B+4+y+%3D%3D+8%7D%2C+%7Bx%2C+y%7D%5D){target="_blank"}
+
+[`LinearSolve[{{1, -5}, {3, 4}}, {2, 8}]`](https://www.wolframalpha.com/input?i=LinearSolve%5B%7B%7B1%2C+-5%7D%2C+%7B3%2C+4%7D%7D%2C+%7B2%2C+8%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+A <- matrix(c(1,-5,
+              3,4),
+            nrow=2, ncol=2, byrow=TRUE)
+B <- c(2,8)
+A
+B
+solve(A,B)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+a=[1 -5;3 4]; 
+b=[2;8];
+linsolve(a,-b) 
+//Método direto de solução do sistema linear por meio da equação ax-b=0. 
+//Notar que b deve conter apenas valores não negativos, i.e., b>=0.
+quit
+```
+
+Assim, para duas equações lineares simultâneas com três incógnitas (sistema subdeterminado) como
+
+$$\begin{align}
+a_1x+b_1y+c_1z&=d_1\\
+a_2x+b_2y+c_2z&=d_2
+\end{align}$$
+
+podemos representar o sistema com três matrizes 
+
+$$\left[\begin{array}{rrr} 
+a_1 & b_1 & c_1\\
+a_2 & b_2 & c_2
+\end{array}\right]
+\left[\begin{array}{r} 
+x\\
+y\\
+z
+\end{array}\right]=
+\left[\begin{array}{r} 
+d_1\\
+d_2
+\end{array}\right]$$
+
+O sistema 
+
+$$\begin{align}
+2x+2y-z&=1\\
+2x-y+z&=2
+\end{align}$$
+
+tem solução
+
+$$\left\{(x,y,z):x=\dfrac{5}{6}-\dfrac{1}{6}z, \;  y=-\dfrac{1}{3}+\dfrac{2}{3}z\right\}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{{a_1, b_1, c_1}, {a_2, b_2, c_2}} . {x, y, z} = {d_1, d_2}`](https://www.wolframalpha.com/input?i=%7B%7Ba_1%2C+b_1%2C+c_1%7D%2C+%7Ba_2%2C+b_2%2C+c_2%7D%7D+.+%7Bx%2C+y%2C+z%7D+%3D+%7Bd_1%2C+d_2%7D){target="_blank"}
+
+[`{{2, 2, -1}, {2, -1, 1}} . {x, y, z} = {1, 2}`](https://www.wolframalpha.com/input?i=%7B%7B2%2C+2%2C+-1%7D%2C+%7B2%2C+-1%2C+1%7D%7D+.+%7Bx%2C+y%2C+z%7D+%3D+%7B1%2C+2%7D){target="_blank"}
+
+* `LinearSolve` resolve de maneira incompleta:
+
+[`LinearSolve[{{2, 2, -1}, {2, -1, 1}},{1, 2}]`](https://www.wolframalpha.com/input?i=LinearSolve%5B%7B%7B2%2C+2%2C+-1%7D%2C+%7B2%2C+-1%2C+1%7D%7D%2C%7B1%2C+2%7D%5D){target="_blank"}
+
+Assim, para três equações lineares simultâneas com duas incógnitas (sistema sobredeterminado) como
+
+$$\begin{align}
+2x-y&=1\\
+x+y&=2\\
+x-y&=3
+\end{align}$$
+
+não tem solução.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{{2, -1}, {1, 1}, {1, -1}} . {x, y} = {1, 2, 3}`](https://www.wolframalpha.com/input?i=%7B%7B2%2C+-1%7D%2C+%7B1%2C+1%7D%2C+%7B1%2C+-1%7D%7D+.+%7Bx%2C+y%7D+%3D+%7B1%2C+2%2C+3%7D){target="_blank"}
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+# consistent equations
+A <- matrix(c(1,2,3, -1, 2, 1),
+            3, 2)
+A
+b <- c(2,1,3)
+matlib::showEqn(A, b)
+matlib::plotEqn(A,b)
+try(solve(A, b))
+# least squares approach 
+x <- solve(t(A) %*% A) %*% t(A) %*% b
+x
+
+# Criar a matriz aumentada [A|b]
+Ab <- cbind(A, b)
+
+# Obter a forma escalonada por linhas
+echelon_result <- matlib::echelon(Ab, verbose = TRUE)
+
+# Verificar a inconsistência
+# Verificamos se há uma linha onde todos os coeficientes são zero, mas o termo constante não é zero
+is_inconsistent <- any(rowSums(echelon_result[, 1:ncol(A)]) == 0 & 
+                         echelon_result[, ncol(A) + 1] != 0)
+
+if (is_inconsistent) {
+  cat("O sistema é inconsistente.\n")
+} else {
+  cat("O sistema é consistente.\n")
+}
+
+# inconsistent equations
+b <- c(2,1,6)
+matlib::showEqn(A, b)
+matlib::plotEqn(A,b)
+try(solve(A, b))
+# least squares approach 
+x <- solve(t(A) %*% A) %*% t(A) %*% b
+x
+# Não é solução
+#      [,1]
+# [1,]    2
+# [2,]   -1
+
+# Criar a matriz aumentada [A|b]
+Ab <- cbind(A, b)
+
+# Obter a forma escalonada por linhas
+echelon_result <- matlib::echelon(Ab, verbose = TRUE)
+
+# Verificar a inconsistência
+# Verificamos se há uma linha onde todos os coeficientes são zero, mas o termo constante não é zero
+is_inconsistent <- any(rowSums(echelon_result[, 1:ncol(A)]) == 0 & 
+                               echelon_result[, ncol(A) + 1] != 0)
+
+if (is_inconsistent) {
+  cat("O sistema é inconsistente.\n")
+} else {
+  cat("O sistema é consistente.\n")
+}
+
+A <- matrix(c(2, 1, -1,
+              -3, -1, 2,
+              -2,  1, 2), 
+            3, 3, byrow=TRUE)
+A
+b <- c(8, -11, -3)
+matlib::showEqn(A, b)
+# show numerically
+x <- solve(A, b)
+x
+matlib::plotEqn3d(A,b)
+rgl::rglwidget()
+
+# Criar a matriz aumentada [A|b]
+Ab <- cbind(A, b)
+
+# Obter a forma escalonada por linhas
+echelon_result <- matlib::echelon(Ab, verbose = TRUE)
+
+# Verificar a inconsistência
+# Verificamos se há uma linha onde todos os coeficientes são zero, mas o termo constante não é zero
+is_inconsistent <- any(rowSums(echelon_result[, 1:ncol(A)]) == 0 & 
+                         echelon_result[, ncol(A) + 1] != 0)
+
+if (is_inconsistent) {
+  cat("O sistema é inconsistente.\n")
+} else {
+  cat("O sistema é consistente.\n")
+}
+
+matlib::showEqn(A, b, vars=x)
+
+matlib::showEqn(A, b, simplify=TRUE)
+matlib::showEqn(A, b, latex=TRUE)
+
+A <- matrix(c(13, -4, 2, -4, 11, -2, 2, -2, 8), 
+            3, 3)
+A
+b <- c(1,2,4)
+x <- solve(A, b)
+x
+matlib::plotEqn3d(A,b)
+rgl::rglwidget()
+```
+
+# Exemplo 14.3.1: Teoria de grafo
+
+[Graph theory: Wikipedia](https://en.wikipedia.org/wiki/Graph_theory){target="_blank"}
+
+Frequentemente ocorre que os objetos estão relacionados a certas características e que temos que estudar o que chamamos na Seção 3.3 de uma relação. Uma ferramenta útil no estudo das relações é a teoria dos grafos. 
+
+Um exemplo bem conhecido são os gráficos químicos ou fórmulas estruturais. Os vértices são átomos e as arestas ligações químicas. 
+
+Formamos uma matriz da seguinte maneira: Os átomos são numerados em uma ordem arbitrária. Se houver uma ligação entre dois átomos, atribuímos o número um, caso contrário, o número zero. Os números são coletados em uma matriz quadrada conforme mostrado na Fig. 14.1 (adaptado de Rouvray, 1973). Essas matrizes são chamadas de matrizes de incidência. A teoria dos grafos é hoje usada em várias áreas, como ecologia, taxonomia, fisiologia e epidemiologia.
+
+Conforme Yoshida (2021, cap. 9), a análise de redes sociais (SNA) pode ser aplicada para entender a conectividade social entre trabalhadores. A conectividade social afeta o estresse de várias maneiras, como hipotetizado por Holt-Lunstad et al. (2010). Embora a conectividade social geralmente seja considerada benéfica para a saúde e bem-estar, nosso estudo inicial mostra que ela também pode ter efeitos negativos, à medida que associamos a conectividade social ao aumento de comportamentos destrutivos, como uso ilegal de drogas e comportamento abusivo. A análise de redes pode ser aplicada à neurologia, genética e redes terroristas. 
+
+```{r echo=FALSE, out.width="80%", fig.cap="Fornito et al., 2015, p. 160"}
+knitr::include_graphics("./image/brain.png")
+```
+
+```{r echo=FALSE, out.width="80%", fig.cap="Goh et al., 2007, p. 8687"}
+knitr::include_graphics("./image/Disease.png")
+```
+
+```{r echo=FALSE, out.width="80%", fig.cap="Goh et al., 2007, p. 8687"}
+knitr::include_graphics("./image/DiseaseGene.png")
+```
+
+## Grafo não-direcionado: Grafo
+
+Suponha que temos um grafo não direcionado \( G = (V, E) \) com um conjunto de vértices \( V = \{1, 2, \ldots, n\} \). Então a matriz de adjacência de um grafo não direcionado \( G \) é uma matriz \( n \times n \) \( A \) tal que
+\[
+A = 
+\begin{pmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{pmatrix}
+\]
+
+em que
+
+\[
+a_{ij} = 
+\begin{cases} 
+1 & \text{se há uma aresta não direcionada entre o vértice } i \text{ e o vértice } j \\
+0 & \text{caso contrário}
+\end{cases}
+\]
+
+A matriz de adjacência de um grafo não direcionado é uma matriz simétrica.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.1. Matrizes de incidência de grafo. Se dois vértices estiverem conectados entre si, o número um é atribuído, caso contrário, o número zero."}
+knitr::include_graphics("./image/Fig14.1.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Exemplo140301TeoriadeGrafo.nb`: Wolfram Cloud](https://www.wolframcloud.com/obj/siqueira0/Published/Exemplo140301TeoriadeGrafo.nb){target="_blank"}
+
+* Linear Algebra and Its Applications with R - Yoshida - 2021.pdf
+  * 9.1 Introductory Example from Network Analysis
+    * `igraph` package
+    * `igraphdata` package
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Definir as matrizes de adjacência
+adj_matrix1 <- matrix(c(
+  0, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0
+), nrow = 5, byrow = TRUE)
+
+adj_matrix2 <- matrix(c(
+  0, 1, 0, 0, 0,
+  1, 0, 1, 0, 0,
+  0, 1, 0, 1, 0,
+  0, 0, 1, 0, 1,
+  0, 0, 0, 1, 0
+), nrow = 5, byrow = TRUE)
+
+adj_matrix3 <- matrix(c(
+  0, 1, 0, 0, 1,
+  1, 0, 1, 0, 0,
+  0, 1, 0, 1, 0,
+  0, 0, 1, 0, 1,
+  1, 0, 0, 1, 0
+), nrow = 5, byrow = TRUE)
+
+g1 <- igraph::graph_from_adjacency_matrix(adj_matrix1, mode = "undirected")
+g2 <- igraph::graph_from_adjacency_matrix(adj_matrix2, mode = "undirected")
+g3 <- igraph::graph_from_adjacency_matrix(adj_matrix3, mode = "undirected")
+
+plot(g1, main = "Grafo 1", vertex.label = V(g1)$name)
+plot(g2, main = "Grafo 2", vertex.label = V(g2)$name)
+plot(g3, main = "Grafo 3", vertex.label = V(g3)$name)
+```
+
+## Grafo direcionado: Rede
+
+Suponha que temos uma rede \( N = (V, E) \) com um conjunto de vértices \( V = \{1, 2, \ldots, n\} \). Então, a matriz de adjacência de uma rede \( N \) é uma matriz \( n \times n \) \( A \) tal que
+\[
+A = 
+\begin{pmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{pmatrix}
+\]
+onde
+\[
+a_{ij} = 
+\begin{cases} 
+1 & \text{se há uma aresta direcionada do vértice } i \text{ para o vértice } j \\
+0 & \text{caso contrário}
+\end{cases}
+\]
+
+Para o conjunto de vértices \( V = \{1, 2, 3, 4, 5\} \) e as arestas direcionadas \( (1, 2) \), \( (1, 3) \), \( (1, 4) \), \( (4, 3) \), \( (3, 2) \), \( (2, 5) \), a matriz de adjacência é:
+
+\[
+A = 
+\begin{pmatrix}
+0 & 1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 & 1 \\
+0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0
+\end{pmatrix}
+\]
+
+A matriz de adjacência não é simétrica.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Example 160: B
+g <- igraph::make_graph(c(1, 2, 1, 3, 1, 4, 4, 3, 3, 2, 2, 5),
+                         directed=TRUE)
+plot(g, main = "Grafo Direcionado: Rede")
+```
+
+## Grau do vértice
+
+O grau de um vértice \( v \) em \( V \) para um grafo ou uma rede é o número de arestas adjacentes ao vértice \( v \). A matriz de graus de um grafo ou uma rede com um conjunto de vértices \( V = \{1, 2, \ldots, n\} \) é uma matriz diagonal \( n \times n \) \( D \) tal que
+
+\[
+D = 
+\begin{pmatrix}
+d_1 & 0 & \cdots & 0 & 0 \\
+0 & d_2 & \cdots & 0 & 0 \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\
+0 & 0 & \cdots & d_{n-1} & 0 \\
+0 & 0 & \cdots & 0 & d_n
+\end{pmatrix}
+\]
+
+sendo que \( d_i \) é o grau de um vértice \( i \) em \( V \).
+
+**Exemplo A**: Grafo triangular não-direcionado 
+
+O triângulo com vértices \( V = \{1, 2, 3\} \) mostrado a seguir é um grafo não direcionado.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Example 158: A
+g <- igraph::make_graph(c(1, 2, 2, 3, 3, 1),
+                         directed=FALSE)
+plot(g, main = "Grafo Não-Direcionado")
+```
+
+A matriz de graus do triângulo é
+\[
+D = 
+\begin{pmatrix}
+2 & 0 & 0 \\
+0 & 2 & 0 \\
+0 & 0 & 2
+\end{pmatrix}
+\]
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Example 158
+degrees <- igraph::degree(g)
+degrees
+D <- diag(degrees)
+print(D)
+```
+
+**Exemplo B** Grafo direcionado
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Example 160
+g <- igraph::make_graph(c(1, 2, 2, 3, 3, 1),
+                         directed=FALSE)
+plot(g, main = "Grafo Não-Direcionado")
+```
+
+\[
+D = 
+\begin{pmatrix}
+3 & 0 & 0 & 0 & 0 \\
+0 & 3 & 0 & 0 & 0 \\
+0 & 0 & 3 & 0 & 0 \\
+0 & 0 & 0 & 2 & 0 \\
+0 & 0 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Example 160
+degrees <- igraph::degree(g)
+degrees
+D <- diag(degrees)
+print(D)
+```
+
+## Matriz Laplaciana
+
+A matriz Laplaciana de um grafo ou de uma rede com o conjunto de vértices \( V = \{1, 2, \ldots, n\} \) é uma matriz \( n \times n \) \( L \) tal que
+\[
+L = D - A,
+\]
+onde \( D \) é a matriz de graus do grafo ou da rede e \( A \) é a matriz de adjacência do grafo ou da rede.
+
+**Exemplo A** Do Exemplo 158, a matriz de adjacência do triângulo é
+\[
+A = 
+\begin{pmatrix}
+0 & 1 & 1 \\
+1 & 0 & 1 \\
+1 & 1 & 0
+\end{pmatrix}
+\]
+e a matriz de graus do triângulo é
+\[
+D = 
+\begin{pmatrix}
+2 & 0 & 0 \\
+0 & 2 & 0 \\
+0 & 0 & 2
+\end{pmatrix}
+\]
+Portanto, a matriz Laplaciana do triângulo é
+\[
+L = 
+\begin{pmatrix}
+2 & -1 & -1 \\
+-1 & 2 & -1 \\
+-1 & -1 & 2
+\end{pmatrix}
+\]
+
+**Exemplo B** Do Exemplo 160, a matriz de adjacência da rede é
+\[
+A = 
+\begin{pmatrix}
+0 & 1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 & 1 \\
+0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0
+\end{pmatrix}
+\]
+e a matriz de graus da rede é
+\[
+D = 
+\begin{pmatrix}
+3 & 0 & 0 & 0 & 0 \\
+0 & 3 & 0 & 0 & 0 \\
+0 & 0 & 3 & 0 & 0 \\
+0 & 0 & 0 & 2 & 0 \\
+0 & 0 & 0 & 0 & 1
+\end{pmatrix}
+\]
+Portanto, a matriz Laplaciana da rede é
+\[
+L = 
+\begin{pmatrix}
+3 & -1 & -1 & -1 & 0 \\
+0 & 3 & 0 & 0 & -1 \\
+0 & -1 & 3 & 0 & 0 \\
+0 & 0 & -1 & 2 & 0 \\
+0 & 0 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Exemplo A: Triângulo
+g_triangle <- igraph::make_graph(c(1, 2, 2, 3, 3, 1),
+                         directed=FALSE)
+plot(g_triangle, main = "Grafo Não-Direcionado")
+
+A_triangle <- as.matrix(igraph::get.adjacency(g_triangle))
+D_triangle <- diag(igraph::degree(g_triangle))
+
+L_triangle <- D_triangle - A_triangle
+print("Matriz Laplaciana do Triângulo:")
+print(L_triangle)
+L <- igraph::laplacian_matrix(g_triangle, normalized=FALSE, sparse=FALSE)
+print(L)
+
+# Exemplo B: Rede
+g_network <- igraph::make_graph(c(1, 2, 1, 3, 1, 4, 4, 3, 3, 2, 2, 5),
+                         directed=TRUE)
+plot(g_network, main = "Grafo Direcionado: Rede")
+
+A_network <- as.matrix(igraph::get.adjacency(g_network))
+D_network <- diag(igraph::degree(g_network, mode = "out"))
+
+L_network <- D_network - A_network
+print("Matriz Laplaciana da Rede:")
+print(L_network)
+L <- igraph::laplacian_matrix(g_network, normalized=FALSE, sparse=FALSE)
+print(L)
+```
+
+## Matrizes de Transição e Laplaciana Normalizada
+
+A matriz de transição para um grafo não direcionado \( G = (V, E) \) com o conjunto de vértices \( V = \{1, 2, \ldots, n\} \) é uma matriz \( n \times n \) \( P \) tal que
+\[
+P = 
+\begin{pmatrix}
+p_{11} & p_{12} & \cdots & p_{1n} \\
+p_{21} & p_{22} & \cdots & p_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+p_{n1} & p_{n2} & \cdots & p_{nn}
+\end{pmatrix}
+\]
+sendo que
+\[
+p_{ij} = \frac{a_{ij}}{d_i}
+\]
+com \( a_{ij} \) sendo o elemento \((i, j)\) da matriz de adjacência do grafo \( G \) e \( d_i \) sendo o grau do vértice \( i \) no grafo \( G \).
+
+**Exemplo A:** A matriz de transição do triângulo é
+\[
+P = 
+\begin{pmatrix}
+0 & \frac{1}{2} & \frac{1}{2} \\
+\frac{1}{2} & 0 & \frac{1}{2} \\
+\frac{1}{2} & \frac{1}{2} & 0
+\end{pmatrix}
+\]
+
+A matriz Laplaciana normalizada para um grafo não direcionado \( G = (V, E) \) com o conjunto de vértices \( V = \{1, 2, \ldots, n\} \) é uma matriz \( n \times n \) \( L_P \) tal que
+\[
+L_P = I_n - P
+\]
+sendo que \( P \) é a matriz de transição do grafo \( G \).
+
+**Exemplo A:** A matriz de transição do triângulo é
+\[
+P = 
+\begin{pmatrix}
+0 & \frac{1}{2} & \frac{1}{2} \\
+\frac{1}{2} & 0 & \frac{1}{2} \\
+\frac{1}{2} & \frac{1}{2} & 0
+\end{pmatrix}
+\]
+Portanto, a matriz Laplaciana normalizada \( L_P \) é
+\[
+L_P = 
+\begin{pmatrix}
+1 & -\frac{1}{2} & -\frac{1}{2} \\
+-\frac{1}{2} & 1 & -\frac{1}{2} \\
+-\frac{1}{2} & -\frac{1}{2} & 1
+\end{pmatrix}
+\]
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+g_triangle <- igraph::make_graph(c(1, 2, 2, 3, 3, 1),
+                         directed=FALSE)
+plot(g_triangle, main = "Grafo Não-Direcionado")
+A_triangle <- as.matrix(igraph::as_adjacency_matrix(g_triangle))
+degrees_triangle <- igraph::degree(g_triangle)
+P_triangle <- A_triangle / degrees_triangle
+I_triangle <- diag(1, nrow = length(degrees_triangle))
+L_P_triangle <- I_triangle - P_triangle
+print("Matriz de Transição do Triângulo:")
+print(P_triangle)
+print("Matriz Laplaciana Normalizada do Triângulo:")
+print(L_P_triangle)
+L <- igraph::laplacian_matrix(g_triangle, normalized=TRUE, sparse=FALSE)
+print(L)
+```
+
+## Propriedades da matriz Laplaciana
+
+As matrizes Laplacianas nos informam muito sobre as propriedades dos grafos. Para mostrar essas propriedades, precisamos usar ferramentas da álgebra linear. Nesta seção, discutiremos algumas das propriedades bem conhecidas das matrizes Laplacianas. Aqui assumimos que temos grafos não direcionados. Se tivermos um grafo direcionado, ou seja, uma rede, transformamos uma aresta direcionada em uma aresta não direcionada.
+
+**Exemplo B** Faremos desta rede um grafo não direcionado. Um conjunto de arestas direcionadas consiste em arestas não direcionadas \( (1, 2) \), \( (1, 3) \), \( (1, 4) \), \( (4, 3) \), \( (3, 2) \), \( (2, 5) \). Então, a matriz de adjacência do grafo é
+\[
+A = 
+\begin{pmatrix}
+0 & 1 & 1 & 1 & 0 \\
+1 & 0 & 1 & 0 & 1 \\
+1 & 1 & 0 & 1 & 0 \\
+1 & 0 & 1 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0
+\end{pmatrix}
+\]
+e a matriz de graus do grafo é
+\[
+D = 
+\begin{pmatrix}
+3 & 0 & 0 & 0 & 0 \\
+0 & 3 & 0 & 0 & 0 \\
+0 & 0 & 3 & 0 & 0 \\
+0 & 0 & 0 & 2 & 0 \\
+0 & 0 & 0 & 0 & 1
+\end{pmatrix}
+\]
+Portanto, a matriz Laplaciana do grafo é
+\[
+L = 
+\begin{pmatrix}
+3 & -1 & -1 & -1 & 0 \\
+-1 & 3 & -1 & 0 & -1 \\
+-1 & -1 & 3 & -1 & 0 \\
+-1 & 0 & -1 & 2 & 0 \\
+0 & -1 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+Usaremos a matriz Laplaciana do grafo no Exemplo 172 como exemplo contínuo nesta seção.
+
+**Teorema 9.3** A matriz Laplaciana \( L \) de um grafo não direcionado \( G \) é simétrica.
+
+**Teorema 9.4** A dimensão do espaço nulo da matriz Laplaciana \( L \) de um grafo não direcionado \( G \) é o número de componentes no grafo \( G \).
+
+Usando o Teorema 9.4, podemos ver quantos componentes existem no grafo dado. Isso pode ser especialmente útil quando lidamos com um grafo grande, o que é comum na ciência de dados.
+
+**Exemplo B** A matriz Laplaciana \( L \) é
+\[
+L = 
+\begin{pmatrix}
+3 & -1 & -1 & -1 & 0 \\
+-1 & 3 & -1 & 0 & -1 \\
+-1 & -1 & 3 & -1 & 0 \\
+-1 & 0 & -1 & 2 & 0 \\
+0 & -1 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+g <- igraph::make_graph(c(1, 2, 1, 3, 1, 4, 4, 3, 3, 2, 2, 5),
+                         directed=FALSE)
+plot(g, main = "Grafo não-Direcionado")
+A <- as.matrix(igraph::as_adjacency_matrix(g))
+degrees <- igraph::degree(g)
+D <- diag(degrees)
+L <- D - A
+L
+L <- igraph::laplacian_matrix(g, normalized=FALSE, sparse=FALSE)
+print(L)
+print("Matriz de Adjacência do Grafo:")
+print(A)
+print("Matriz de Graus do Grafo:")
+print(D)
+print("Matriz Laplaciana do Grafo:")
+print(L)
+pracma::nullspace(L)
+```
+
+Como há apenas um vetor que gera o espaço nulo de \( L \), a dimensão do espaço nulo de \( L \) é 1.
+
+**Teorema 9.5 ([10])** Suponha que \( \lambda_0, \ldots, \lambda_{n-1} \) são autovalores distintos da matriz Laplaciana normalizada \( L_P \) de um grafo não direcionado \( G = (V, E) \) com o conjunto de vértices \( V = \{1, 2, \ldots, n\} \) tal que
+\[
+\lambda_0 \leq \lambda_1 \leq \ldots \leq \lambda_{n-1}
+\]
+Então,
+\[
+\sum_{i=0}^{n-1} \lambda_i \leq n
+\]
+e a igualdade vale se e somente se não houver vértices isolados.
+
+**Exemplo B** A matriz Laplaciana normalizada \( L_P \) é
+\[
+L_P = 
+\begin{pmatrix}
+1 & -\frac{1}{3} & -\frac{1}{3} & -\frac{1}{3} & 0 \\
+-\frac{1}{3} & 1 & -\frac{1}{3} & 0 & -\frac{1}{3} \\
+-\frac{1}{3} & -\frac{1}{3} & 1 & -\frac{1}{3} & 0 \\
+-\frac{1}{2} & 0 & -\frac{1}{2} & 1 & 0 \\
+0 & -1 & 0 & 0 & 1
+\end{pmatrix}
+\]
+
+A soma dos valores próprios da matriz Laplaciana normalizada deste grafo é 5, o que é igual ao número de vértices. Portanto, não há vértice isolado neste grafo.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+g <- igraph::make_graph(c(1, 2, 1, 3, 1, 4, 4, 3, 3, 2, 2, 5),
+                         directed=FALSE)
+plot(g, main = "Grafo não-Direcionado")
+A <- as.matrix(igraph::as_adjacency_matrix(g))
+degrees <- igraph::degree(g)
+D <- diag(degrees)
+L <- D - A
+D_inv_sqrt <- diag(1 / sqrt(degrees))
+L_P <- D_inv_sqrt %*% L %*% D_inv_sqrt
+eigen_values <- eigen(L_P)$values
+print("Matriz Laplaciana Normalizada do Grafo:")
+print(L_P)
+L_P <- igraph::laplacian_matrix(g, normalized=TRUE, sparse=FALSE)
+print(L_P)
+print("Autovalores da Matriz Laplaciana Normalizada:")
+print(eigen_values)
+print("Soma dos Autovalores:")
+print(sum(eigen_values))
+```
+
+## Aplicação: Áreas visuotácteis no cérebro do macaco
+
+Nesta aplicação prática, usaremos o conjunto de dados "macaque" do pacote `igraphdata`. Este grafo direcionado (rede) é projetado para modelar as áreas visuotácteis no cérebro do macaco, a fim de entender como os neurônios no cérebro disparam uns para os outros. O modelo consiste em 45 áreas (45 vértices na rede) e 463 conexões direcionadas (463 arestas direcionadas na rede).
+
+Nesta seção, fazemos as seguintes perguntas:
+
+1. Quantos componentes existem na rede cerebral?
+1. Existem vértices isolados?
+
+Podemos responder à primeira pergunta usando o Teorema 9.4, que indica que o número de componentes em um grafo não direcionado pode ser determinado pela dimensão do espaço nulo da matriz Laplaciana. Para a segunda pergunta, verificamos se há vértices com grau zero (sem conexões).
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+library(igraphdata)
+data(macaque)
+macaque <- igraph::upgrade_graph(macaque)
+num_vertices <- igraph::vcount(macaque)
+print(paste("Número de vértices no grafo:", num_vertices))
+plot(macaque, main = "Rede Cerebral do Macaco")
+LM <- igraph::laplacian_matrix(macaque)
+LLM <- matrix(LM, LM@Dim[1], LM@Dim[2])
+prc <- pracma::nullspace(LLM)
+head(prc)
+```
+
+Para responder à primeira pergunta, determinamos que há apenas um vetor na base para o espaço nulo da matriz Laplaciana do grafo. Isso significa que há apenas um componente no grafo.
+
+Agora, para responder à segunda pergunta usando o Teorema 9.5, precisamos calcular a matriz Laplaciana normalizada do grafo não direcionado para o conjunto de dados "macaque".
+
+Ao aplicar o Teorema 9.5, sabemos que a soma dos valores próprios da matriz Laplaciana normalizada deve ser igual ao número de vértices no grafo, se não houver vértices isolados.
+
+Dado que há 45 vértices no conjunto de dados "macaque", e a soma dos valores próprios da matriz Laplaciana normalizada é 45, podemos concluir que não há vértices isolados no grafo.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+LM2 <- igraph::laplacian_matrix(macaque, normalized = TRUE)
+LLM2 <- matrix(LM2, LM2@Dim[1], LM2@Dim[2])
+EE <- eigen(LLM2)
+sum(EE$values)
+oc <- igraph::cluster_optimal(macaque)
+print(oc)
+num_vertices <- igraph::vcount(macaque)
+print(paste("Número de vértices no grafo:", num_vertices))
+```
+
+## igraphdata: outras aplicações em Biologia
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# The undirected and connected network of interactions in the immunoglobulin protein. It is made
+# up of 1316 vertices representing amino-acids and an edge is drawn between two amino-acids if the
+# shortest distance between their C_alpha atoms is smaller than the threshold value θ = 8 Angstrom.
+library(igraphdata)
+data(immuno)
+immuno <- igraph::upgrade_graph(immuno)
+num_vertices <- igraph::vcount(immuno)
+print(paste("Número de vértices no grafo:", num_vertices))
+plot(immuno, main = "Immunoglobulin interaction network")
+LM <- igraph::laplacian_matrix(immuno)
+LLM <- matrix(LM, LM@Dim[1], LM@Dim[2])
+prc <- pracma::nullspace(LLM)
+head(prc)
+LM2 <- igraph::laplacian_matrix(immuno, normalized = TRUE)
+LLM2 <- matrix(LM2, LM2@Dim[1], LM2@Dim[2])
+EE <- eigen(LLM2)
+sum(EE$values)
+num_vertices <- igraph::vcount(immuno)
+print(paste("Número de vértices no grafo:", num_vertices))
+# oc <- igraph::cluster_optimal(immuno)
+# print(oc)
+
+# Records of contacts among patients and various types of health care workers in the geriatric unit of a
+# hospital in Lyon, France, in 2010, from 1pm on Monday, December 6 to 2pm on Friday, December
+# 10. Each of the 75 people in this study consented to wear RFID sensors on small identification
+# badges during this period, which made it possible to record when any two of them were in faceto-face contact with each other (i.e., within 1-1.5 m of each other) during a 20-second interval of
+# time.
+library(igraphdata)
+data(rfid)
+rfid <- igraph::upgrade_graph(rfid)
+num_vertices <- igraph::vcount(rfid)
+print(paste("Número de vértices no grafo:", num_vertices))
+plot(rfid, main = "Hospital encounter graph data")
+LM <- igraph::laplacian_matrix(rfid)
+LLM <- matrix(LM, LM@Dim[1], LM@Dim[2])
+prc <- pracma::nullspace(LLM)
+head(prc)
+LM2 <- igraph::laplacian_matrix(rfid, normalized = TRUE)
+LLM2 <- matrix(LM2, LM2@Dim[1], LM2@Dim[2])
+EE <- eigen(LLM2)
+sum(EE$values)
+num_vertices <- igraph::vcount(rfid)
+print(paste("Número de vértices no grafo:", num_vertices))
+# oc <- igraph::cluster_optimal(rfid)
+# print(oc)
+
+# Comprehensive protein-protein interaction maps promise to reveal many aspects of the complex
+# regulatory network underlying cellular function.
+# This data set was compiled by von Mering et al. (see reference below), combining various sources.
+# Only the interactions that have ‘high’ and ‘medium’ confidence are included here.
+library(igraphdata)
+data(yeast)
+yeast <- igraph::upgrade_graph(yeast)
+num_vertices <- igraph::vcount(yeast)
+print(paste("Número de vértices no grafo:", num_vertices))
+plot(yeast, main = "Yeast protein interaction graph")
+LM <- igraph::laplacian_matrix(yeast)
+LLM <- matrix(LM, LM@Dim[1], LM@Dim[2])
+prc <- pracma::nullspace(LLM)
+head(prc)
+LM2 <- igraph::laplacian_matrix(yeast, normalized = TRUE)
+LLM2 <- matrix(LM2, LM2@Dim[1], LM2@Dim[2])
+EE <- eigen(LLM2)
+sum(EE$values)
+num_vertices <- igraph::vcount(yeast)
+print(paste("Número de vértices no grafo:", num_vertices))
+# oc <- igraph::cluster_optimal(yeast)
+# print(oc)
+```
+
+```{r echo=FALSE, out.width="80%", fig.cap="Barabási & Oltvai, 2004, p. 104"}
+knitr::include_graphics("./image/yeast.png")
+```
+
+## Mais sobre grafo em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Criar um grafo não direcionado
+g1 <- igraph::make_graph(c(1, 2,
+                           2, 3,
+                           4, 5),
+                         directed = FALSE)
+summary(g1)
+plot(g1)
+igraph::tkplot(g1)
+igraph::degree(g1)
+igraph::degree(g1, 3)
+igraph::as_adjacency_matrix(g1)
+
+# Criar um grafo direcionado
+g2 <- igraph::make_graph(c(1, 2,
+                           2, 3,
+                           4, 5),
+                         directed = TRUE)
+summary(g2)
+plot(g2)
+igraph::tkplot(g2)
+igraph::degree(g2)
+igraph::degree(g2, 3)
+igraph::as_adjacency_matrix(g2)
+
+# Criar um grafo mais complexo com atributos
+g <- igraph::make_graph(~ Alice-Bob:Claire:Frank,
+                        Claire-Alice:Dennis:Frank:Esther,
+                        George-Dennis:Frank,
+                        Dennis-Esther)
+g <- igraph::set_vertex_attr(g, "age", value = c(25, 31, 18, 23, 47, 22, 50))
+g <- igraph::set_vertex_attr(g, "sex", value = c("f", "m", "f", "m", "m", "f", "m"))
+g <- igraph::set_edge_attr(g, "is_formal", value = c(FALSE, FALSE, TRUE, TRUE, TRUE,
+                                                     FALSE, TRUE, FALSE, FALSE))
+
+summary(g)
+plot(g)
+igraph::tkplot(g)
+igraph::degree(g)
+igraph::degree(g, 3)
+which.max(igraph::degree(g))
+ga <- igraph::as_adjacency_matrix(g)
+ga
+igraph::edge_betweenness(g)
+oc <- igraph::cluster_optimal(g)
+print(oc)
+gam <- igraph::graph_from_adjacency_matrix(ga, mode = "undirected")
+print(gam)
+plot(gam)
+
+# Criar um grafo de rede 3D
+g <- igraph::make_lattice(c(5, 5, 5))
+coords <- igraph::layout_with_fr(g, dim = 3)
+if (interactive()) {
+  igraph::rglplot(g, layout = coords)
+}
+```
+
+# Exemplo 14.3.2: Dinâmica populacional: viabilidade e fertilidade (aptidão)
+
+Na Seção 11.3, estudamos um processo determinístico de nascimento e morte. Neste modelo não consideramos o fato de que as taxas de natalidade e mortalidade são dependentes da idade dos indivíduos.
+
+Lewis (1942) e Leslie (1945) introduziram um modelo determinístico que leva em consideração a estrutura etária da população.
+
+Para simplificar o tratamento matemático, consideramos o processo de nascimento e morte em etapas de duração constante. 
+
+Seja $\Delta t$ um intervalo de tempo adequadamente escolhido. Para uma população humana podemos escolher $\Delta t=5$ anos ou, para uma análise mais precisa, $\Delta t=1$ ano. Com o valor escolhido de $\Delta t$ consideramos a estrutura etária da população nos momentos $t = 0, \Delta t, 2\Delta t, \ldots$.
+
+Introduzimos também as faixas etárias $x = 0, 1, 2, \ldots,m$: grupo $x = 0$ contém as idades de $0$ a $\Delta t$, grupo $x = 1$ as idades de $\Delta t$ a $2\Delta t$, grupo $x = 2$ as idades de $2\Delta t$ a $3\Delta t$ etc. A última faixa etária possível é denotada por $x = m$.
+
+Observe que o intervalo de grupo tem o mesmo comprimento que o intervalo entre instantes de tempo consecutivos da população.
+
+Em uma população com dois sexos, precisamos considerar apenas as fêmeas. A estrutura etária dos machos é de menor importância.
+
+No momento $t=k\Delta t$, $k=0,1,2,\ldots$, o tamanho da população feminina é representado pelo vetor coluna $n_i=\left[n_{1k}, n_{2k}, \cdots, n_{mk}\right]^{\prime}$. Portanto, $n_{xk}$ é o número de fêmeas do grupo etário $x$ no momento $t=k\Delta t$.
+
+Claro, aqui estão apenas as sequências de vetores com a formatação correta em LaTeX:
+
+$$ 
+n_0 = \begin{pmatrix}
+n_{00} \\
+n_{10} \\
+n_{20} \\
+\vdots \\
+n_{m0}
+\end{pmatrix}, \quad
+n_1 = \begin{pmatrix}
+n_{01} \\
+n_{11} \\
+n_{21} \\
+\vdots \\
+n_{m1}
+\end{pmatrix}, \quad
+n_2 = \begin{pmatrix}
+n_{02} \\
+n_{12} \\
+n_{22} \\
+\vdots \\
+n_{m2}
+\end{pmatrix}, \quad \ldots
+$$
+
+Seja $F_0, F_1, F_2 , \ldots, F_m$ o número médio de filhas nascidas no intervalo de tempo $\Delta t$ para uma mulher de idade $0, 1,2, \ldots, m$, respectivamente.
+
+As fêmeas podem não ser reprodutivas em todas as idades. Pode haver uma fase pré-reprodutiva e uma fase pós-reprodutiva. Assim, alguns dos $F_x$ , digamos $F_0$, $F_1$ e $F_m$, podem ser zero. O número total de filhas nascidas durante o primeiro intervalo de tempo de $t = 0$ a $t = \Delta t$ é então $\sum_{x=0}^{m}{F_x n_{x0}}$.
+
+Agora assumimos que por $F_0, F_1, F_2, ..., F_m$ contamos apenas as filhas que sobrevivem até o intervalo de tempo em que nasceram. Ao final desse intervalo todas serão consideradas como de idade $x=0$. Assim, o número $n_{01}$ de fêmeas do grupo $x=0$ no tempo $t = \Delta t$ é igual ao resultado da fórmula $\sum_{x=0}^{m}{F_x n_{x0}}$, i.e.:
+
+$$\sum_{x=0}^{m}{F_x n_{x0}}=n_{01}$$
+
+Por $P_x$ denotamos a probabilidade de uma fêmea da faixa etária $x$ sobreviver e entrar na faixa etária $x + 1$. Assim, para $x = 0,1, \ldots, m -1$ obtemos
+
+$$P_xn_{xk}=n_{x+1,k+1}$$
+
+Observe que $P_m=0$. 
+
+No caso especial $k=0$ obtemos $P_xn_{x0}=n_{x+1,1}$. 
+
+A transição da população de $t = 0$ para $t = \Delta t$ pode ser resumida pela multiplicação de matrizes como segue
+
+$$
+\begin{pmatrix}
+F_0 & F_1 & \cdots & F_{m-1} & F_m \\
+P_0 & 0 & \cdots & 0 & 0 \\
+0 & P_1 & \cdots & 0 & 0 \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\
+0 & 0 & \cdots & P_{m-1} & 0
+\end{pmatrix}
+\begin{pmatrix}
+n_{00} \\
+n_{10} \\
+n_{20} \\
+\vdots \\
+n_{m0}
+\end{pmatrix}
+=
+\begin{pmatrix}
+n_{01} \\
+n_{11} \\
+n_{21} \\
+\vdots \\
+n_{m1}
+\end{pmatrix}
+$$
+
+Ou em notação matricial: 
+
+$$\large Mn_{0}=n_{1}$$
+
+Supondo que $F_x$ e $P_x$ permaneçam constantes com o passar do tempo, podemos repetir o mesmo procedimento. Portanto, $Mn_1=n_2, Mn_2=n_3, \ldots$.
+
+Então $n_2=M(Mn_0)=M^2n_0$. Por indução, 
+
+$$\large n_k=M^kn_0$$
+
+Dado o tamanho inicial da população e a estrutura etária e dada a chamada matriz de projeção $M$, podemos calcular o tamanho e a estrutura etária da população futura por $n_k=M^kn_0$. 
+
+Dado $n_0$ apenas, podemos perguntar:
+
+Que propriedade $M$ deve ter  para que a população seja estável em tamanho, isto é, se $n_0 = n_1 = n_2 = \cdots$? 
+
+Também podemos estar interessados em uma distribuição etária estável. 
+Por essa noção, queremos dizer proporções constantes entre diferentes faixas etárias. Esta questão leva à equação
+
+$$n_{k+1}=\lambda n_k$$
+
+ou
+
+$$Mn_k=\lambda n_k$$
+
+Sendo que $\lambda$ denota um número positivo que explica o possível crescimento populacional. Se nos for dado $M$, a solução de $Mn_k=\lambda n_k$ para $n_k$ e $\lambda$ requer ferramentas avançadas de teoria de matrizes, como o conceito de equação característica de uma matriz (consulte a Seção 14.9). 
+
+# Exemplo 14.3.3. Ecologia 
+
+O exemplo a seguir é adaptado de Thrall et al. (1967, PL 5).
+
+É bem conhecido que poluentes venenosos (como DDT ou mercúrio) se acumulam nas cadeias alimentares. 
+
+Escolhemos estudar um sistema ecológico particular com os seguintes três elos de uma cadeia:
+
+1. Vegetação que fornece alimento para herbívoros. As diferentes espécies de plantas são indicadas por $p_1, p_2, \ldots, p_r$.
+2. Animais herbívoros que se alimentam das plantas descritas em 1. As diferentes espécies de herbívoros são denotadas por $a_1, a_2, \ldots, a_s$.
+3. Animais carnívoros que vivem de herbívoros conforme descrito em 2. As diferentes espécies de carnívoros são indicadas por $c_1, c_2, \ldots, c_t$.
+
+Podemos perguntar: 
+
+Qual é a quantidade de planta $p_i$ que é ingerida indiretamente pelo carnívoro $c_j$ durante uma determinada estação? 
+
+Para responder a esta questão, introduzimos a seguinte matriz $X$ para a transição da conexão 1 para a 2:
+
+$$
+\begin{array}{c|cccc}
+& a_1 & a_2 & \cdots & a_s \\
+\hline
+p_1 & x_{11} & x_{12} & \cdots & x_{1s} \\
+p_2 & x_{21} & x_{22} & \cdots & x_{2s} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+p_r & x_{r1} & x_{r2} & \cdots & x_{rs}
+\end{array}
+=
+X
+$$
+
+Aqui $x_{11}$ denota a quantidade média (em g ou kg) de planta $p_1$ consumida por cada indivíduo da espécie $a_1$ durante a estação.
+
+Geralmente, $x_{ik}$ é a quantidade média de planta $p_i$ consumida por cada indivíduo da espécie $a_k$.
+
+Também definimos uma matriz $Y$ para a transição da conexão 2 para a 3:
+
+$$
+\begin{array}{c|cccc}
+& c_1 & c_2 & \cdots & c_t \\
+\hline
+a_1 & y_{11} & y_{12} & \cdots & y_{1t} \\
+a_2 & y_{21} & y_{22} & \cdots & y_{2t} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+a_s & y_{s1} & y_{s2} & \cdots & y_{st}
+\end{array}
+=
+Y
+$$
+
+Aqui $y_{11}$ denota o número de animais da espécie $a_1$ devorados por todos os indivíduos da espécie $c_1$ juntos. Geralmente, $y_{kj}$ é o número de animais da espécie $a_k$ devorados por carnívoros da espécie $c_j$ durante a estação. Observe que $y_{kj}$ é uma variável discreta (contagem), enquanto $x_{ik}$ é uma variável contínua (real).
+
+Considere agora os animais da espécie $c_1$. Alimentando-se de espécies $a_1$, eles consomem indiretamente a quantidade $x_{11}y_{11}$ da planta $p_1$. Alimentando-se da espécie $a_2$, eles consomem $x_{12}y_{21}$ da planta $p_1$ etc. A quantidade total média de planta $p_1$ consumida indiretamente por todos os carnívoros da espécie $c_1$ é, portanto, $\sum_{i=1}^{s}{x_{1i}y_{i1}}$.
+
+O resultado é um produto interno, mais precisamente, a primeira linha de $X$ multiplicada pela primeira coluna de $Y$.
+
+O resultado pode ser generalizado rapidamente. A quantidade de planta $p_i$ consumida indiretamente pelo carnívoro $c_j$ é o produto da $i$-ésima linha de $X$ e da $j$-ésima coluna de $Y$. Obtemos todos os resultados particulares do produto da matriz 
+
+$$XY$$ 
+
+Isso responde a nossa pergunta.
+
+# Exemplo 14.3.4: Genética
+
+Considere um determinado locus gênico com possíveis alelos A e a. Suponha que em uma população o alelo A esteja presente com probabilidade $p$ e o alelo a com probabilidade $q= 1-p$.
+
+Sejam $R_1$ e $R_2$ dois parentes dos quais sabemos com certeza que têm um alelo em comum. Os parentes podem ser pai ($R_1$) e filho ($R_2$) ou, na ordem inversa, filho ($R_1$) e pai ($R_2$). Estamos interessados na probabilidade de um certo genótipo para $R_2$ dado o genótipo de $R_1$.
+
+Os resultados são antecipados na seguinte matriz que denotamos por $T$:
+
+$$
+\begin{array}{c|ccc}
+\text{Genotype of } R_1 \backslash  R_2 & AA & Aa & aa \\
+\hline
+AA & p & q & 0 \\
+Aa & \frac{1}{2}p & \frac{1}{2} & \frac{1}{2}q \\
+aa & 0 & p & q
+\end{array}
+= T
+$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{{p,q,0},{p/2,1/2,q/2},{0,p,q}}`](https://www.wolframalpha.com/input?i=%7B%7Bp%2Cq%2C0%7D%2C%7Bp%2F2%2C1%2F2%2Cq%2F2%7D%2C%7B0%2Cp%2Cq%7D%7D){target="_blank"}
+
+[`{{p,1-p,0},{p/2,1/2,(1-p)/2},{0,p,1-p}}`](https://www.wolframalpha.com/input?i=%7B%7Bp%2C1-p%2C0%7D%2C%7Bp%2F2%2C1%2F2%2C%281-p%29%2F2%7D%2C%7B0%2Cp%2C1-p%7D%7D){target="_blank"}
+
+Se $R_1$ for do genótipo AA, então $R_2$ deve ter o alelo A em comum com $R_1$. Como o segundo alelo é independente do alelo conhecido, esse segundo alelo é A com probabilidade $p$ ou a com probabilidade $q$. O parente $R_2$ não pode ser do genótipo aa. Esses argumentos provam a primeira linha de $T$.
+
+Se $R_1$ é do genótipo Aa, então $R_2$ deve ter o alelo A ou o alelo a em comum com $R_1$, ambos com probabilidade $1/2$. Como o segundo alelo é independente do primeiro alelo, esse segundo alelo é A com probabilidade $p$ ou a com probabilidade $q$. Portanto, $R_2$ é do genótipo AA com probabilidade $\frac{1}{2}p$, do genótipo Aa com probabilidade $\frac{1}{2}p+\frac{1}{2}q=\frac{1}{2}$ ou do genótipo aa com probabilidade $\frac{1}{2}q$. Esses argumentos provam a segunda linha de $T$. A prova da terceira linha é bastante análoga.
+
+Agora damos um passo adiante e investigamos a relação entre avós e netos. Suponha, por exemplo, que um avô seja do genótipo AA. Então derivamos facilmente as probabilidades para os diferentes genótipos para os netos pelo mesmo método:
+
+```{r echo=FALSE, out.width="90%"}
+knitr::include_graphics("./image/grandparent.png")
+```
+
+Então, para os netos
+
+$$\begin{align}
+P(AA) &= pp + q\dfrac{1}{2}p+00=p^2+\dfrac{1}{2}pq\\
+P(Aa) &= pq + q\dfrac{1}{2}+0p=pq + \dfrac{1}{2}p\\
+P(aa) &= p0 + q\dfrac{1}{2}q+0q= \dfrac{1}{2}q^2
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{p,q,0} . {{p,q,0},{p/2,1/2,q/2},{0,p,q}}` ](https://www.wolframalpha.com/input?i=%7Bp%2Cq%2C0%7D+.+%7B%7Bp%2Cq%2C0%7D%2C%7Bp%2F2%2C1%2F2%2Cq%2F2%7D%2C%7B0%2Cp%2Cq%7D%7D+){target="_blank"}
+
+Essas expressões podem ser interpretadas como "primeira linha de $T$ multiplicada pela primeira, segunda e terceira coluna de $T$, respectivamente". Em geral, obtemos as probabilidades dos genótipos AA, Aa, aa para netos simplesmente por $TT= T^2$. 
+
+O resultado pode ser escrito na forma:
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{{p,q,0},{p/2,1/2,q/2},{0,p,q}}^2`](https://www.wolframalpha.com/input?i=%7B%7Bp%2Cq%2C0%7D%2C%7Bp%2F2%2C1%2F2%2Cq%2F2%7D%2C%7B0%2Cp%2Cq%7D%7D%5E2){target="_blank"}
+
+[`{{p,1-p,0},{p/2,1/2,(1-p)/2},{0,p,1-p}}^2`](https://www.wolframalpha.com/input?i=%7B%7Bp%2C1-p%2C0%7D%2C%7Bp%2F2%2C1%2F2%2C%281-p%29%2F2%7D%2C%7B0%2Cp%2C1-p%7D%7D%5E2){target="_blank"}
+
+Seguindo para bisnetos teríamos que elaborar a multiplicação da matriz considerando $TT^2= T^3$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{{p,q,0},{p/2,1/2,q/2},{0,p,q}}^3`](https://www.wolframalpha.com/input?i=%7B%7Bp%2Cq%2C0%7D%2C%7Bp%2F2%2C1%2F2%2Cq%2F2%7D%2C%7B0%2Cp%2Cq%7D%7D%5E3){target="_blank"}
+
+[`{{p,1-p,0},{p/2,1/2,(1-p)/2},{0,p,1-p}}^3`](https://www.wolframalpha.com/input?i=%7B%7Bp%2C1-p%2C0%7D%2C%7Bp%2F2%2C1%2F2%2C%281-p%29%2F2%7D%2C%7B0%2Cp%2C1-p%7D%7D%5E3){target="_blank"}
+
+[`{{p,1-p,0},{p/2,1/2,(1-p)/2},{0,p,1-p}}^6`](https://www.wolframalpha.com/input?i=%7B%7Bp%2C1-p%2C0%7D%2C%7Bp%2F2%2C1%2F2%2C%281-p%29%2F2%7D%2C%7B0%2Cp%2C1-p%7D%7D%5E6+){target="_blank"}
+
+[`{{p,1-p,0},{p/2,1/2,(1-p)/2},{0,p,1-p}}^6 /. p=0.7`](https://www.wolframalpha.com/input?i=%7B%7Bp%2C1-p%2C0%7D%2C%7Bp%2F2%2C1%2F2%2C%281-p%29%2F2%7D%2C%7B0%2Cp%2C1-p%7D%7D%5E6+%2F.+p%3D0.7){target="_blank"}
+
+[Exemplo140304Genetica.nb: Wolfram Cloud](https://www.wolframcloud.com/obj/siqueira0/Published/Exemplo140304Genetica.nb){target="_blank"}
+
+__Solução Analítica do Vetor Estacionário__
+
+O vetor estacionário \(\pi\) é o autovetor associado ao autovalor 1 da matriz de transição \(T\).
+
+Dada a matriz de transição \(T\):
+
+\[ 
+T = \begin{pmatrix}
+p & q & 0 \\
+\frac{1}{2} p & \frac{1}{2} & \frac{1}{2} q \\
+0 & p & q
+\end{pmatrix}
+\]
+
+O vetor estacionário \(\pi = (\pi_1, \pi_2, \pi_3)\) satisfaz a equação de equilíbrio:
+
+\[ \pi T = \pi \]
+
+A equação \(\pi T = \pi\) pode ser reescrita como:
+
+\[ \pi T = \pi \cdot 1 \]
+
+Isso significa que \(\pi\) é um autovetor da matriz \(T\) associado ao autovalor \(\lambda = 1\).
+
+Para confirmar, consideramos a equação característica da matriz \(T\):
+
+\[ T \vec{v} = \lambda \vec{v} \]
+
+onde \(\vec{v}\) é um vetor próprio (autovetor) e \(\lambda\) é o valor próprio (autovalor). Para o vetor estacionário \(\pi\):
+
+\[ T \pi = \pi \]
+
+Isso confirma que \(\pi\) é um autovetor associado ao autovalor \(\lambda = 1\).
+
+Além disso, a equação \(\pi = \pi T\) implica que para qualquer \(n\):
+
+\[ \pi T^n = \pi \]
+
+Isso significa que a distribuição estacionária \(\pi\) permanece invariante sob múltiplas aplicações da matriz de transição \(T\).
+
+O vetor estacionário \(\pi\) é o autovetor associado ao autovalor unitário (autovalor 1) da matriz de transição \(T\). Isso significa que \(\pi\) satisfaz a equação \(\pi T = \pi\) e permanece invariante sob a aplicação iterativa da matriz \(T\).
+
+As equações de equilíbrio para o vetor estacionário \(\pi = (\pi_1, \pi_2, \pi_3)\) são:
+
+\[ 
+\pi = \pi T 
+\]
+
+Isso resulta nas seguintes equações de equilíbrio:
+
+1. \(\pi_1 = \pi_1 p + \pi_2 \frac{1}{2} p\)
+2. \(\pi_2 = \pi_1 q + \pi_2 \frac{1}{2} + \pi_3 p\)
+3. \(\pi_3 = \pi_2 \frac{1}{2} q + \pi_3 q\)
+4. \(\pi_1 + \pi_2 + \pi_3 = 1\)
+
+Resolvendo este sistema, obtemos:
+
+\[ 
+\pi_1 = \frac{p }{2 q}\pi_2 
+\]
+
+\[ 
+\pi_3 = \frac{q }{2 p} \pi_2
+\]
+
+\[ 
+\pi_2 = \frac{2 pq}{1-q^2} 
+\]
+
+Substituindo os valores \( p = 0.7 \) e \( q = 0.3 \), obtemos diretamente a distribuição estacionária:
+
+\[ 
+\pi = (0.49, 0.42, 0.09) 
+\]
+
+Essa solução analítica mostra que, após um número suficiente de passos, sistema estará 49% no estado \(AA\), 42% em \(Aa\), e 9% em \(aa\).
+
+Li (1958, Cap. 3) mostra que, ao introduzir duas outras matrizes, o peso da multiplicação de matrizes pode ser substancialmente reduzido.
+
+Além disso, com o chamado método ITO, é fácil obter resultados correspondentes para relacionamentos como irmão-irmão, irmão-meio-irmão, tio-sobrinho, primo-primo (cr. Problema 14.3.3).
+
+# Exemplo 14.3.5: Cadeia de Markov
+
+[RNA: Wikipedia](https://en.wikipedia.org/wiki/RNA){target="_blank"}
+
+Uma das moléculas de RNA ficou famosa por ser capaz de se replicar em um tubo de ensaio sem a ajuda de células vivas (Mills et al., 1973). Como outras moléculas de RNA, é uma longa cadeia de apenas quatro constituintes, as chamadas bases: A = adenina, C = citosina, G = guanina, U = uracila.
+
+```{r echo=FALSE, out.width="80%", fig.cap="Fig. 14.2. Uma molécula de RNA, 218 nucleotídeos de comprimento. As quatro bases são A (adenina), C (citosina), G (guanina), U (uracila). Como mostrado no texto, a transição de nucleotídeos consecutivos não pode ser explicada por um processo de Markov."}
+knitr::include_graphics("./image/Fig14.2.png")
+```
+
+A molécula é representada na Fig. 14.2. À primeira vista, reconhecemos regularidades na sequência de bases no início (à esquerda) e no final (à direita).
+
+Caso contrário, as bases parecem seguir umas às outras em uma ordem "aleatória".
+
+Para investigar o tipo de aleatoriedade podemos usar uma técnica que foi inventada por A. A. Markov. Consideramos a cadeia como resultado de um processo estocástico onde cada elo da cadeia está em um dos quatro estados A, C, G, U. A mudança de um link para o seguinte, ou seja, de um estado para outro, é chamada de transição. Com quatro estados temos 16 transições diferentes $A \to A$, $A \to C$, $A \to G$, $A \to U$, $C \to A$, $C \to C$ etc.
+
+As 16 transições possíveis ocorrem com as seguintes frequências:
+
+$$
+\begin{array}{c|cccc|c}
+ & A & C & G & U & \text{total} \\
+\hline
+A \rightarrow & 4 & 14 & 13 & 0 & 31 \\
+C \rightarrow & 7 & 23 & 32 & 11 & 73 \\
+G \rightarrow & 18 & 25 & 26 & 12 & 81 \\
+U \rightarrow & 2 & 12 & 9 & 9 & 32 \\
+\end{array}
+$$
+
+As transições que ocorrem com mais frequência são $C \to G$, $G \to G$, $G \to C$ e $C \to C$, enquanto $A \to A$ e $U \to A$ são raras. A transição $A \to U$ nunca ocorre em nossa sequência especial de RNA.
+
+Das frequências (absolutas) derivamos as frequências relativas em cada linha:
+
+$$
+\begin{array}{c|cccc|c}
+ & A & C & G & U & \text{total} \\
+\hline
+A \rightarrow & 0.129 & 0.452 & 0.419 & 0.000 & 1.000 \\
+C \rightarrow & 0.096 & 0.315 & 0.438 & 0.151 & 1.000 \\
+G \rightarrow & 0.222 & 0.309 & 0.321 & 0.148 & 1.000 \\
+U \rightarrow & 0.063 & 0.375 & 0.281 & 0.281 & 1.000 \\
+\end{array}
+$$
+
+
+$$F=\left[\begin{array}{rrrr} 
+0.129 & 0.452 & 0.419 & 0.000\\
+0.096 & 0.315 & 0.438 & 0.151\\
+0.222 & 0.309 & 0.321 & 0.148\\
+0.063 & 0.375 & 0.281 & 0.281
+\end{array}\right]$$
+
+Observe que a soma dos elementos em cada linha é igual a 1.
+
+Podemos teorizar e pensar em um processo químico que gera tais transições com certas probabilidades, as probabilidades de transição.
+
+Eles formam uma matriz de transição teórica:
+
+$$P=\left[\begin{array}{rrrr} 
+p_{11} & p_{12} & p_{13} & p_{14}\\
+p_{21} & p_{22} & p_{23} & p_{24}\\
+p_{31} & p_{32} & p_{33} & p_{34}\\
+p_{41} & p_{42} & p_{43} & p_{44}
+\end{array}\right]$$
+
+$p_{11}$ é a probabilidade de transição $A \to A$ e é estimada pelo valor empírico 0.129. Da mesma forma, $p_{12}$ é a probabilidade de transição $A \to C$ e é estimado pelo valor empírico 0.452 etc. Para cada linha postulamos que:
+
+$$\sum_{k=1}^{4}{p_{ik}}=1, \; i=1,2,3,4$$
+
+Agora estendemos nossa investigação para transições de duas etapas, como $A \to C \to A$, $G \to C \to U$ etc. e podemos perguntar:
+
+Quais são as frequências relativas e/ou probabilidades das 16 transições de duas etapas $A \to \cdots \to A$, $A \to \cdots \to C$ etc? 
+
+O ponto significa que não estamos interessados no estado específico intermediário. A transição $A \to \cdots \to A$ na verdade contém os quatro casos a seguir:
+
+$$A\to A\to A\\
+A\to C\to A\\
+A\to G\to A\\
+A\to U\to A$$
+
+Em cadeias de Markov, assumimos que as transições consecutivas são independentes umas das outras no sentido da teoria da probabilidade (Seção 13.6). Esta é a propriedade de Markov. Em uma escala de tempo, a propriedade de Markov significa que os eventos futuros dependem apenas do tempo presente, não do passado.
+
+Sob a suposição de cadeias de Markov a regra de multiplicação
+vale, e obtemos:
+
+$$P(A\to A\to A) = P(A\to A)\times P(A\to A) = p_{11}p_{11}\\
+P(A \to  C \to  A) = P(A \to  C)\times P(C \to  A) = p_{12}p_{21}\\
+P(A \to  G\to  A) = P(A \to  G)\times P(G\to  A) = p_{13}p_{31}\\
+P(A \to  U \to  A) = P(A \to  U) \times P(U\to  A) = p_{14}p_{41}$$
+
+Obtemos a probabilidade de $A \to \cdots \to A$ usando a regra de adição da Seção 13.4:
+
+$$P(A \to \cdots \to A) = p_{11}p_{11} + p_{12}p_{21} +p_{13}p_{31} + p_{14}p_{41}=\sum_{i=1}^{4}{p_{1i}p_{i1}}$$
+
+Isso nada mais é do que o produto interno da primeira linha pela primeira coluna da matriz de transição $P$. 
+
+Pelo mesmo argumento, podemos calcular a probabilidade de qualquer outra transição de duas etapas. 
+
+O resultado é sempre resumido na fórmula "linha x coluna". Todas as 16 probabilidades são, portanto, geradas pela multiplicação da matriz $P^2=PP$.
+
+Podemos verificar se nossa molécula particular de RNA tem a propriedade Markov. Para esse propósito, substituímos as probabilidades de transição desconhecidas pelos valores empíricos e $P^2$ por $F^2$. Assim obtemos:
+
+$$F^2=\left[\begin{array}{rrrr} 
+0.153 & 0.330 & 0.387 & 0.130\\
+0.149 & 0.335 & 0.361 & 0.155\\
+0.139 & 0.352 & 0.373 & 0.136\\
+0.124 & 0.339 & 0.360 & 0.177
+\end{array}\right]$$
+
+Por fim, confrontamos o resultado desse cálculo com as frequências relativas das transições de duas etapas que obtemos por contagem direta da Fig. 14.2:
+
+$$\left[\begin{array}{rrrr} 
+0.065 & 0.323 & 0.548 & 0.064\\
+0.153 & 0.444 & 0.208 & 0.195\\
+0.161 & 0.222 & 0.457 & 0.160\\
+0.156 & 0.437 & 0.313 & 0.094
+\end{array}\right]$$
+
+A concordância é ruim. Um tratamento estatístico, não reproduzido aqui, revela que existe uma diferença significativa entre as matrizes. Concluímos que nossa molécula de RNA não tem a propriedade de Markov, o que significa que, neste caso, as transições subsequentes dependem umas das outras.
+
+A teoria da cadeia de Markov desempenha um papel cada vez mais importante em áreas como dinâmica populacional, genética, evolução, ecologia, fisiologia, epidemiologia, comportamento animal.
+
+# Exemplo: Cadeia de Markov 2: Um modelo de Psicologia
+
+_Descrição do Experimento_
+
+Um psicólogo realiza um experimento com ratos. Ela coloca um rato em uma gaiola com três compartimentos rotulados como 1, 2 e 3, conforme mostrado na Figura 4.5. Os ratos são treinados para selecionar uma porta aleatoriamente e mover-se de um compartimento para outro quando um sino toca.
+
+```{r echo=FALSE, out.width="80%", fig.cap="Shahin, 2014, p. 293"}
+knitr::include_graphics("./image/rat.png")
+```
+
+_Questões_
+
+i. Construir a matriz de transição $T$ da cadeia de Markov dada.
+ii. Se um rato está inicialmente no compartimento 2, qual é a probabilidade de que este rato esteja no compartimento 1 após o sino tocar três vezes?
+iii. Determinar o vetor de estado estacionário e interpretá-lo. Qual é o comportamento a longo prazo desta cadeia de Markov?
+
+_Solução_
+
+A matriz de transição \( T \) da cadeia de Markov é construída calculando as probabilidades de mover-se de uma sala para outra.
+
+```{r echo=FALSE, out.width="80%", fig.cap="Shahin, 2014, p. 294"}
+knitr::include_graphics("./image/FromTo.png")
+```
+
+Se o rato está inicialmente na sala 2, o vetor de estado inicial é:
+
+\[
+X_0 = 
+\begin{pmatrix}
+0 \\
+1 \\
+0
+\end{pmatrix}
+\]
+
+Calculamos a distribuição de estado após três toques do sino multiplicando a matriz de transição \( T \) pelo vetor de estado inicial três vezes:
+
+\[
+X_3 = T^3 X_0
+\]
+
+A distribuição resultante mostra a probabilidade de estar em cada sala após três toques. Em particular, a probabilidade de estar na sala 1 é aproximadamente 0.3889.
+
+Para encontrar o vetor de estado estacionário \( X_k \), precisamos resolver a equação \( T X = X \) ou o sistema homogêneo \( (T - I) X = 0 \).
+
+O vetor de estado estacionário é:
+
+\[
+X_k \rightarrow 
+\begin{pmatrix}
+0.3 \\
+0.4 \\
+0.3
+\end{pmatrix}
+\]
+
+1. **Matriz de Transição T**:
+
+   - Mostra as probabilidades de transição entre os compartimentos.
+   - Por exemplo, a probabilidade de mover-se da sala 1 para a sala 2 é \( \frac{2}{3} \), da sala 1 para a sala 3 é \( \frac{1}{3} \), e assim por diante.
+
+2. **Distribuição de Estado Após 3 Passos**:
+
+   - Indica a probabilidade de estar em cada compartimento após três toques do sino, dado que o rato começa na sala 2.
+   - A probabilidade de estar na sala 1 após três toques é 0.3889.
+
+3. **Distribuição de Estado Após 100 Passos**:
+
+   - Se calcularmos a distribuição de estado após muitos passos, como 100, esta distribuição se aproxima do vetor de estado estacionário.
+
+4. **Vetor de Estado Estacionário**:
+
+   - \( X_k \rightarrow 
+   \begin{pmatrix}
+   0.3 \\
+   0.4 \\
+   0.3
+   \end{pmatrix} \)
+   
+   - Indica que, a longo prazo, 30% dos ratos estarão no compartimento 1, 40% no compartimento 2, e 30% no compartimento 3.
+
+Este modelo de Markov fornece uma análise detalhada da movimentação dos ratos entre os compartimentos. Ele permite prever tanto o comportamento de curto prazo (após três toques do sino) quanto o comportamento de longo prazo (vetor estacionário).
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`RandomRat.nb`: Wolfram Cloud](https://www.wolframcloud.com/obj/siqueira0/Published/RandomRat.nb){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Definir a matriz de transição corrigida
+T <- matrix(c(
+  0, 1/2, 1/3,
+  2/3, 0, 2/3,
+  1/3, 1/2, 0
+), nrow = 3, byrow = TRUE)
+
+# Nomear as linhas e colunas
+rownames(T) <- colnames(T) <- c("R1", "R2", "R3")
+
+# Vetor de estado inicial (começando no compartimento 2)
+s0 <- c(0, 1, 0)
+
+# Função para calcular a distribuição de estado após n passos
+calcular_estado <- function(T, s0, passos) {
+  estado_atual <- s0
+  for (i in 1:passos) {
+    estado_atual <-  T %*% estado_atual
+  }
+  return(estado_atual)
+}
+
+# Calcular a distribuição de estado após 3 passos
+s3 <- calcular_estado(T, s0, 3)
+s100 <- calcular_estado(T, s0, 100)
+
+# Resultados
+print("Matriz de Transição T:")
+print(T)
+
+print("Distribuição de Estado após 3 Passos:")
+print(s3)
+print("Distribuição de Estado após 100 Passos:")
+print(s100)
+
+print("Vetor de Estado Estacionário:")
+print(c(3/10,4/10,3/10))
+```
+
+# Exemplo 14.3.6: Regressão Univariada Múltipla
+
+[Proofs involving ordinary least squares: Wikipedia](https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares){target="_blank"}
+
+A álgebra matricial é indispensável em áreas como análise estatística multivariada, planejamento de experimentos e análise de variância e covariância.
+
+Para dar uma ideia de tal aplicação estatística, consideramos um modelo de regressão. Suponha que nos seja dado um diagrama de dispersão consistindo de pontos $(x_i,y_i)$, $i = 1,2, \ldots, n$, em que $x_i$ e $y_i$ são medidas intervalares. Suponha ainda que os pontos estejam próximos de uma certa curva e que queremos ajustar uma função quadrática. a equação é:
+
+$$y=\beta_0+\beta_1x+\beta_2x^2$$
+
+em que as constantes $\beta_0$, $\beta_1$ e $\beta_2$ são desconhecidas. As coordenadas $x_i$ e $y_i$ dos pontos não satisfazem exatamente uma equação quadrática. Portanto, escrevemos:
+
+$$Y_i=\beta_0+\beta_1x_i+\beta_2x_i^2+\epsilon_i$$
+
+em que $\epsilon_i$ é o termo de erro.
+
+O sistema com $n$ equações lineares nos parâmetros pode ser escrito na forma matricial:
+
+$$Y=X\beta+\epsilon$$
+
+$$Y=\left[\begin{array}{c} 
+Y_1\\
+Y_2\\
+\vdots\\
+Y_n
+\end{array}\right]$$
+
+$$X=\left[\begin{array}{ccc} 
+1 & x_1 & x_1^2\\
+1 & x_2 & x_2^2\\
+\vdots & \vdots & \vdots\\
+1 & x_n & x_n^2
+\end{array}\right]$$
+
+$$\beta=\left[\begin{array}{c} 
+\beta_0\\
+\beta_1\\
+\beta_2
+\end{array}\right]$$
+
+$$\epsilon=\left[\begin{array}{c} 
+\epsilon_1\\
+\epsilon_2\\
+\vdots\\
+\epsilon_n
+\end{array}\right]$$
+
+A equação matricial $Y=X\beta+\epsilon$ é chamada de modelo linear, pois é linear em $\beta$.
+
+Para encontrar coeficientes adequados, aplicamos o método dos mínimos quadrados (OLS).
+
+Minimizamos a soma dos quadrados dos erros:
+
+$$\sum_{i=1}^{n}{\epsilon_i^2}=\epsilon^{\prime}\epsilon$$
+
+Isso significa que os coeficientes desconhecidos
+$\beta_0$, $\beta_1$ e $\beta_2$ são determinados de tal forma que:
+
+$$Q=\epsilon^{\prime}\epsilon=(Y-X\beta)^{\prime}(Y-X\beta)$$
+
+assume o menor valor possível. A solução pode ser encontrada por métodos de álgebra matricial ou podemos aplicar cálculo diferencial.
+
+Conforme Teichroew (1964, p. 580-3) e Tay (2018):
+
+$$Q=\epsilon^{\prime}\epsilon=(Y-X\beta)^{\prime}(Y-X\beta)=\beta^{\prime}X^{\prime}X\beta-2Y^{\prime}X\beta+Y^{\prime}Y$$
+
+Condição de primeira ordem (necessária):
+
+$$\begin{align}
+\dfrac{\partial Q}{\partial \beta}&=2X^{\prime}X\beta-2X^{\prime}Y\\
+0&=2X^{\prime}Xb-2X^{\prime}Y\\
+b&=(X^{\prime}X)^{-1}X^{\prime}Y
+\end{align}$$
+
+Condição de segunda ordem (suficiente):
+
+$$\left.\dfrac{\partial^2 Q}{\partial \beta\partial \beta^{\prime}}\right|_{\beta=b}=2X^{\prime}X$$
+
+A matrix de informação $XX^{\prime}$ é uma matriz simétrica $3\times 3$ e também é uma matriz definida positiva (todos os autovalores são positivos), i.e., $XX^{\prime}>0$. Portanto, $b$ é a estimativa de mínimos quadrados:
+
+$$Q_{min}=Y^{\prime}(Y-Xb)=Y^{\prime}e=e^{\prime}e$$
+
+Sendo que $e=Y-Xb$ é o vetor de resíduos.
+
+Tem-se que:
+
+$$\begin{align}
+y&=Xb\\
+Y-e&=Xb\\
+Y&=Xb+e
+\end{align}$$
+
+Além disso, a soma dos quadrados dos resíduos é nula:
+
+$$e^{\prime}1=0$$
+
+A matriz de planejamento $X$ e o vetor das estimativas resíduos são ortogonais ($X$ e $e$ são matematicamente independentes):
+
+$$\begin{align}
+y&=Xb\\
+y-Xb&=0\\
+X^{\prime}y-X^{\prime}Xb&=0\\
+X^{\prime}(y-Xb)&=0\\
+X^{\prime}e&=0
+\end{align}$$
+
+O estimador OLS de $\beta$ é não-viesado se $\mathbb{E}(\epsilon)=0$:
+
+$$\begin{align}
+b&=(X^{\prime}X)^{-1}X^{\prime}Y\\
+b&=(X^{\prime}X)^{-1}X^{\prime}(X\beta+\epsilon)\\
+b&=(X^{\prime}X)^{-1}X^{\prime}X\beta+(X^{\prime}X)^{-1}X^{\prime}\epsilon\\
+b&=\beta+(X^{\prime}X)^{-1}X^{\prime}\epsilon\\
+\mathbb{E}(b)&=\beta+(X^{\prime}X)^{-1}X^{\prime}\mathbb{E}(\epsilon)\\
+\mathbb{E}(b)&=\beta
+\end{align}$$
+
+
+Os valores preditos de $Y$ são:
+
+$$y=Xb=X(X^{\prime}X)^{-1}X^{\prime}Y=PY$$
+
+em que $P=X(X^{\prime}X)^{-1}X^{\prime}$ é chamada de matriz de projeção (_projection matrix_) ou matriz chapéu (_hat matrix_).
+
+$P$ é simétrica ($P^{\prime}=P$) e idempotente ($P^2=P$).
+
+O vetor da variável dependente predita $y$ e o vetor das estimativas dos resídous são ortogonais ($y$ e $e$ são matematicamente independentes):
+
+$$y^{\prime}e=0$$
+
+O $R^2$ é uma medida estatística de quão próximos os pontos observados estão da função de regressão ajustada. Esta medida varia entre 0 (ausência de ajuste) e 1 (ajuste perfeito). $R^2$ é conhecido como o coeficiente de determinação ou o coeficiente de determinação múltipla para a regressão múltipla.
+
+$$R^2=\dfrac{\dfrac{y^{\prime}Y}{n}-\bar{Y}^2}{\dfrac{Y^{\prime}Y}{n}-\bar{Y}^2}$$
+
+```{r echo=FALSE, out.width="80%", fig.cap="A estimativa OLS pode ser vista como uma projeção no espaço linear estendido pelos regressores. X<sub>1</sub> e X<sub>2</sub> referem-se às colunas da matriz de X.) Wikipedia: https://en.wikipedia.org/wiki/Ordinary_least_squares" }
+knitr::include_graphics("./image/OLSproj.png")
+```
+
+## Método dos mínimos quadrados em WolframAlpha, R e SCILAB
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`LeastSquares[{{1, 1}, {1, 2}, {1, 3}}, {5, 8,  25}]`](https://www.wolframalpha.com/input?i=LeastSquares%5B%7B%7B1%2C+1%7D%2C+%7B1%2C+2%7D%2C+%7B1%2C+3%7D%7D%2C+%7B5%2C+8%2C++25%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+Y <- c(5, 8, 25)
+X <- matrix(c(1, 1, 
+              1, 2, 
+              1, 3), 
+            nrow=3, ncol=2, byrow=TRUE)
+Y
+X
+b <- solve(t(X)%*%X)%*%t(X)%*%Y
+b
+solve(crossprod(X), crossprod(X,Y))
+y <- X%*%b
+e <- Y - y
+P <- X%*%solve(t(X)%*%X)%*%t(X)
+matrixcalc::is.symmetric.matrix(P)
+matrixcalc::is.idempotent.matrix(P)
+Q <- t(Y)%*%e
+Q
+Q <- t(e)%*%e
+Q
+e.soma <- round(t(e)%*%rep(1,length(e)), 6)
+e.soma
+ortg <-  round(t(y)%*%e, 6)
+ortg
+n <- length(Y)
+R2 <- (t(y)%*%Y/n-mean(Y)^2)/(t(Y)%*%Y/n-mean(Y)^2)
+R2
+plot(X[,2], Y,
+     main=paste0("OLS: y = Xb\nR^2 = ", round(R2,2)),
+     ylab="VD",
+     xlab="X",
+     ylim=1.1*c(min(y), max(y)))
+curve(b[1]+b[2]*x, min(X[,2]), max(X[,2]), add=TRUE)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+Y=[5;8;25]
+X=[1 1;1 2;1 3]
+b=inv(X'*X)*X'*Y
+lsq(X,Y)
+y=X*b
+e=Y-y
+P=X*inv(X'*X)*X'
+Q=Y'*e
+Q=e'*e
+esum=e'*[1 1 1]'
+ortg=y'*e
+n=length(Y)
+R2=(y'*Y/n-mean(Y)^2)/(Y'*Y/n-mean(Y)^2)
+quit
+```
+
+# Vetor no espaço
+
+Definimos vetores como matrizes linha e coluna. Vetores com dois ou três elementos podem ser interpretados geometricamente. Por um lado, esta interpretação permite uma melhor compreensão das operações matriciais. Por outro lado, vetores interpretados geometricamente podem ser aplicados a vários problemas das ciências da vida.
+
+## Vetor
+
+Primeiro consideramos um sistema retangular de coordenadas $xy$ no plano.
+
+Seja $(x, y)$ um ponto arbitrário no plano. Ao ponto $(x, y)$ associamos um segmento de reta direcionado, também chamado de seta.
+
+Sua cauda está na origem $O$ do sistema de coordenadas e a ponta coincide com o ponto $(x, y)$. Seja a o vetor coluna
+
+$$a=\left[\begin{array}{c} 
+x\\
+y
+\end{array}\right]$$
+
+Então há uma correspondência biunívoca entre o vetor $a$ e a seta descrita acima. É comum usar a palavra "vetor" tanto para a matriz $a$ quanto para a seta (ver Fig. 14.3). Chamamos $x$ e $y$ de coordenadas ou componentes do vetor $a$. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.3. Um vetor a é representado por uma seta com coordenadas x, y."}
+knitr::include_graphics("./image/Fig14.3.png")
+```
+
+```{r}
+a <- c(2,1.5)
+xlim <- c(0,2.5)
+ylim <- c(0,2)
+plot(xlim, ylim, type="n", xlab="x", ylab="y", asp=1)
+abline(v=0, h=0, col="gray")
+matlib::vectors(a)
+```
+
+O significado original de "vetor" era uma quantidade direcionada, como uma força, uma velocidade ou uma aceleração. As quantidades não direcionadas são chamadas de escalares. Por exemplo, massa, densidade e temperatura são escalares. Mais tarde, a palavra "vetor" também foi usada no sentido de um segmento de linha direcionado ou uma seta. Nas últimas décadas, o significado mudou novamente, ou seja, para matrizes de linha e coluna. Da mesma forma, podemos chamar $(x, y)$ uma matriz, um vetor ou um ponto. Na álgebra matricial, os vetores coluna são preferidos aos vetores linha.
+
+## Soma de vetores
+
+Sejam dois vetores $a_1$ e $a_2$:
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.4. A soma de dois vetores a<sub>1</sub> e a<sub>2</sub> é um vetor que pode ser construído por meio de um triângulo. Os componentes de a<sub>1</sub> + a<sub>2</sub> são x<sub>1</sub> + x<sub>2</sub> e y<sub>1</sub> + y<sub>2</sub>."}
+knitr::include_graphics("./image/Fig14.4.png")
+```
+
+```{r}
+a <- c(2.5,0.5)
+b <- c(2,3.5)
+matlib::angle(a, b) # degrees
+xlim <- c(0,6)
+ylim <- c(0,5)
+# proper geometry requires asp=1
+plot(xlim, ylim, type="n", xlab="x", ylab="y", asp=1,
+      main = expression(theta == 49))
+abline(v=0, h=0, col="gray")
+matlib::vectors(rbind(a,b), col=c("red", "blue"), cex.lab=c(2, 2)) 
+text(.5, .37, expression(theta), cex=1.5)
+plot(xlim, ylim, type="n", xlab="x", ylab="y", asp=1,
+      main = expression(theta == 49))
+abline(v=0, h=0, col="gray")
+sum <- a+b
+sum
+matlib::vectors(rbind(a,b, "a+b"=sum), 
+                col=c("red", "blue", "black"), 
+                cex.lab=c(2, 2, 2.2))
+matlib::vectors(sum, origin=a, col="red", lty=2)
+matlib::vectors(sum, origin=b, col="blue", lty=2)
+```
+
+Agora tentamos encontrar um significado geométrico para a soma vetorial:
+
+$$a_1+a_2=\left[\begin{array}{c} 
+x_1+x_2\\
+y_1+y_2
+\end{array}\right]$$
+
+Na Fig. 14.4, os três vetores $a_1$, $a_2$ e $a_1 + a_2$ são representados. Também é mostrado como um $a_1+ a_2$ pode ser construído. Para isso, movemos a flecha $a_2$ temporariamente, paralela a si mesma, de modo que sua cauda coincida com a ponta de $a_1$.
+
+Agora as duas flechas formam uma linha tracejada.
+
+A soma $a_1 +a_2$ é representada pela seta que une a origem $O$ com a ponta da seta deslocada $a_2$. Diz-se que os três vetores formam um triângulo vetorial. Devido à lei comutativa da adição de matrizes, também poderíamos mover a seta $a_1$ de modo que ela forme uma linha tracejada com a seta $a_2$. 
+
+É fácil generalizar a adição de vetores para três ou mais vetores.
+
+Se tivermos que adicionar $a_1, a_2, \ldots , a_n$, formamos uma linha quebrada começando com $a_1$, digamos, então continuando com as setas deslocadas $a_2, a_3, \ldots, a_n$. A seta que une a origem $O$ com a ponta de $a_n$ representa o vetor $a_1 + a_2 +  \ldots + a_n$. Em aplicações, a soma é frequentemente chamada de vetor resultante e os vetores únicos $a_1, a_2, \ldots , a_n$ e seus componentes.
+
+A figura que consiste em $a_1, a_2, \ldots , a_n$ e o vetor resultante é chamada de polígono vetorial. É uma generalização do triângulo vetorial.
+
+Às vezes é preferível construir a soma de dois vetores por meio de um paralelogramo. A Fig. 14.5 explica o procedimento.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.5. A construção de uma soma vetorial por meio de um paralelogramo. A linha P<sub>1</sub>P<sub>2</sub> é paralela à linha OP<sub>2</sub> e a linha P<sub>2</sub>P<sub>3</sub> é paralela à linha OP<sub>1</sub>."}
+knitr::include_graphics("./image/Fig14.5.png")
+```
+
+No entanto, esta construção não é prática para mais de dois vetores.
+
+Agora consideramos um múltiplo de um vetor a. O significado geométrico de $a+a=2a$, $a+a+a=3a$ etc. é fácil de entender (Fig. 14.6). Também podemos multiplicar um vetor por um número fracionário, digamos por 2/3, ou por um número negativo, digamos por -2.
+
+Obtemos:
+
+$$ka=k\left[\begin{array}{c} 
+x\\
+y
+\end{array}\right]=\left[\begin{array}{c} 
+kx\\
+ky
+\end{array}\right]$$
+
+Ambas as coordenadas, $x$ e $y$, devem ser multiplicadas por $k$ (Fig. 14.6).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.6. Multiplicação de um vetor II por um número k. Se multiplicamos um vetor por um número positivo, sua direção permanece inalterada. No entanto, a multiplicação por um número negativo produz um vetor apontando na direção oposta."}
+knitr::include_graphics("./image/Fig14.6.png")
+```
+
+Ambas as coordenadas, $x$ e $y$, devem ser multiplicadas por $k$ (Fig. 14.6).
+
+A subtração é definida por
+
+$$a - b= a +(- b)$$
+
+ou seja, a subtração de $b$ é equivalente à adição do vetor oposto $-b$.
+
+A Fig. 14.7 mostra a construção e o significado geométrico de $a-b$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.7. Os três vetores a, b e a-b formam um triângulo vetorial tal que b + (a - b) = a."}
+knitr::include_graphics("./image/Fig14.7.png")
+```
+
+Notar que
+
+$$a-a=\left[\begin{array}{c} 
+x\\
+y
+\end{array}\right]-\left[\begin{array}{c} 
+x\\
+y
+\end{array}\right]=
+\left[\begin{array}{c} 
+0\\
+0
+\end{array}\right]$$
+
+O resultado é chamado de vetor zero. Tanto a ponta quanto a cauda desse vetor caem na origem $O$. Esse vetor em particular não tem direção.
+
+Observe que não precisamos fazer uma suposição sobre as unidades nas quais $x$ e $y$ são medidos. Todos os resultados anteriores permanecem válidos se, por exemplo, $x$ for medido em gramas e $y$ em segundos. Isso não será mais verdadeiro quando introduzirmos o valor absoluto de um vetor. De agora em diante, assumimos que ambas as coordenadas $x$ e $y$ são medidas na mesma unidade.
+
+## Norma e produto interno
+
+[`Vector Norm: WolframAlpha`](https://mathworld.wolfram.com/VectorNorm.html){target="_blank"}
+
+Definimos o valor absoluto (norma-$L^2$, magnitude) de um vetor $a^{\prime} = [x\; y]$ por 
+
+$$|a|=\sqrt{a^{\prime}a}=\sqrt{x^2+y^2}$$
+
+Sendo $a^{\prime}a$ chamado de produto interno.
+
+Se $a=0$, $|a|=0$; caso contrário, o valor absoluto é um número positivo.
+
+```{r}
+a <- c(1,1)
+b <- c(1,0)
+matlib::angle(a, b) # degrees
+xlim <- c(0,1.5)
+ylim <- c(0,1.5)
+plot(xlim, ylim, type="n", xlab="x", ylab="y", asp=1,
+     main = expression(theta == 45))
+abline(v=0, h=0, col="gray")
+matlib::vectors(rbind(a,b), col=c("red", "blue"), cex.lab=c(2, 2))
+text(.25, .10, expression(theta), cex=1.5)
+matlib::len(a) # norma de vetor unitário
+matlib::len(b) # norma de vetor 
+matlib::len(a - b) # distance between two vectors
+```
+
+No caso especial em que $x$ e $y$ são medidos em uma unidade de comprimento, então $|a|$ é a distância de $O$ ao ponto $(x, y)$ em virtude do teorema de Pitágoras (Fig. 14.3). Nesse caso, $|a|$ também é chamado de comprimento do vetor $a$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.8. Prova da fórmula pitagórica."}
+knitr::include_graphics("./image/Fig14.8.png")
+```
+
+A lei comutativa funciona para o produto interno. Como já sabemos a lei comutativa em geral não é válida para a multiplicação de matrizes.
+
+Para abordar a geometria do produto interno, consideramos primeiro um caso especial.
+
+Assumimos que as setas $a_1$ e $a_2$ são perpendiculares (Fig. 14.8). Os vetores $a_1$, $a_2$ e $a_1-a_2$ formam um triângulo retângulo, i.e., são perpendiculares ou ortogonais. 
+
+Segue do teorema de Pitágoras que:
+
+$$|a_1-a_2|^2=|a_1|^2+|a_2|^2$$
+
+Note que, de modo geral (Fig. 14.9):
+
+$$|a_1-a_2|^2=|a_1|^2+|a_2|^2-2a_{1}^{\prime}a_2$$
+
+Se $a_1$ e $a_1$ são perpendiculares, então $a_{1}^{\prime}a_2=0$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.9. Prova da fórmula não pitagórica."}
+knitr::include_graphics("./image/Fig14.9.png")
+```
+
+Esta equação vale se, e somente se, os dois vetores diferentes de zero $a_1$ e $a_2$ são perpendiculares ou ortogonais. A condição $a_{1}^{\prime}a_2=0$ é, portanto, chamada de condição de ortogonalidade.
+
+O resultado pode ser estendido para o caso em que $a_1$ e $a_2$ formam um ângulo arbitrário $\alpha$ (Fig. 14.9). Temos que substituir o teorema de Pitágoras pela lei dos cossenos que afirma em nossa notação:
+
+$$|a_1-a_2|^2=|a_1|^2+|a_2|^2-2|a_{1}||a_2|\cos (\alpha)$$
+
+Portanto, o produto escalar (_dot product_) dos dois vetores é expresso por:
+
+$$a_{1}^{\prime}a_2=|a_{1}||a_2|\cos (\alpha)$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Produto escalar de vetores. Percebe-se que |A|cos(&theta;) é a projeção escalar de A em B."}
+knitr::include_graphics("./image/projescalar.png")
+```
+
+Em palavras: O produto interno de dois vetores $a_1$ e $a_2$ é igual ao produto de três fatores: os valores absolutos de $a_1$ e $a_2$ e o cosseno do ângulo entre os dois vetores.
+
+```{r}
+u <- c(3,1)
+v <- c(1,3)
+xlim <- c(0,4)
+ylim <- c(0,4)
+plot(xlim, ylim, type="n", xlab="x", ylab="y", asp=1)
+abline(v=0, h=0, col="gray")
+matlib::vectors(rbind(u,v), 
+                col=c("red", "blue"), 
+                cex.lab=c(2, 2))
+# projection of vectors
+O <- c(0,0)
+P <- matlib::Proj(v,u)
+matlib::vectors(P, labels="P", lwd=3)
+matlib::vectors(v, origin=P)
+matlib::corner(O, P, v)
+matlib::len(u)
+matlib::len(P)
+```
+
+Se um dos vetores for o vetor zero, o produto é zero, e $\alpha$ é indeterminado. Se o ângulo $\alpha$ é agudo, então $\cos(\alpha)> 0$, e o produto (14.4.13) é positivo. Se, no entanto , o ângulo $\alpha$ é obtuso, então $\cos(\alpha)< 0$, e o produto (14.4.13) é negativo. Já discutimos o caso $\alpha=90^{\circ}$ que implica $\cos(\alpha)= 0$.
+
+A fórmula $a_{1}^{\prime}a_2=|a_{1}||a_2|\cos (\alpha)$ é frequentemente usada para calcular o ângulo $\alpha$ entre dois vetores diferentes de zero. Obtemos:
+
+$$\cos(\alpha)=\dfrac{a^{\prime}_{1}a_2}{|a_1||a_2|}$$
+
+## Três ou mais vetores
+
+De fato, a extensão dos resultados do espaço bidimensional para o tridimensional é tão simples que os matemáticos não puderam deixar de inventar o espaço quadridimensional (Fig. 14.10). A falta de intuição geométrica não era barreira. A passagem do espaço tridimensional para o quadridimensional era tão tentadora que precisava ser empreendida. Convidamos o leitor a realizar esta etapa sem receber nenhuma ajuda adicional. (Veja também o Exemplo 14.5.7).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.10. Um vetor tridimensional a com coordenadas x, y, z."}
+knitr::include_graphics("./image/Fig14.10.png")
+```
+
+```{r}
+vec <- rbind(diag(3), c(1,1,1))
+rownames(vec) <- c("x", "y", "z", "a")
+invisible(rgl::open3d())
+matlib::vectors3d(vec, color=c(rep("black",3), "black"), lwd=2)
+# draw the XZ plane, whose equation is Y=0
+rgl::planes3d(0, 0, 1, 0, col="gray", alpha=0.2)
+matlib::vectors3d(c(1,1,0), col="black", lwd=2)
+# show projections of the unit vector J
+rgl::segments3d(rbind(c(1,1,1), c(1, 1, 0)))
+rgl::segments3d(rbind(c(0,0,0), c(1, 1, 0)))
+rgl::segments3d(rbind(c(1,0,0), c(1, 1, 0)))
+rgl::segments3d(rbind(c(0,1,0), c(1, 1, 0)))
+# show some orthogonal vectors
+p1 <- c(0,0,0)
+p2 <- c(1,1,0)
+p3 <- c(1,1,1)
+p4 <- c(1,0,0)
+matlib::corner(p1, p2, p3, col="black")
+#matlib::corner(p1, p4, p2, col="blue")
+#matlib::corner(p1, p4, p3, col="black")
+rgl::rglwidget()
+```
+
+Não só foi possível trabalhar com vetores no espaço quadridimensional com facilidade, como as aplicações nas ciências naturais também se tornaram bastante bem-sucedidas. A generalização posterior da geometria de vetores para espaços $n$-dimensionais com $n = 5, 6, \ldots$ era uma questão de rotina. Por volta de 1900, até espaços infinitamente dimensionais foram inventados.
+
+Hoje, a álgebra vetorial em espaços $n$-dimensionais é uma ferramenta útil na análise estatística multivariada, especialmente na análise de variância e covariância.
+
+# Exemplo 14.5.1: Plano inclinado
+
+Na Fig. 14.11, um corpo humano está em repouso sobre um plano inclinado. Qual é a força que está tentando puxar o corpo para baixo ao longo do plano e qual é a força que pressiona o corpo em direção ao plano?
+
+Seja $F_1$ a força que puxa o corpo para baixo ao longo do plano e $F_2$ a força perpendicular ao plano que pressiona o corpo em direção ao plano. Em mecânica, aprendemos que essas duas forças são causadas pela gravitação e que a soma de seus vetores deve ser a força gravitacional total denotada por $F$. Portanto:
+
+$$F_1+F_2=F$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.11. Um corpo em um plano inclinado. A adição vetorial relaciona as forças F<sub>1</sub> e F<sub>1</sub> com a força F da gravitação."}
+knitr::include_graphics("./image/Fig14.11.png")
+```
+
+As forças $F_1$ e $F_2$ são chamadas de componentes de $F$. Seja $\alpha$ o ângulo de inclinação do plano. Como $F_2$ é perpendicular ao plano, $\alpha$ também é o ângulo entre $F_2$ e $F$. Da Fig. 14.11 obtemos as seguintes fórmulas para as magnitudes dos componentes de $F$:
+
+$$|F_1|=|F|\sin (\alpha)\\
+|F_2|=|F|\cos (\alpha)$$
+
+Por exemplo, se $\alpha=30^{\circ}$, obtemos $\sin (\alpha)=0.500$, $\cos (\alpha)=0.866$. Assim $F_1$ é apenas 50% e $F_2$ apenas 86.6% do peso corporal. Por um lado, para impedir o deslizamento do corpo, uma força de magnitude $\frac{1}{2}F_1$ tem que agir na direção oposta a $F_1$. Por outro lado, a pressão contra o plano é aliviada em 13.4% (=100% - 86.6%) em comparação com o corpo deitado um plano horizontal.
+
+# Exemplo 14.5.2: Alavanca
+
+Como exemplo de alavanca, tomamos o antebraço (Fig. 14.13). Seu ponto de apoio é o cotovelo. Quando o ângulo entre o braço e o antebraço não é de 90°, a força $F$ gerada pelo flexor do antebraço deve ser decomposta em um componente $F_1$ perpendicular ao antebraço e um componente $F_2$ paralelo ao antebraço. A força $F_2$ não gera nenhuma rotação do antebraço. Apenas $F_1$ atua na direção correta. Se o ângulo entre o braço e o antebraço se aproxima de 180°, a magnitude de $F_1$ é consideravelmente menor que a de $F$. Assim, parte da força muscular é "perdida". Por álgebra vetorial podemos escrever:
+
+$$F_1=F-F_2$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.12. Forças atuando em um osso quebrado. A força F pode ser causada pela gravidade ou por um músculo. Chamamos F<sub>1</sub> de força de cisalhamento."}
+knitr::include_graphics("./image/Fig14.12.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.13. A força F<sub>1</sub> que levanta o antebraço pode ser consideravelmente menor em magnitude do que a força F gerada pelo flexor do antebraço."}
+knitr::include_graphics("./image/Fig14.13.png")
+```
+
+# Exemplo 14.5.3: Tração da perna
+
+A Fig. 14.14 mostra como uma perna pode ser esticada por uma polia para fins terapêuticos. Denotamos por $F_1$ a força vertical do peso. O fio da polia tem a mesma tensão em todos os lugares. Portanto, as forças $F_2$ e $F_3$ na Fig. 14.14a ou b têm
+a mesma magnitude que $F_1$, ou seja, 
+
+$$|F_1|=|F_2|=|F_3|$$
+
+A força de alongamento $F$ é a resultante de $F_2$ e $F_3$. Então:
+
+$$F=F_2+F_3$$
+
+Quando o ângulo entre $F_2$ e $F_3$ tende a zero, então $|F|$ aumenta e tende a $|F_2|+|F_3|=2|F_1|$ como é facilmente visto na Fig. 14.14a. Quando, entretanto, o ângulo entre $F_2$ e $F_3$ tende a 180°, $|F|$ diminui e tende a zero (Fig. 14.14b). Então:
+
+$$0 \le |F| \le 2|F_1|$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.14. Tração da perna com peso. A magnitude da força resultante depende do ângulo entre as forças F<sub>2</sub> e F<sub>3</sub>."}
+knitr::include_graphics("./image/Fig14.14.png")
+```
+
+# Exemplo 14.5.4: Centro de Gravidade (ou Massa)
+
+Um corpo consiste em um número muito grande de partículas que estão sujeitas à gravidade. Para encontrar o centro de gravidade, começamos com o caso simples de dois pontos $P_1$ e $P_2$ de massas iguais (Fig. 14.15).
+
+Então, por simetria, o centro de gravidade é o ponto médio de $P_1$ e $P_2$. Denotamos por $C$. Para encontrar o ponto médio $C$ por álgebra vetorial, denotamos as setas com cauda na origem $O$ e pontas em $P_1$ e $P_2$ por $a_1$ e $a_2$ respectivamente. Usando o paralelogramo da Fig. 14.5, determinamos a soma vetorial de $a_1$ e $a_2$. Como as diagonais de um paralelogramo se dividem, o vetor $c$ que aponta para $C$ é:
+
+$$c=\dfrac{a_1+a_2}{2}$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.15. O ponto médio de dois pontos definidos pelos vetores a<sub>1</sub> e a<sub>2</sub>."}
+knitr::include_graphics("./image/Fig14.15.png")
+```
+
+Isso é simplesmente a média aritmética dos dois vetores $a_1$ e $a_2$.
+
+Se $a_{1}^{\prime}=[x_1\; x_2]$ e $a_{2}^{\prime}=[y_1\; y_2]$, então:
+
+$$c^{\prime}=\left[\dfrac{x_1+x_2}{2} \; \dfrac{y_1+y_2}{2}\right]$$
+
+Se nos forem dados $n$ pontos de mesma massa pelos vetores $a_1, a_2, \ldots, a_n$, a mecânica mostra que o centro de gravidade é dado pelo vetor
+
+$$c=\dfrac{\sum_{i=1}^{n}{a_i}}{n}$$
+
+A mesma fórmula é de importância básica na análise estatística das direções aplicadas, por exemplo, a pássaros migratórios e _homing_. Para obter detalhes, consulte Batschelet (1965).
+
+Uma generalização adicional ocorre quando diferentes massas $M_i$ estão localizadas nos pontos dados pelos vetores $a_i$ ($i = 1,2, \ldots , n$). 
+
+Nesse caso, a média aritmética ordinária se transforma na média aritmética ponderada
+
+$$c=\dfrac{\sum_{i=1}^{n}{M_i a_i}}{\sum_{i=1}^{n}{M_i}}=\sum_{i=1}^{n}{\dfrac{M_i }{\sum_{i=1}^{n}{M_i}}}a_i$$
+
+A Fig. 14.16 ilustra o caso de três massas. A fórmula é válida no espaço bidimensional e tridimensional. Também é útil em espaços de dimensões superiores, embora perca seu significado físico. Uma aplicação importante de (14.5.9) é feita na análise estatística multivariada.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.16. O centro de gravidade C de três massas M<sub>1</sub>, M<sub>2</sub>, M<sub>3</sub> localizadas nos pontos dados pelos vetores a<sub>1</sub>, a<sub>2</sub>, a<sub>3</sub>, respectivamente."}
+knitr::include_graphics("./image/Fig14.16.png")
+```
+
+# Exemplo 14.5.5: Cinética
+
+[Kinetic energy: Wikipedia](https://en.wikipedia.org/wiki/Kinetic_energy){target="_blank"}
+
+[Newton's laws of motion: Wikipedia](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_second_law){target="_blank"}
+
+Existem inúmeras aplicações biológicas de vetores no estudo da locomoção animal. Vamos nos limitar a discutir o salto dos gafanhotos (Fig. 14.15).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.17. gafanhoto pulando."}
+knitr::include_graphics("./image/Fig14.17.png")
+```
+
+Chamamos o intervalo de tempo desde o início da ação muscular até que os pés deixem o solo de decolagem ou período de aceleração.
+
+Durante este período, o centro de gravidade move-se de um ponto $C$ para um certo ponto $C^{\prime}$.
+
+Os dois pontos $C$ e $C^{\prime}$ formam um segmento de reta direcionado ou um vetor que denotamos por $s$. 
+
+Seja $\alpha$ o ângulo entre $s$ e a linha horizontal. Então $|s| \sin (\alpha)$ é a componente vertical de $s$.
+
+Durante o período de decolagem, a força que acelera o corpo do gafanhoto não permanece constante em magnitude, mas podemos operar com uma força média que denotamos por $F$. Essa força $F$ é chamada de empuxo.
+
+Agora queremos calcular a altura máxima $h$ sobre o solo atingida pelo gafanhoto saltador. Por um lado, a parte da energia cinética que é transformada em energia potencial é a componente vertical de $F$ vezes a componente vertical de $s$ é expressa por:
+
+$$W_c=|F|\sin (\alpha)|s|\sin (\alpha)=|F||s|\sin^2 (\alpha)$$
+
+Sendo que $W_c$ é o trabalho cinético realizado por uma força $F$ sobre um objeto ao longo de uma distância $s$ paralela a $F$. 
+
+Por outro lado, o trabalho potencial alcançado no ponto mais alto é 
+
+$$W_p=m\times g\times h$$ 
+
+Sendo que $W_p$ é o trabalho (potencial) realizado por uma força $F$ sobre um objeto ao longo de uma distância $h$ paralela a $f=m \times g$, $m$ é a massa do animal (em gramas) e $g$ a aceleração da gravidade (= 9.81 m seg<sup>-2</sup>). Lembra que a segunda lei de Newton estabelece que $f=m \times a$, em que $a$ é aceleração.
+
+Se negligenciarmos a pequena perda de energia devido à resistência do ar, igualamos as duas energias. Então dividindo por $m \times g$ nós obtemos
+
+$$W_c=W_p\\
+m\times g\times h=|F||s|\sin^2 (\alpha)$$
+
+Esta fórmula também pode ser usada para calcular o $|F|$ quando as outras grandezas são conhecidas a partir das medições.
+
+$$|F| = \dfrac{m\times g\times h}{|s|\sin^2 (\alpha)}$$
+
+# Exemplo 14.5.6: Navegação
+
+Uma velocidade é uma quantidade com uma direção e pode, portanto, ser representada por um vetor. A velocidade de uma corrente de ar ou água é medida a partir de um ponto fixo no solo. Podemos também pensar em uma velocidade que um corpo mantém em relação ao meio que flui (ar ou água).
+
+Assim, quando um pássaro voa a uma velocidade de 10 m/s em relação ao ar e exatamente na direção oposta à direção do vento, e quando o vento tem uma velocidade de 3 m/s, então a velocidade de deslocamento resultante do pássaro é 10 m/seg + (- 3 m/seg) = 7 m/seg.
+
+Este é um caso especial de uma situação mais geral. Consideramos um pássaro indo para um certo destino enquanto voa contra um vento forte sob um certo ângulo, ou a situação análoga para um peixe (Fig. 14.18).
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.18. Animais dirigidos para um determinado destino sob a influência de vento forte ou de forte correnteza."}
+knitr::include_graphics("./image/Fig14.18.png")
+```
+
+Seja $v$ o vetor da velocidade do animal em relação ao ar ou à água, e seja $w$ o vetor da velocidade do vento ou da corrente em relação ao solo. Então o vetor da velocidade de deslocamento $u$ (em relação ao solo) é:
+
+$$u=v+w$$
+
+O vetor $u$ aponta para o destino do animal. No entanto, o corpo do animal não está orientado diretamente para o destino, mas na direção em que aponta o vetor $v$.
+
+Um exemplo numérico pode ilustrar o uso da fórmula $u=v+w$. 
+
+Como na Fig. 14.18, fixamos um eixo $x$ oposto à direção do vento e um eixo $y$ perpendicular ao eixo $x$. Então a componente $x$ de $w$ é negativa e a componente $y$ desaparece. Eliminando temporariamente a unidade m/seg de velocidade, então:
+
+$$\begin{align}
+v^{\prime}&=[8\; 3]\\
+w^{\prime}&=[-6\; 0]
+\end{align}$$
+
+Segue que:
+
+$$u^{\prime}=v^{\prime}+w^{\prime}=[2\; 3]$$
+
+Portanto, a velocidade do ar na direção oposta do eixo $x$ é -6 m/seg e a velocidade do pássaro em relação ao ar tem magnitude $|v| = \sqrt{8^2+ 3^2} = \sqrt{73} = 8.54$ m/seg, mas a velocidade em direção ao destino equivale apenas a $|u| = \sqrt{2^2+ 3^2} = \sqrt{13} = 3.61$ m/seg.
+
+Se estivermos interessados no ângulo $\alpha$ entre os vetores $|u|$ e $|v|$, obtemos:
+
+$$\begin{align}
+\cos (\alpha) &= \dfrac{u^{\prime}v}{|u||v|}=\dfrac{2\times 8+3\times 3}{8.54\times 3.61}=\dfrac{25}{8.54\times 3.61}=0.812\\
+\alpha&=35.8^\circ
+\end{align}$$
+
+# Exemplo 14.5.7: Genética
+
+Frequências gênicas no grupo sanguíneo ABO têm sido investigadas em várias populações. Se distinguirmos entre quatro alelos $A_1, A_2 , B, O$, as seguintes frequências relativas, $f_{ki}$ foram relatadas (Cavalli-Sforza e Edwards, 1967, p. 250):
+
+$$
+\begin{array}{c|c|c|c|c}
+\text{Alelo} & \text{Esquimó} & \text{Bantu} & \text{Inglês} & \text{Coreano} \\
+ & f_{1i} & f_{2i} & f_{3i} & f_{4i} \\
+\hline
+A_1 & 0.2914 & 0.1034 & 0.2090 & 0.2208 \\
+A_2 & 0.0000 & 0.0866 & 0.0696 & 0.0000 \\
+B & 0.0316 & 0.1200 & 0.0612 & 0.2069 \\
+O & 0.6770 & 0.6900 & 0.6602 & 0.5723 \\
+\hline
+\text{Total} & 1.0000 & 1.0000 & 1.0000 & 1.0000 \\
+\end{array}
+$$
+
+Surge a pergunta: 
+
+Quão perto está uma população de outra? 
+
+Em outras palavras: devemos encontrar uma medida adequada para uma distância genética.
+
+Um método usando álgebra vetorial foi proposto por Cavalli-Sforza e Edwards (1967). Num primeiro passo representamos cada população por um vetor unitário, ou seja, um vetor de valor absoluto 1. Para isso tomamos a raiz quadrada de cada frequência, digamos
+
+$$x_{ki}=\sqrt{f_{ki}}$$
+
+Se $\sum_{i=1}^{4}{f_{ki}}=1$, então para cada uma das quatro populações, tem-se que $\sum_{i=1}^{4}{x^{2}_{ki}}=1$.
+
+Isto significa que cada um dos quatro vetores é um vetor unitário, i.e., $|a_k|=1$, sendo que $a_k^{\prime}=[x_1\; x_2\; x_3\; x_4]$, $i=1\; (\text{esquimó}), 2\; (\text{bantus}), 3\; (\text{inglês}), 4\; (\text{coreano})$.
+
+Os bantus ou bantos constituem um grupo etnolinguístico localizado principalmente na África subsariana e que engloba cerca de 400 subgrupos étnicos diferentes.
+
+No espaço quadridimensional, as pontas desses vetores estão localizadas em uma hiper-esfera de raio 1.
+
+Agora é plausível usar o ângulo entre dois vetores como medida da distância entre as populações correspondentes. Se denotarmos o ângulo entre $a_1$ (esquimó) e $a_2$ (bantus), então:
+
+$$\cos (\theta) = a_{1}^{\prime}a_{2}$$
+
+Note que $|a_1|=|a_2|=1$.
+
+Aqui está um exemplo numérico:
+
+$$a_1^{\prime}=[\sqrt{0.2914}\; \sqrt{0.0000}\; \sqrt{0.0316}\; \sqrt{0.6770}]\\
+a_2^{\prime}=[\sqrt{0.1034}\; \sqrt{0.0866}\; \sqrt{0.1200}\; \sqrt{0.6900}]$$
+
+$$a_1^{\prime}=[0.5398\; 0.0000\; 0.1778\; 0.8228]\\
+a_2^{\prime}=[0.3216\; 0.2943\; 0.3464\; 0.8307]$$
+
+$$\begin{align}
+\cos (\theta) &= a_{1}^{\prime}a_{2}=0.9187\\
+\theta&=23.2^{\circ}
+\end{align}$$
+
+Da mesma forma, encontramos as seguintes distâncias genéticas:
+
+$$\begin{array}{c|c|c|c}
+ & \text{Bantus} & \text{Inglês} & \text{Coreano} \\
+\hline
+\text{Esquimó}  & 23.2^\circ & 16.4^\circ & 16.8^\circ \\
+\text{Bantus}   & & 9.8^\circ & 20.4^\circ \\
+\text{Inglês}  &  & & 19.6^\circ 
+\end{array}$$
+
+A menor distância genética entre diferentes populações ocorre
+em bantus-inglês, o maior em esquimó-bantus.
+
+# Vetor gradiente
+
+[The gradient vector: Math Insight](https://mathinsight.org/gradient_vector){target="_blank"}
+
+# Matriz hessiana
+
+[The derivative matrix: Math Insight](https://mathinsight.org/derivative_matrix){target="_blank"}
+
+## Exemplos
+
+[Examples of calculating the derivative: Math Insight](https://mathinsight.org/derivative_multivariable_examples){target="_blank"}
+
+# Aproximação de Taylor quadrática de função de duas variáveis
+
+[Introduction to Taylor's theorem for multivariable functions: Math Insight](https://mathinsight.org/taylors_theorem_multivariable_introduction){target="_blank"}
+
+## Exemplo
+
+[Multivariable Taylor polynomial example: Math Insight](https://mathinsight.org/taylor_polynomial_multivariable_examples){target="_blank"}
+
+# Álgebra linear
+
+A teoria da álgebra linear necessária para interpretar e computar autovalor e matriz inversa é exposta a seguir.
+
+O primeiro passo é definir a anatomia da matriz que será objeto de análise. 
+A matriz quadrada, isto é, a matriz com o número de linhas igual ao número de colunas constitui a partir desse momento o objeto de análise.
+
+Matematicamente, tem-se que a matriz quadrada real $A_{k\times k}$, sendo  $k=2,3,\ldots$, consiste em uma tabela cujos $k^2$ são valores reais, isto é,  $a_{i,j}\in\mathbb{R}$, estão indexados por um número de linha $i=1,2,\ldots$  e por um número de coluna  $j=1,2,\ldots$. 
+
+A diagonal principal de $A_{k\times k}$  consiste nos valores de índice  $i=j$, sendo $i=1,2,\ldots$ e é expressa por $\text{diag}[a_{1,1},a_{2,2}, \ldots, a_{k,k}]$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[DiagonalMatrix[{a,b}]](https://www.wolframalpha.com/input?i=DiagonalMatrix%5B%7Ba%2Cb%7D%5D){target="_blank"}
+
+[IdentityMatrix[3]](https://www.wolframalpha.com/input?i=IdentityMatrix%5B3%5D){target="_blank"}
+
+A matrix transposta de matriz diagonal é igual à própria matriz diagonal.
+
+## Não singular
+
+Uma matriz quadrada simétrica real $A_{k\times k}$ é não singular se seu determinante é não nulo, isto é, se $\det(A)\ne 0$  ou, equivalentemente, se seu posto (_rank_) for completo, isto é, se  $\text{rank}(A)=k$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+A <- matrix(c(1, 2, 
+             3, 4), 
+           nrow=2, ncol=2, byrow=TRUE)
+A
+det(A)
+qr(A)$rank
+
+A <- matrix(c(1, 1, 
+             1, 1), 
+           nrow=2, ncol=2, byrow=TRUE)
+A
+det(A)
+qr(A)$rank
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+a=[1 2; 3 4]; 
+det(a)
+rank(a)
+a=[1 1; 1 1]; 
+det(a)
+rank(a)
+quit
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Det[{1,2}, {3,4}]](https://www.wolframalpha.com/input?i=Det%5B%7B1%2C2%7D%2C+%7B3%2C4%7D%5D){target="_blank"}
+
+[MatrixRank[{1,2}, {3,4}]](https://www.wolframalpha.com/input?i=MatrixRank%5B%7B1%2C2%7D%2C+%7B3%2C4%7D%5D){target="_blank"}
+
+[Det[{1,1}, {1,1}]](https://www.wolframalpha.com/input?i=Det%5B%7B1%2C1%7D%2C+%7B1%2C1%7D%5D){target="_blank"}
+
+[MatrixRank[{1,1}, {1,1}]](https://www.wolframalpha.com/input?i=MatrixRank%5B%7B1%2C1%7D%2C+%7B1%2C1%7D%5D){target="_blank"}
+
+## Autovalor
+
+O autovalor, também conhecido por valor próprio, número próprio, raiz característica, é obtido pela solução da seguinte equação:
+
+$$\det(A-\lambda I)=0$$
+
+Sendo que o autovalor $\lambda$  é um número real não nulo.
+
+A equação anterior gera um polinômio de ordem $k$ e é denominado polinômio característico. 
+
+Os $k$ autovalores ou raízes características extraídas do polinômio característico formam o espectro ordenado da matriz  $A$, isto é,  $\text{spec}(A)=(\lambda_1, \lambda_2, \ldots, \lambda_k)$, sendo  $\lambda_1\ge \lambda_2\ge \cdots \ge \lambda_k$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[CharacteristicPolynomial[{{a,b}, {c,d}}, lambda] = 0](https://www.wolframalpha.com/input?i=CharacteristicPolynomial%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%2C+lambda%5D+%3D+0){target="_blank"}
+
+`a^2 + 4 b c - 2 a d + d^2 = 4 b c + (a - d)^2`
+
+[Eigenvalues[{{a,b}, {c,d}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%5D){target="_blank"}
+
+[Det[{{a,b}, {c,d}}]](https://www.wolframalpha.com/input?i=Det%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%5D){target="_blank"}
+
+
+[CharacteristicPolynomial[{{a,b}, {b,d}}, lambda] = 0](https://www.wolframalpha.com/input?i=CharacteristicPolynomial%5B%7B%7Ba%2Cb%7D%2C+%7Bb%2Cd%7D%7D%2C+lambda%5D+%3D+0){target="_blank"}
+
+`a^2 + 4 b^2 - 2 a d + d^2 = (a - d)^2 + 4 b^2 > 0`
+
+Uma matriz quadrada $A$ é simétrica se $a_{i,j}=a_{j,i}$, i.e., $A^{\prime}=A$.
+
+Se a matriz $A$ é simétrica, então seu espectro ordenado é real.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Eigenvalues[{{a,b}, {b,d}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7Ba%2Cb%7D%2C+%7Bb%2Cd%7D%7D%5D){target="_blank"}
+
+[Det[{{a,b}, {b,d}}]](https://www.wolframalpha.com/input?i=Det%5B%7B%7Ba%2Cb%7D%2C+%7Bb%2Cd%7D%7D%5D){target="_blank"}
+
+[SingularValueList[{{a,b}, {b,d}}]](https://www.wolframalpha.com/input?i=SingularValueList%5B%7B%7Ba%2Cb%7D%2C+%7Bb%2Cd%7D%7D%5D){target="_blank"}
+
+
+[CharacteristicPolynomial[{{1,2}, {2,3}}, lambda] = 0](https://www.wolframalpha.com/input?i=CharacteristicPolynomial%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%2C+lambda%5D+%3D+0){target="_blank"}
+
+[Eigenvalues[{{1,2}, {2,3}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%5D){target="_blank"}
+
+[Det[{{1,2}, {2,3}}]](https://www.wolframalpha.com/input?i=Det%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%5D){target="_blank"}
+
+[(2 + sqrt(5))(2 - sqrt(5))](https://www.wolframalpha.com/input?i=%282+%2B+sqrt%285%29%29%282+-+sqrt%285%29%29){target="_blank"}
+
+[SingularValueList[{{1,2}, {2,3}}]](https://www.wolframalpha.com/input?i=SingularValueList%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%5D){target="_blank"}
+
+## Inversa
+
+A matriz inversa da matriz quadrada real $A$  é denotada por $A^{-1}$  tal que  $AA^{-1}=I$.
+
+Se a matriz  $A$ é quadrada e não singular, isto é, se $\text{rank}(A)=k$, então existe e é única a matriz inversa $A^{-1}$. 
+
+A matriz inversa nesse caso é dado por  $A^{-1}=\dfrac{\text{cof}^{\prime}(A)}{\det(A)}$, sendo que $\text{cof}^{\prime}(A)$  é a matriz de cofatores transposta. Se a matriz $A$  é simétrica, então  $A^{-1}=\dfrac{\text{cof}(A)}{\det(A)}$.
+
+Se a matriz $A$ é diagonal, então sua inversa é dada pelo inverso de cada elemento da diagonal.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Inverse[{{a,b}, {c,d}}]](https://www.wolframalpha.com/input?i=Inverse%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%5D){target="_blank"}
+
+[Inverse[Cofactor[{{a,b}, {c,d}}]/Det[{{a,b}, {c,d}}]]](https://www.wolframalpha.com/input?i=Inverse%5BCofactor%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%5D%2FDet%5B%7B%7Ba%2Cb%7D%2C+%7Bc%2Cd%7D%7D%5D+%5D){target="_blank"}
+
+[Inverse[{{1,2}, {2,3}}]](https://www.wolframalpha.com/input?i=Inverse%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%5D){target="_blank"}
+
+[Inverse[{{1,2}, {2,3}}] . {{1,2}, {2,3}}](https://www.wolframalpha.com/input?i=Inverse%5B%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D%5D+.+%7B%7B1%2C2%7D%2C+%7B2%2C3%7D%7D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r}
+x <- matrix(c(1,2,
+              3,4),
+            nrow=2, ncol=2, byrow=TRUE)
+x
+eigen(x)$values # autovalor
+svd(x)$d # valor singular (autovalor robusto)
+solve(x) # matrix inversa
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+x=[1 2;3 4]; 
+spec(x)
+svd(x)
+inv(x)
+quit
+```
+
+## Inversa generalizada
+
+Se a matriz $A$ é quadrada e singular, isto é, se $\text{rank}(A)<k$  ou  $\det(A)=0$, então existe pelo menos matriz inversa denominada pseudoinversa ou inversa generalizada que é denotada por $A^{-}$ tal que $A=AA^{-}A$.
+
+[Moore–Penrose inverse: Wikipedia](https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[PseudoInverse[{{1,1}, {2,2}}]](https://www.wolframalpha.com/input?i=PseudoInverse%5B%7B%7B1%2C1%7D%2C+%7B2%2C2%7D%7D%5D){target="_blank"}
+
+```{r}
+x <- matrix(c(1,1,
+              2,2),
+            nrow=2, ncol=2, byrow=TRUE)
+x
+try(solve(x)) # matrix inversa
+x.inv <- MASS::ginv(x)
+x.inv
+pracma::pinv(x)
+x%*%x.inv%*%x
+identical(x, zapsmall(x%*%x.inv%*%x))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+x=[1 1;2 2]
+xi=pinv(x)
+x*xi*x
+quit
+```
+
+## Assinatura e classificação
+
+O índice da matriz quadrada $A$ é a quantidade de autovalores estritamente positivos, isto é, $\text{index}(A)=\#\{\lambda_i>0\}_{i=1}^{k}$, sendo $\#$ o operador de contagem dos autovalores estritamente positivos do espectro ordenado de $A$.
+
+A assinatura da matriz quadrada $A$ é a quantidade de autovalores estritamente positivos menos os estritamente negativos, isto é,  $\text{signature}(A)=\#\{\lambda_i>0\}_{i=1}^{k}-\#\{\lambda_i<0\}_{i=1}^{k}$.
+
+Assim, a assinatura de uma matriz quadrada real é dada por $\text{signature}(A)=2\times \text{index}(A)-\text{rank}(A)$.
+
+A matriz quadrada real $A_{k\times k}$ pode ser classificada como:
+
+a. Definida: todos os autovalores são estritamente positivos ou todos os autovalores são estritamente negativos, i.e., $\text{index}(A)=k$ ou $\text{index}(A)=0$;
+a. Indefinida: há autovalores estritamente positivos e negativos, i.e., $\text{index}(A)>0$ ou $k-\text{index}(A)>0$;
+a. Semi-definida positiva: há apenas autovalores estritamente positivo e nulo, i.e., $\text{rank}(A)=\text{index}(A)=\text{signature}(A)$;
+a. Definida positiva: os $k$ autovalores são estritamente positivos, i.e., $k=\text{rank}(A)=\text{index}(A)=\text{signature}(A)$;
+a. Semi-definida negativa: há apenas autovalores estritamente negativo e nulo, i.e., $\text{index}(A)=0$ ou $\text{signature}(A)=-k$;
+a. Definida negativa: os $k$ autovalores são estritamente negativos, i.e., $(\text{rank}(A)=0 \;\text{e}\; \text{rank}(A)=k)$ ou $\text{signature}(A)=-k$.
+
+Se a matriz $A$ é (semi)definida positiva, então $-A$ é (semi)definida negativa.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[PositiveDefiniteMatrixQ[{{1,0,0},{0,2,0},{0,0,3}}]](https://www.wolframalpha.com/input?i=PositiveDefiniteMatrixQ%5B%7B%7B1%2C0%2C0%7D%2C%7B0%2C2%2C0%7D%2C%7B0%2C0%2C3%7D%7D%5D){target="_blank"}
+
+[PositiveDefiniteMatrixQ[{{1,0,0},{0,2,0},{0,0,0}}]](https://www.wolframalpha.com/input?i=PositiveDefiniteMatrixQ%5B%7B%7B1%2C0%2C0%7D%2C%7B0%2C2%2C0%7D%2C%7B0%2C0%2C0%7D%7D%5D){target="_blank"}
+
+[NegativeDefiniteMatrixQ[{{-1,0,0},{0,-2,0},{0,0,-3}}]](https://www.wolframalpha.com/input?i=NegativeDefiniteMatrixQ%5B%7B%7B-1%2C0%2C0%7D%2C%7B0%2C-2%2C0%7D%2C%7B0%2C0%2C-3%7D%7D%5D){target="_blank"}
+
+[NegativeDefiniteMatrixQ[{{-1,0,0},{0,-2,0},{0,0,0}}]](https://www.wolframalpha.com/input?i=NegativeDefiniteMatrixQ%5B%7B%7B-1%2C0%2C0%7D%2C%7B0%2C-2%2C0%7D%2C%7B0%2C0%2C0%7D%7D%5D){target="_blank"}
+
+```{r}
+x <- matrix(c(1, 0, 0,
+              0, 2, 0,
+              0, 0, 3),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+matrixcalc::is.square.matrix(x)
+matrixcalc::is.symmetric.matrix(x)
+matrixcalc::is.non.singular.matrix(x)
+
+det(x)
+eigen(x)$values
+svd(x)$d
+identical(zapsmall(eigen(x)$values), zapsmall(svd(x)$d))
+
+index <- sum(eigen(x)$values>0)
+index
+rank <- qr(x)$rank
+rank
+signature <- 2*index - rank
+signature
+dim <- dim(x)[1]
+dim
+
+matrixcalc::is.indefinite(x)
+if(index>0 & (dim-index)>0) {cat("Indefinite")}
+
+matrixcalc::is.positive.definite(x)
+if(dim==rank & rank==index & index==signature) {cat("Positive definite")}
+
+matrixcalc::is.positive.semi.definite(x)
+if(rank==index & index==signature) {cat("Positive semi definite")}
+
+matrixcalc::is.negative.definite(x)
+if((index==0 & rank==dim) | signature==-dim) {cat("Negative definite")}
+
+matrixcalc::is.negative.semi.definite(x)
+if(index==0 | signature==-rank) {cat("Negative semi definite")}
+
+x <- matrix(c(-1, 0, 0,
+              0, -2, 0,
+              0, 0, -3),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+
+matrixcalc::is.square.matrix(x)
+matrixcalc::is.symmetric.matrix(x)
+matrixcalc::is.non.singular.matrix(x)
+
+det(x)
+eigen(x)$values
+svd(x)$d
+identical(zapsmall(eigen(x)$values), zapsmall(svd(x)$d))
+
+index <- sum(eigen(x)$values>0)
+index
+rank <- qr(x)$rank
+rank
+signature <- 2*index - rank
+signature
+dim <- dim(x)[1]
+dim
+
+matrixcalc::is.indefinite(x)
+if(index>0 & (dim-index)>0) {cat("Indefinite")}
+
+matrixcalc::is.positive.definite(x)
+if(dim==rank & rank==index & index==signature) {cat("Positive definite")}
+
+matrixcalc::is.positive.semi.definite(x)
+if(rank==index & index==signature) {cat("Positive semi definite")}
+
+matrixcalc::is.negative.definite(x)
+if((index==0 & rank==dim) | signature==-dim) {cat("Negative definite")}
+
+matrixcalc::is.negative.semi.definite(x)
+if(index==0 | signature==-rank) {cat("Negative semi definite")}
+
+x <- matrix(c(-1, 0, 0,
+              0, -2, 0,
+              0, 0, 0),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+
+matrixcalc::is.square.matrix(x)
+matrixcalc::is.symmetric.matrix(x)
+matrixcalc::is.non.singular.matrix(x)
+
+det(x)
+eigen(x)$values
+svd(x)$d
+identical(zapsmall(eigen(x)$values), zapsmall(svd(x)$d))
+
+index <- sum(eigen(x)$values>0)
+index
+rank <- qr(x)$rank
+rank
+signature <- 2*index - rank
+signature
+dim <- dim(x)[1]
+dim
+
+matrixcalc::is.indefinite(x)
+if(index>0 & (dim-index)>0) {cat("Indefinite")}
+
+matrixcalc::is.positive.definite(x)
+if(dim==rank & rank==index & index==signature) {cat("Positive definite")}
+
+matrixcalc::is.positive.semi.definite(x)
+if(rank==index & index==signature) {cat("Positive semi definite")}
+
+matrixcalc::is.negative.definite(x)
+if((index==0 & rank==dim) | signature==-dim) {cat("Negative definite")}
+
+matrixcalc::is.negative.semi.definite(x)
+if(index==0 | signature==-rank) {cat("Negative semi definite")}
+
+x <- matrix(c(1, 1, 1,
+              1, 1, 1,
+              1, 1, 1/2),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+
+matrixcalc::is.square.matrix(x)
+matrixcalc::is.symmetric.matrix(x)
+matrixcalc::is.non.singular.matrix(x)
+
+det(x)
+eigen(x)$values
+svd(x)$d
+identical(zapsmall(eigen(x)$values), zapsmall(svd(x)$d))
+
+index <- sum(eigen(x)$values>0)
+index
+rank <- qr(x)$rank
+rank
+signature <- 2*index - rank
+signature
+dim <- dim(x)[1]
+dim
+
+matrixcalc::is.indefinite(x)
+if(index>0 & (dim-index)>0) {cat("Indefinite")}
+
+matrixcalc::is.positive.definite(x)
+if(dim==rank & rank==index & index==signature) {cat("Positive definite")}
+
+matrixcalc::is.positive.semi.definite(x)
+if(rank==index & index==signature) {cat("Positive semi definite")}
+
+matrixcalc::is.negative.definite(x)
+if((index==0 & rank==dim) | signature==-dim) {cat("Negative definite")}
+
+matrixcalc::is.negative.semi.definite(x)
+if(index==0 | signature==-rank) {cat("Negative semi definite")}
+```
+
+## Determinante
+
+O determinante real de uma matriz simétrica não singular $A$  é dado pelo produtório dos autovalores, isto é, $\det(A)=\prod_{i=1}^{k}{\lambda_i}$, sendo que o valor do determinante pertence ao conjunto dos reais.
+
+A matriz real, simétrica e não singular $A$ não é necessariamente definida positiva, pois seu espectro ordenado não é necessariamente estritamente positivo. 
+
+A média geométrica dos autovalores é $\sqrt[k]{\det(A)}=\sqrt[k]{\prod_{i=1}^{k}{\lambda_i}}$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Det[{{1,-5},{-5,1}}]](https://www.wolframalpha.com/input?i=Det%5B%7B%7B1%2C-5%7D%2C%7B-5%2C1%7D%7D%5D){target="_blank"}
+
+[Eigenvalues[{{1,-5},{-5,1}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7B1%2C-5%7D%2C%7B-5%2C1%7D%7D%5D){target="_blank"}
+
+Se a matriz é definida positiva, então seu determinando é estritamente positivo.
+
+O espectro ordenado de matriz quadrada expressa uma parte importante, mas não completa, de seu conteúdo informacional. 
+
+Uma matriz quadrada definida positiva $A$ é denotada matematicamente por $A>0$.
+
+a. Se $A-B=C$ e $C>0$, então $A-B>0$.
+a. Se $A-B>0$, então $\text{spec}(A)>\text{spec}(B)$ e $\det(A)>\det(B)$.
+a. Se $A>0$, $B>0$ e $A-B>0$, então $B^{-1} - A^{-1}>0$ e $\det(A)>\det(B)$.
+a. Se $A>0$ e $B>0$, então $\det(A+B)>\det(A)+\det(B)$.
+a. Se $A>0$ e $B>0$ e $\text{spec}(A)>\text{spec}(B)$, então $A-C^{\prime}BC>0$ e $C^{-1}=C^{\prime}$.
+a. Se $A_{k,k}>0$ e $\text{rank}(B_{k,k})=k$, então $A=B^{\prime}B$ e vice-versa.
+a. Se $A_{k,k}>0$ e $\text{rank}(B_{n,k})=n\le k$, então $BAB^{\prime}>0$.
+
+## Ortogonal
+
+Uma matriz quadrada é ortogonal se a inversa é igual à transposta, i.e., $A^{-1}=A^{\prime}$. Portanto, $AA^{\prime}=I$.
+
+O valor absoluto do determinante de matriz ortogonal é igual a 1, i.e., $|\det(A)|=1$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- matrix(c(1, 0, 0,
+              0, 2, 0,
+              0, 0, 3),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+matlib::is_orthogonal_matrix(x)
+
+x <- matrix(c(1, 0, 1,
+              0, 2, 0,
+              0, 0, 3),
+            nrow=3, ncol=3, byrow=TRUE)
+x
+matlib::is_orthogonal_matrix(x)
+
+x <- matrix(c(0, 0, 0, 1,
+              0, 0, 1, 0,
+              1, 0, 0, 0,
+              0, 1, 0, 0),
+            nrow=4, ncol=4, byrow=TRUE)
+x
+matlib::is_orthogonal_matrix(x)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[orthogonal matrix {{1/sqrt(2),-1/sqrt(2)},{1/sqrt(2),1/sqrt(2)}}](https://www.wolframalpha.com/input?i=orthogonal+matrix+%7B%7B1%2Fsqrt%282%29%2C-1%2Fsqrt%282%29%7D%2C%7B1%2Fsqrt%282%29%2C1%2Fsqrt%282%29%7D%7D){target="_blank"}
+
+* rotação de ângulo $x$
+
+[Transpose[{{cos(x), -sin(x)}, {sin(x), cos(x)}}] . {{cos(x), -sin(x)}, {sin(x), cos(x)}} // Simplify](https://www.wolframalpha.com/input?i=Transpose%5B%7B%7Bcos%28x%29%2C+-sin%28x%29%7D%2C+%7Bsin%28x%29%2C+cos%28x%29%7D%7D%5D+.+%7B%7Bcos%28x%29%2C+-sin%28x%29%7D%2C+%7Bsin%28x%29%2C+cos%28x%29%7D%7D+%2F%2F+Simplify){target="_blank"}
+
+## Traço
+
+A soma dos valores da diagonal principal de uma matriz quadrada real   é denominada traço da matriz $A$ e é denotado por  $\mathrm{tr}(A)=\sum_{i=1}^{k}{a_{i,i}}$. 
+
+O traço de $A$ também pode ser expresso pelo somatório de seus autovalores, isto é,  $\mathrm{tr}(A)=\sum_{i=1}^{k}{\lambda_i}$. 
+
+A média aritmética dos autovalores é obtida dividindo o traço por $k$, isto é,  $\frac{\mathrm{tr}(A)}{k}=\frac{1}{k}\sum_{i=1}^{k}{\lambda_i}$. 
+
+Se o espectro ordenado de $A$ é definida positiva, então o traço é estritamente positivo. 
+
+O traço da matriz identidade de dimensão $k\times k$ é  $k$, isto é,  $\mathrm{tr}(I_{k,k})=k$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[Tr[{{a,b},{c,d}}]](https://www.wolframalpha.com/input?i=Tr%5B%7B%7Ba%2Cb%7D%2C%7Bc%2Cd%7D%7D%5D%5D){target="_blank"}
+
+[Eigenvalues[{{a,b},{c,d}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7Ba%2Cb%7D%2C%7Bc%2Cd%7D%7D%5D%5D){target="_blank"}
+
+[1/2 (a + d - sqrt(a^2 + 4 b c - 2 a d + d^2)) + 1/2 (a + d + sqrt(a^2 + 4 b c - 2 a d + d^2))](https://www.wolframalpha.com/input?i=1%2F2+%28a+%2B+d+-+sqrt%28a%5E2+%2B+4+b+c+-+2+a+d+%2B+d%5E2%29%29+%2B+1%2F2+%28a+%2B+d+%2B+sqrt%28a%5E2+%2B+4+b+c+-+2+a+d+%2B+d%5E2%29%29+){target="_blank"}
+
+[Tr[{{1,-5},{-5,1}}]](https://www.wolframalpha.com/input?i=Tr%5B%7B%7Ba%2Cb%7D%2C%7Bc%2Cd%7D%7D%5D%5D){target="_blank"}
+
+[Eigenvalues[{{1,-5},{-5,1}}]](https://www.wolframalpha.com/input?i=Eigenvalues%5B%7B%7B1%2C-5%7D%2C%7B-5%2C1%7D%7D%5D%5D){target="_blank"}
+
+[6+(-4)=2](https://www.wolframalpha.com/input?i=6%2B%28-4%29%3D2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- matrix(c(1, -5, 
+              -5, 1),
+            nrow=2, ncol=2, byrow=TRUE)
+x
+tr(x)
+eigen(x)$values
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+x=[1 -5;-5 1]
+trace(x)
+spec(x)
+quit
+```
+
+## Fatoração
+
+O espectro ordenado da matriz expressa uma parte importante de seu conteúdo informacional. 
+
+No entanto, apenas os autovalores não expressam toda a informação de uma matriz. Os autovalores e seus respectivos autovetores expressam toda a informação de uma matriz quadrada e não singular.
+
+Um método de fatoração de matriz quadrada é a decomposição de Cholesky.
+
+A decomposição de Cholesky extrai uma matriz triangular incluindo a diagonal principal. 
+
+A matriz $L$ é matriz triangular de Cholesky:
+
+$$\begin{align}
+L&=\left[\begin{array}{rr} 
+\sqrt{2} & \frac{1}{\sqrt{2}}\\
+0 & \sqrt{\frac{3}{2}}
+\end{array}\right]\\
+\left[\begin{array}{rr} 
+2 & 1\\
+1 & 2
+\end{array}\right]&=L^{\prime}L
+\end{align}$$
+
+Outro método de fatoração é a decomposição espectral. A matriz de autovetores ortonormalizados é ortogonal.
+
+A matriz $E$ é o produto da matriz de autovetores ortonormalizados pelo vetor da raiz quadrada dos autovalores:
+
+$$\begin{align}
+E&=\left[\begin{array}{rr} 
+\frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}}\\
+-\frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}}
+\end{array}\right] 
+\left[\begin{array}{r} 
+1\\ 
+\sqrt{3} \end{array}\right]\\
+\left[\begin{array}{rr} 
+2 & 1\\
+1 & 2
+\end{array}\right]&=E^{\prime}E
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[CholeskyDecomposition[{{2,1},{1,2}}]](https://www.wolframalpha.com/input?i=CholeskyDecomposition%5B%7B%7B2%2C1%7D%2C%7B1%2C2%7D%7D%5D){target="_blank"}
+
+[Transpose[{{sqrt(2), sqrt(2)/2}, {0, sqrt(3/2)}}] . {{sqrt(2), sqrt(2)/2}, {0, sqrt(3/2)}}](https://www.wolframalpha.com/input?i=Transpose%5B%7B%7Bsqrt%282%29%2C+sqrt%282%29%2F2%7D%2C+%7B0%2C+sqrt%283%2F2%29%7D%7D%5D+.+%7B%7Bsqrt%282%29%2C+sqrt%282%29%2F2%7D%2C+%7B0%2C+sqrt%283%2F2%29%7D%7D){target="_blank"}
+
+[EigenSystem[{{2,1},{1,2}}]](https://www.wolframalpha.com/input?i=EigenSystem%5B%7B%7B2%2C1%7D%2C%7B1%2C2%7D%7D%5D){target="_blank"}
+
+[DiagonalMatrix[Sort[Eigenvalues[{{2,1},{1,2}}]]]](https://www.wolframalpha.com/input?i=DiagonalMatrix%5BSort%5BEigenvalues%5B%7B%7B2%2C1%7D%2C%7B1%2C2%7D%7D%5D%5D%5D){target="_blank"}
+
+[Orthogonalize[Eigenvectors[{{2,1},{1,2}}]]](https://www.wolframalpha.com/input?i=Orthogonalize%5BEigenvectors%5B%7B%7B2%2C1%7D%2C%7B1%2C2%7D%7D%5D%5D%5D){target="_blank"}
+
+[{{1/Sqrt[2], 1/Sqrt[2]}, {-1/Sqrt[2], 1/Sqrt[2]}} . DiagonalMatrix[Sort[Eigenvalues[{{2,1},{1,2}}]]] . Transpose[{{1/Sqrt[2], 1/Sqrt[2]}, {-1/Sqrt[2], 1/Sqrt[2]}}]](https://www.wolframalpha.com/input?i=%7B%7B1%2FSqrt%5B2%5D%2C+1%2FSqrt%5B2%5D%7D%2C+%7B-1%2FSqrt%5B2%5D%2C+1%2FSqrt%5B2%5D%7D%7D+.+DiagonalMatrix%5BSort%5BEigenvalues%5B%7B%7B2%2C1%7D%2C%7B1%2C2%7D%7D%5D%5D%5D+.+Transpose%5B%7B%7B1%2FSqrt%5B2%5D%2C+1%2FSqrt%5B2%5D%7D%2C+%7B-1%2FSqrt%5B2%5D%2C+1%2FSqrt%5B2%5D%7D%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- matrix(c(2, 1, 
+              1, 2),
+            nrow=2, ncol=2, byrow=TRUE)
+
+x
+
+# Fatoração de Cholesky
+
+xc <- try(chol(x))
+xc
+identical(x, zapsmall(t(xc)%*%xc))
+
+# Fatoração espectral em três fatores
+xevo <- t(eigen(x)$vectors)
+xevo
+xes <- diag(sort(try(eigen(x)$values)))
+xes
+identical(x, zapsmall(xevo%*%xes%*%t(xevo)))
+
+# Fatoração espectral em dois fatores
+xesr <- diag(sort(try(sqrt(eigen(x)$values))))
+E <- xevo%*%xesr
+identical(x, zapsmall(E%*%t(E)))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+A=[2 1;1 2]
+L=chol(A)
+L'*L
+[v,e]=spec(A)
+v*e*v'
+E=v*e^(1/2)
+E*E'
+quit
+```
+ 
+## Resultados
+
+Alguns resultados sobre matrizes reais, quadradas e não singulares de mesma dimensão envolvendo inversão, determinante e traço são importantes para alguns cálculos:
+
+a. $\left(\det\left(A^{-1}\right)\right)^{\prime}=\left(\det\left(A^{\prime}\right)\right)^{-1}$
+a. $(AB)^{-1}=B^{-1}A^{-1}$
+a. $\det(A^{\prime})=\det(A)$
+a. $\det(A_{k,k})=0$ se $\text{rank}(A)<k$
+a. $\det(A)=\dfrac{1}{\det(A^{-1})}$
+a. $\det(AB)=\det(A)\det(B)$
+a. $\det(cA_{k,k})=c^k\det(A_{k,k})$, sendo que $c$ é um número real não nulo
+a. $\mathrm{tr}(cA_{k,k})=c\;\mathrm{tr}(A)$, sendo que $c$ é um número real não nulo
+a. $\mathrm{tr}(A\pm B)=\mathrm{tr}(A)\pm \mathrm{tr}(B)$
+a. $\mathrm{tr}(AB)=\mathrm{tr}(BA)$
+a. $\mathrm{tr}(B^{-1}AB)=\mathrm{tr}(A)$
+
+## Dependência linear
+
+Considere as duas equações lineares
+
+$$\begin{align}
+3x-2y&=7\\
+-6x+4y&=-14
+\end{align}$$
+
+Verificamos rapidamente que a segunda equação é um múltiplo da primeira equação. Não contém nenhuma informação nova.
+
+Qualquer uma das infinitas soluções da primeira equação também é uma solução da segunda equação e vice-versa. 
+
+Dizemos que as duas equações são linearmente dependentes.
+
+A noção de dependência linear é mais importante não apenas para equações, mas também para uma variedade de outras aplicações.
+
+Se interpretarmos os vetores como segmentos de reta direcionados, então dois vetores dependentes têm direções iguais ou opostas, conforme mostrado na Fig. 14.19.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.19. Pares de vetores linearmente dependentes."}
+knitr::include_graphics("./image/Fig14.19.png")
+```
+
+De forma mais geral, o vetor com $n$ vetores equidimensionais $a^{\prime}=[a_1\; a_2\; \ldots\; a_n]$ são ditos linearmente dependentes, se o vetor de números reais $\lambda^{\prime}=[\lambda_1\; \lambda_2\; \ldots\; \lambda_n]\ne 0$, de modo que a seguinte equação seja satisfeita:
+
+$$\lambda^{\prime}a=\sum_{i=1}^{n}{\lambda_i a_i}=0$$  
+
+Aqui, 0 denota o vetor zero. Caso contrário, dizemos que dois vetores são linearmente independentes.
+
+### Exemplo com três vetores
+
+A interpreção geométrica da seguinte equação é mostrada na Fig. 14.20:
+
+$$\lambda_1a_1+\lambda_2a_2+\lambda_3a_3=0\\
+[\lambda_1 \;\lambda_2 \;\lambda_3]\ne 0$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 14.20. Três vetores linearmente dependentes."}
+knitr::include_graphics("./image/Fig14.20.png")
+```
+
+Portanto:
+
+$$a_3=-\dfrac{\lambda_1}{\lambda_3}a_1-\dfrac{\lambda_2}{\lambda_3}a_2$$
+
+Desta forma, $a_3$ é uma combinação linear de $a_1$ e $a_2$.
+
+Isto significa geometricamente que $a_3$ está no mesmo plano gerado por $a_1$ e $a_2$.
+
+Três vetores linearmente independentes não podem cair no mesmo plano.
+
+## Sistema de equações lineares: teoria geral
+
+A teoria geral de $n$ equações lineares com $n$ incógnitas contém precisamente os casos considerados nos exemplos anteriores. Escrevemos o sistema na forma matricial
+
+$$Ax=b$$
+
+* Caso 1: $\det A \ne 0$ (matriz definida): Existe uma solução única.
+
+  * Subcaso 1a: $b = 0$ (equações homogêneas): Existe apenas a solução trivial $x = 0$.
+
+  * Subcaso 1b: $b \ne 0$ (equações não homogêneas): Existe uma solução única que não é trivial, ou seja, pelo menos um $x_i$ é diferente de zero.
+
+* Caso 2: $\det A = 0$ (matriz semi-definida): Os lados esquerdos da Eq. (14.8.4) são linearmente dependentes.
+
+  * Subcaso 2a: As equações (lados esquerdo e direito combinados) são linearmente dependentes. Pelo menos uma equação pode ser eliminada. Se existe uma solução, então existem infinitas soluções.
+
+  * Subcaso 2b: As equações (lados esquerdo e direito combinados) não são linearmente dependentes. Eles se contradizem. Não existe solução alguma.
+  
+```{r}
+# consistent equations
+A <- matrix(c(1,2,3, -1, 2, 1),3,2)
+A
+b <- c(2,1,3)
+matlib::showEqn(A, b)
+matlib::plotEqn(A,b)
+# inconsistent equations
+b <- c(2,1,6)
+matlib::showEqn(A, b)
+matlib::plotEqn(A,b)
+
+A <- matrix(c(13, -4, 2, -4, 11, -2, 2, -2, 8), 3,3)
+A
+b <- c(1,2,4)
+matlib::plotEqn3d(A,b)
+rgl::rglwidget()
+```
+
+# Converter matriz em R para $\LaTeX$
+
+```{r}
+A <- matrix(c(2,  1, -1,
+           -3, -1,  2,
+           -2,  1,  2), 
+           nrow=3, ncol=3, byrow=TRUE)
+b <- c(8, -11, -3)
+A
+b
+
+matlib::matrix2latex(cbind(A,b))
+matlib::matrix2latex(cbind(A,b), digits = 0)
+matlib::matrix2latex(cbind(A/2,b), fractions = TRUE)
+
+A <- matrix(1:12, nrow=3, ncol=4, byrow=TRUE) / 6
+matlib::printMatrix(A, fractions=TRUE)
+matlib::printMatrix(A, latex=TRUE)
+```
+
+# Matriz simbólica em R
+
+```{r}
+x <- matrix(letters[1:3], nrow=1, ncol=3, byrow=TRUE)
+y <- matrix(c(letters[4:5], letters[6:8]), nrow=2, ncol=3, byrow=TRUE)
+x
+y
+dim(x)
+class(x)
+dim(y)
+class(y)
+t(x)
+dim(t(x))
+t(y)
+dim(t(y))
+calculus::mx(y,t(x))
+dim(calculus::mx(y,t(x)))
+calculus::mx(x,t(y))
+dim(calculus::mx(x,t(y)))
+
+x %prod% x
+y %prod% y
+x %sum% x
+y %sum% y
+x %div% x
+y %div% y
+x %dot% x
+y %dot% y
+x %inner% x
+y %inner% y
+x %mx% t(x)
+y %mx% t(y)
+y %mx% t(x)
+x %outer% x
+y %outer% y
+x %kronecker% x
+y %kronecker% y
+
+y
+matlib::vec(y)
+
+z <- matrix(c(letters[1:2], letters[3:4]), nrow=2, ncol=2, byrow=TRUE)
+z
+dim(z)
+class(z)
+calculus::mxdet(z)
+calculus::mxinv(z)
+calculus::mxtr(z)
+
+z
+matlib::vec(z)
+```
+
+# Matriz numérica em R
+
+```{r}
+x <- matrix(1:20, nrow=4, ncol=5, byrow=TRUE)   # Generate a 4 by 5 array.
+x
+#      [,1] [,2] [,3] [,4] [,5]
+# [1,]    1    2    3    4    5
+# [2,]    6    7    8    9   10
+# [3,]   11   12   13   14   15
+# [4,]   16   17   18   19   20
+
+y <- array(data=c(1:3,3:1), 
+           dim=c(3,2),
+           dimname=list(c("r1","r2","r3"),
+                        c("c1","c2"))) # i is a 3 by 2 index array
+y 
+#    c1 c2
+# r1  1  3
+# r2  2  2
+# r3  3  1
+
+x <- matrix(c(8, 4, 5, 6), 
+            ncol=2, 
+            byrow=TRUE,
+            dimname=list(c("r1","r2"),
+                         c("c1","c2")))
+x
+#    c1 c2
+# r1  8  4
+# r2  5  6
+
+str(x)
+is.matrix(x) # TRUE
+isSymmetric.matrix(x) # FALSE
+matrixcalc::is.square.matrix(x) # FALSE
+matrixcalc::is.diagonal.matrix(x) # FALSE
+matrixcalc::is.singular.matrix(x) # FALSE
+try(matrixcalc::is.positive.definite(x)) # Error
+dim(x) # 2 2
+nrow(x) # 2
+ncol(x) # 2
+rowSums(x)
+# r1 r2 
+# 12 11
+colSums(x)
+# c1 c2 
+# 13 10 
+rowMeans(x)
+#  r1  r2 
+# 6.0 5.5
+colMeans(x)
+#  c1  c2 
+# 6.5 5.0 
+2*x
+x*x
+x**2
+sum(x) # 8+4+5+6
+prod(x) # 8*4*5*6
+diag(x)  
+trace <- function(x){sum(diag(x),na.rm=TRUE)}
+trace(x) # 8+6
+det(x) # 28 = 8*6 - 4*5
+matlib::Det(x)
+qr(x)$rank # 2
+eigen(x)$values # det(x) = 28 = e1*e2 = 11.582576*2.417424
+svd(x)$d # singular values = robust eigenvalues
+         # det(x) = 28 = sv1*sv2 = 11.627607*2.408062
+matlib::SVD(x)$d
+xi <- solve(x) # inverse matrix
+round(xi,2)
+round(matlib::Inverse(x),2)
+id <- round(x %*% xi, 4)
+id # identity matrix
+t(x)
+
+x
+matlib::vec(x)
+
+x <- matrix(c(8, 4, 5, 6, 9, 7), 
+            ncol=3, 
+            byrow=TRUE,
+            dimname=list(c("r1","r2"),
+                         c("c1","c2", "c3")))
+x
+#    c1 c2 c3
+# r1  8  4  5
+# r2  6  9  7
+str(x)
+is.matrix(x) # TRUE
+isSymmetric.matrix(x) # FALSE
+matrixcalc::is.square.matrix(x) # FALSE
+dim(x) # 2 3
+nrow(x) # 2
+ncol(x) # 3
+rowSums(x)
+# r1 r2 
+# 17 22
+colSums(x)
+# c1 c2 c3 
+# 14 13 12 
+rowMeans(x)
+#       r1       r2 
+# 5.666667 7.333333 
+colMeans(x)
+#  c1  c2  c3 
+# 7.0 6.5 6.0 
+2*x
+x*x
+x**2
+sum(x) 
+prod(x) 
+diag(x) # 8 9 
+trace <- function(x){sum(diag(x),na.rm=TRUE)}
+trace(x) # 8+9
+try(det(x)) # Error
+qr(x)$rank # 2
+try(eigen(x)$values) # Error
+svd(x)$d # singular values: 16.073159  3.557183 
+xi <- try(solve(x)) # Error
+xi <- MASS::ginv(x) # generalized inverse
+round(xi,2)
+x
+x <- x %*% xi %*% x
+round(x,2)
+round(matlib::vec(x),2)
+
+x <- matrix(c(11.834, 6.947,  6.819,
+               6.947, 9.364,  5.091,
+               6.819, 5.091, 12.532), 
+            ncol=3, 
+            byrow=TRUE,
+            dimname=list(c("x1","x2","x3"),
+                         c("x1","x2","x3")))
+x
+#        x1    x2     x3
+# x1 11.834 6.947  6.819
+# x2  6.947 9.364  5.091
+# x3  6.819 5.091 12.532
+str(x)
+is.matrix(x) # TRUE
+isSymmetric.matrix(x) # TRUE
+matrixcalc::is.square.matrix(x) # TRUE
+matrixcalc::is.diagonal.matrix(x) # FALSE
+matrixcalc::is.singular.matrix(x) # FALSE
+matrixcalc::is.positive.definite(x) # TRUE
+dim(x) # 3 3
+nrow(x) # 3
+ncol(x) # 3
+rowSums(x)
+#     x1     x2     x3 
+# 25.600 21.402 24.442
+colSums(x)
+#     x1     x2     x3 
+# 25.600 21.402 24.442
+rowMeans(x)
+#       x1       x2       x3 
+# 8.533333 7.134000 8.147333 
+colMeans(x)
+#       x1       x2       x3 
+# 8.533333 7.134000 8.147333 
+2*x
+x*x
+x**2
+sum(x) 
+prod(x) 
+diag(x) # 11.834  9.364 12.532  
+trace <- function(x){sum(diag(x),na.rm=TRUE)}
+trace(x) # 33.73
+det(x) # 524.1175
+qr(x)$rank # 3
+eigen(x)$values # 23.971567  6.272996  3.485437
+svd(x)$d # 23.971567  6.272996  3.485437
+         # 524.1175 = 23.971567*6.272996*3.485437
+all(svd(x)$d > 0) # TRUE: positive definite 
+xi <- solve(x) # inverse matrix
+round(xi,2)
+id <- round(x %*% xi, 4)
+id # identity matrix
+t(x)
+
+x <- matrix(c(11.834, 6.947,  6.819,
+              6.947, 9.364,  5.091,
+              6.819, 5.091, 12.532), 
+            ncol=3, 
+            byrow=TRUE,
+            dimname=list(c("x1","x2","x3"),
+                         c("x1","x2","x3")))
+y <- c(3.5, 7.8, 9.2)
+x <- cbind(x, y)
+x
+z <- c(13.5, 19.4, 3.45, 7.45)
+x <- rbind(x, z)
+x
+```
+
+# Bibliografia
+
+* Barabási, A-L & Oltvai, ZN (2004) Network biology: understanding the cell's functional organization. _Nature Reviews Genetics_ 5(2): 101-13.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Bronson, R (1989) _Theory and Problems of Matrix Operations_. USA: McGraw-Hill.
+* Fieller, F (2015) _Basics of Matrix Algebra for Statistics with R_. USA: CRC. 
+* Fornito, A et al. (2015) The connectomics of brain disorders. _Nature Reviews Neuroscience_ 16(3): 159-72.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. 
+* Goh, K-I et al.(2007) The human disease network. _Proceedings of the National Academy of Sciences_ 104(21): 8685-90.
+* Shahin, M (2014) _Explorations of mathematical models in biology with MATLAB_. NJ: Wiley. 
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* Tay, A  (2018) _OLS using Matrix Algebra_. http://www.mysmu.edu/faculty/anthonytay/MFE/OLS_using_Matrix_Algebra.pdf 
+* Teichroew, D (1964) _An introduction to management science: deterministic models_. NJ: Wiley. 
+* Thrall, RM et a. (Eds.) _Some mathematical models in biology_. Revised Edition. Report No. 40241-R-7 prepared at the University of Michigan 1967. https://deepblue.lib.umich.edu/handle/2027.42/7951
+* Yoshida, R (2021) _Linear Algebra and Its Applications with R_. USA: CRC.
+
+# Matriz e vetor no YouTube 
+
+* [Zach Star: The Applications of Matrices | What I wish my teachers told me way earlier](https://www.youtube.com/watch?v=rowWM-MijXU&t=695s){target="_blank"}
+
+* [Zach Star: O determinante | A essência da Álgebra Linear, capítulo 5](https://www.youtube.com/watch?v=Ip3X9LOh2dk&t=171s){target="_blank"}
+
+* [Zach Star: The applications of eigenvectors and eigenvalues | That thing you heard in Endgame has other uses](https://www.youtube.com/watch?v=i8FukKfMKCI&t=90s){target="_blank"}
+
+
+
+
+
+

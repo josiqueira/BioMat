@@ -1,0 +1,1097 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 7: Equação Diferencial Ordinária (ODE)" 
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    footer: "Biomatematica_Aula07"
+    font_adjustment: 1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    footer: "Biomatematica_Aula07"
+    font_adjustment: -1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r eval=TRUE,  echo=TRUE, warning=FALSE, error=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+"Significação das teorias físicas – Existem muitas pessoas que se espantam ao ver quão efêmeras são as teorias científicas. Essas pessoas veem teorias serem sucessivamente abandonadas depois de alguns anos de prosperidade; veem ruínas se acumulando sobre ruínas; preveem que teorias hoje na moda sucumbirão, por sua vez, dentro em pouco, e concluem que elas são inteiramente vãs. É o que chamam a falência da ciência. [...] O objetivo das teorias matemáticas não é nos revelar a verdadeira natureza das coisas – o que não seria uma pretensão razoável – e sim coordenar as leis físicas que a experiência nos revela mas que, sem o auxílio da matemática, não poderíamos sequer enunciar. Pouco nos importa que o éter exista realmente: é um problema para os metafísicos (filósofos). O importante para nós é que tudo se passa como se ele existisse, e essa é uma hipótese cômoda para a explicação de fenômenos. Afinal, temos outras razões para crer na existência de objetos materiais? Essa também é uma hipótese cômoda e que nunca deixará de o ser, ao passo que um dia, certamente, o éter será rejeitado, por inútil."
+
+> POINCARÉ, H.-J. _A ciência e a hipótese_. Brasília: Universidade de Brasília, 1984. p. 127 e 157.
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+
+__7.	Equação diferencial ordinária (ODE) (Capítulo 11)__
+
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+# Adicionar
+
+* [Desmos: calculadora gráfica](https://www.desmos.com/?lang=pt-BR){target="_blank"}
+* [Desmos 2D](https://www.desmos.com/calculator?lang=pt-BR){target="_blank"}
+* [Desmos 3D](https://www.desmos.com/3d?lang=pt-BR){target="_blank"} 
+
+# Introdução
+
+* [Differential Equations: Paul's Online Notes: Wikipedia](https://tutorial.math.lamar.edu/Classes/DE/DE.aspx){target="_blank"}
+
+O primeiro texto científico que resolveu uma equação diferencial foi escrito por Isaac Newton, em sua obra intitulada "Mathematical Principles of Natural Philosophy" (ou "Princípios Matemáticos da Filosofia Natural", em tradução livre). O livro foi publicado em 1687 e é comumente referido como "Principia".
+
+No "Principia", Newton formulou as leis do movimento e a lei da gravitação universal, além de desenvolver os fundamentos do cálculo diferencial e integral. Na segunda parte do livro, Newton introduziu uma série de métodos matemáticos para resolver problemas físicos, incluindo a resolução de equações diferenciais.
+
+O trabalho de Newton foi um marco importante no desenvolvimento do cálculo e da física, estabelecendo as bases para a resolução de equações diferenciais e a compreensão dos fenômenos naturais. Desde então, equações diferenciais têm sido uma ferramenta essencial em muitas áreas da ciência e da engenharia.
+
+Uma equação diferencial é uma equação que envolve uma função desconhecida e uma ou mais de suas derivadas. Ela descreve a relação entre a função desconhecida e suas derivadas em termos das variáveis independentes.
+
+Existem diferentes tipos de equações diferenciais, como equações diferenciais ordinárias (EDO, _ODE_) e equações diferenciais parciais (EDP, _PDE_). As EDO envolvem apenas derivadas em relação a uma única variável independente, enquanto as EDP envolvem derivadas parciais em relação a duas ou mais variáveis independentes.
+
+A solução de uma equação diferencial depende de sua forma específica. Existem métodos analíticos e numéricos para resolver equações diferenciais. Os métodos analíticos geralmente envolvem técnicas matemáticas, como integração, fator integrante, transformadas de Laplace e Fourier, entre outros.
+
+A solução particular de uma equação diferencial é a solução específica que satisfaz as condições iniciais ou de contorno especificadas no problema. As condições iniciais são valores dados da função desconhecida e suas derivadas em um ponto inicial, enquanto as condições de contorno são valores dados em pontos específicos do domínio.
+
+Cada equação diferencial terá sua própria forma e método de solução específico. 
+
+A primeira equação diferencial foi resolvida por Isaac Newton em 1687 para descrever o movimento de um objeto sujeito a uma força constante é conhecida como a equação do movimento ou a segunda lei do movimento de Newton. 
+
+Essa equação é uma equação diferencial linear de segunda ordem e pode ser escrita da seguinte forma:
+
+$$\begin{align}
+m\dfrac{d^2x}{dt^2}&=F=k, \; x(0)=0, \; x(1)=a\\
+x(t)&=\dfrac{k}{2m}t(t-1)+at
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`m x''(t)= k, x(0)=0, x(1)=1` ](https://www.wolframalpha.com/input?i=m+x%27%27%28t%29%3D+k%2C+x%280%29%3D0%2C+x%281%29%3D1+){target="_blank"}
+
+Nessa equação, $m$ representa a massa do objeto, $x$ representa a posição do objeto em relação ao tempo $t$, e $F$ representa a força  aplicada sobre o objeto. A derivada segunda de $x$ em relação a $t$, denotada como $d^2x/dt^2$, representa a aceleração do objeto.
+
+A solução particular dessa equação diferencial depende da forma específica da força $F$ e das condições iniciais ou de contorno do problema. Por exemplo, se a força $F$ for uma força constante, como a gravidade, a solução particular pode ser obtida integrando a equação diferencial.
+
+No entanto, é importante destacar que a equação do movimento de Newton é um exemplo específico de uma equação diferencial para o movimento de um objeto sob uma força constante. Existem várias outras equações diferenciais que descrevem o movimento de objetos em diferentes situações, dependendo das forças envolvidas e das condições específicas do problema.
+
+* [Harmonic oscillator: Wikipedia](https://en.wikipedia.org/wiki/Harmonic_oscillator){target="_blank"}
+
+$$\begin{align}
+m\dfrac{d^2x}{dt^2}&=-kx, \; x(0)=0, \; x(1)=a\\
+x(t)&=a\csc \left(\sqrt{\dfrac{k}{m}}\right)\sin \left(\sqrt{\dfrac{k}{m}}t\right)
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`m x''(t)= -k x(t), x(0)=0, x(1)=a`](https://www.wolframalpha.com/input?i=m+x%27%27%28t%29%3D+-k+x%28t%29%2C+x%280%29%3D0%2C+x%281%29%3Da){target="_blank"}
+
+* [Ordinary differential equation: Wikipedia](https://en.wikipedia.org/wiki/Ordinary_differential_equation){target="_blank"}
+
+Quando a derivada $y^{\prime} = f^{\prime}(t)$ de uma função desconhecida $y = f(t)$ é dada, geralmente temos que encontrar a antiderivada. Algumas vezes a derivada $y^{\prime}$ não é dada como uma função de $t$, mas está envolvida em uma equação que contém também a função desconhecida $y = f(t)$. Como exemplo, considere a equação
+
+$$y^{\prime} = ay + bt+ c$$
+
+com coeficientes conhecidos $a$, $b$, $c$. 
+
+Essa equação é chamada de equação diferencial, pois contém não apenas a função desconhecida, mas também sua derivada. O problema consiste em encontrar uma função adequada que satisfaça a equação diferencial.
+
+As equações diferenciais ocorrem frequentemente na análise de sistemas fisiológicos e de sistemas ecológicos. Podemos falar brevemente de análise de sistemas. Quando uma quantidade varia em uma parte de um sistema, sua taxa de variação geralmente depende das quantidades em outras partes. 
+
+Além disso, qualquer mudança de uma quantidade pode influenciar indiretamente a própria quantidade, um fenômeno que é chamado de _feedback._ 
+
+O estudo dos sistemas de realimentação teve origem na engenharia, mas sua aplicação às ciências da vida acaba sendo mais frutífera.
+
+A variável independente geralmente é o tempo. Portanto, denotamos por $t$ na maior parte deste capítulo. Há poucas exceções.
+
+Exemplos onde a variável independente não é o tempo são dados no Exemplo 11.3.5 e na Seção 11.6 sobre alometria.
+
+Variáveis dependentes são indicadas por $x = x(t)$, $y = y(t)$, $m = m(t)$,
+$N = N(t)$, $Q = Q(t)$ etc.
+
+Os capítulos 9 e 10 são pré-requisitos para a compreensão das equações diferenciais. 
+
+Como o escopo deste livro é limitado, não nos aprofundaremos na teoria. Um estudo abrangente de equações diferenciais seria uma tarefa que duraria vários anos. Felizmente, existem listas de equações diferenciais e suas soluções disponíveis.
+
+Existem equações diferenciais cujas soluções não podem ser escritas de forma gerenciável. Eles são resolvidos por computadores, aplicando métodos de análise numérica ou por simulação de computador. Neste livro introdutório, não trataremos desses métodos.
+
+# Interpretação geométrica
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y' = y/2`](https://www.wolframalpha.com/input?i=y%27+%3D+y%2F2){target="_blank"}
+
+[`y'(t) = y(t)/2, y(0)=1`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+y%28t%29%2F2%2C+y%280%29%3D1){target="_blank"}
+
+[`y'(t) = y(t)/2, y(0)=k`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+y%28t%29%2F2%2C+y%280%29%3Dk){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Figura 11.2a. O campo de inclinação (slope field) de y'=ay para a=1/2. Também são mostradas duas curvas integrais."}
+knitr::include_graphics("./image/Fig11.2a.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y' = y - t^2`](https://www.wolframalpha.com/input?i=y%27+%3D+y+-+t%5E2){target="_blank"}
+
+[`y'(t) = y(t) - t^2, y(0)=1`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+y%28t%29+-+t%5E2%2C+y%280%29%3D1){target="_blank"}
+
+[`y'(t) = y(t) - t^2, y(0)=a`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+y%28t%29+-+t%5E2%2C+y%280%29%3Da){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 11.1. Campo de inclinação dado pela equação diferencial y' = y - t<sup>2</sup>. O campo de inclinação se assemelha à imagem de um fluido ou gás em movimento. As linhas de corrente são as curvas integrais."}
+knitr::include_graphics("./image/Fig11.1.png")
+```
+
+# Classificação de equação diferencial: `DSolve` do WolframAlpha
+
+```{r echo=FALSE, out.width="150%", fig.cap="https://reference.wolfram.com/language/tutorial/DSolveOrdinaryDifferentialEquations.html"}
+knitr::include_graphics("./image/DSolve.png")
+```
+
+# Equação diferencial linear mais simples: $y^{\prime}=ay$
+
+$$\begin{align}
+\Large y^{\prime}(t)&\Large = a y(t), \;\;y(0)=y_0 \\
+\Large y(t)&\Large =y_0e^{at} 
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t) = a y(t), y(0) = b`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+a+y%28t%29%2C+y%280%29+%3D+b){target="_blank"}
+
+[`DSolve[y'[t] == a y[t], y, t]`](https://www.wolframalpha.com/input?i=DSolve%5By%27%5Bt%5D+%3D%3D+a+y%5Bt%5D%2C+y%2C+t%5D){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 11.2b. Para y positivo, a solução de y' = ay é uma função crescente se a > 0 e uma função decrescente se a < 0."}
+knitr::include_graphics("./image/Fig11.2b.png")
+```
+
+## Exemplo 11.3.1: Crescimento da célula
+
+Suponha que uma célula tenha massa $m_0$. 
+
+Em um ambiente ideal, a célula cresce. Assim, sua massa é uma função do tempo e podemos escrever $m = m(t)$ com $m = m_0$ em $t = 0$. 
+
+Suponha que os substâncias químicas passem rapidamente pela parede celular e que o crescimento seja determinado apenas pela velocidade do metabolismo interno a célula. Como o rendimento do metabolismo depende da massa das moléculas participantes, é razoável esperar que a taxa de crescimento seja proporcional à massa em cada instante de tempo, ou seja, 
+
+$$\dfrac{dm}{dt} \propto m$$ 
+
+ou
+
+$$\dfrac{dm}{dt} =a m$$
+
+com uma certa constante positiva $a$.
+
+Claro, há uma limitação: se a massa $m$ da célula atingir
+um certo tamanho, a célula se dividirá em vez de continuar a crescer. Assim, adicionamos uma restrição, $m < m_1$.
+
+Portanto, a solução geral segue:
+
+$$m(t)=c\;e^{at}$$
+
+Pela nossa suposição de que $m = m_0$ no instante de tempo $t = 0$, podemos determinar a constante $c$. Obtemos $c=m_0$. Portanto, a integral particular:
+
+$$m(t)=m_0\;e^{at}$$
+
+Com nossas suposições, fomos um pouco além da experiência. Apresentamos alguns argumentos teóricos. Costuma-se dizer que estamos construindo um modelo. Se nosso modelo é ou não biologicamente significativo, só pode ser testado por experimentos. Aqui e em modelos subsequentes, compartilhamos a visão de G. F. Gause (Gause, 1934, p. 10):
+
+"Não há dúvida de que [crescimento etc.] é um problema biológico, e que deve ser resolvido por experimentação e não na mesa de um matemático. Mas, para penetrar mais profundamente na natureza desses fenômenos, devemos combinar o método experimental com a teoria matemática, uma possibilidade que foi criada por pesquisadores [brilhantes]. A combinação do método experimental com a teoria quantitativa é em geral uma das ferramentas mais poderosas nas mãos da ciência contemporânea."
+
+Vale a pena discutir o modelo de crescimento acima sob diferentes aspectos. 
+
+Como $dm/dt$ foi considerado proporcional a $m$, podemos introduzir a taxa de crescimento específico ou relativo definida por
+
+$$\dfrac{dm/dt}{m}=a$$
+
+Este é o quociente entre a taxa de crescimento absoluto $dm/dt$ e a massa $m$.
+
+Nossa equação diferencial afirma: Em cada instante de tempo, a taxa de crescimento relativa permanece constante.
+
+A noção de uma taxa de crescimento relativo precisa de alguma ilustração.
+
+Suponha que uma planta que atingiu a massa $m = 300$ g cresça 12 g nas próximas 24 horas. Então a taxa média de crescimento é de 12 g/24 horas = 0.5 g/h. Assumindo que a taxa de crescimento não flutua, podemos considerar 0.5 g/h como uma boa aproximação da taxa de crescimento instantânea $dm/dt$.
+
+Podemos perguntar: esta taxa de crescimento é grande ou pequena? 
+
+A resposta depende muito da massa atual da planta. Para uma planta de massa $m = 10$ g apenas, nossa taxa de crescimento seria tremenda, enquanto para uma grande árvore de massa (viva) $m = 1000$ kg, o mesmo crescimento deve ser chamado de minúsculo. Portanto, temos que relacionar 0.5 g/h com a massa atual, no nosso caso com 300 g. O quociente é 
+
+$$\dfrac{0.5\;g/h}{300\; g}=0.0017 \; h^{-1}$$
+
+Este quociente é chamado de taxa de crescimento específico. Com a mesma taxa específica de crescimento, a árvore de massa (viva) de 1000 kg ganharia 1.7 kg/hora.
+
+A taxa de crescimento específico é um conceito importante. Há duas etapas envolvidas. Primeiro, ao formar $dm/dt$, relacionamos o aumento da massa com o tempo, o que nos dá alguma medida da velocidade de crescimento.
+
+Em segundo lugar, relacionamos a velocidade de crescimento com a massa presente. 
+
+Vamos finalmente considerar outro aspecto da equação diferencial. 
+
+Com o aumento de $m$, a taxa de crescimento $dm/dt$ também aumenta. Essa taxa de crescimento, por sua vez, determina os valores futuros de $m$. Assim, temos um exemplo simples de um mecanismo de _feedback_ com um único _loop_:
+
+```{r echo=FALSE, out.width="40%"}
+knitr::include_graphics("./image/loop.png")
+```
+
+## Exemplo 11.3.2: Processo de nascimento
+
+Seja $N$ o número de indivíduos em uma população animal ou vegetal. Este número é dependente do tempo, de modo que podemos escrever $N = N(t)$. 
+
+A rigor, $N(t)$ assume apenas valores inteiros e é uma função descontínua de $t$. Entretanto, $N(t)$ pode ser aproximado por uma função contínua e diferenciável assim que o número de indivíduos for grande o suficiente.
+
+Em alguns microrganismos, a reprodução ocorre por simples divisão celular. 
+A reprodução por simples divisão celular, também conhecida como fissão binária, ocorre principalmente em organismos procariontes e alguns organismos unicelulares. Os principais grupos de microorganismos que utilizam esse método de reprodução incluem:
+
+a. Bactérias: As bactérias se reproduzem quase exclusivamente por fissão binária, onde a célula se divide em duas células-filhas geneticamente idênticas.
+a. Arqueas: Semelhante às bactérias, as arqueas também se reproduzem por fissão binária.
+a. Alguns Protistas Unicelulares: Alguns protistas, como as amebas e alguns tipos de algas unicelulares, podem se reproduzir por divisão celular.
+
+Esse processo de divisão envolve a duplicação do material genético seguido pela divisão do citoplasma, resultando em duas células-clone independentes.
+
+Em indivíduos multicelulares, distinguimos entre reprodução vegetativa e sexual. Incluiremos todas essas possibilidades em nosso estudo.
+
+Assumimos que a proporção de indivíduos reprodutivos (viabilidade) permanece constante na população crescente. Além disso, assumimos fertilidade constante. Então a taxa de natalidade é proporcional ao número $N(t)$ de indivíduos. Se por fim excluirmos a morte, a emigração e a imigração, a taxa de crescimento coincide com a taxa de natalidade. Por isso:
+
+$$\dfrac{dN}{dt}=\lambda N$$
+
+sendo que $\lambda$ é uma constante chamada de taxa de natalidade específica. 
+
+A solução é:
+
+$$N(t)=N_0e^{\lambda t}$$
+
+sendo que $N_0$ denota o tamanho da população em $t = 0$.
+
+Esse processo de nascimento acaba sendo bastante realista em uma grande população que cresce em condições ideais, ou seja, quando todos os fatores inibidores do crescimento estão ausentes.
+
+Em uma população pequena, não podemos esperar que a ocorrência de nascimentos seja distribuída uniformemente ao longo do tempo. Em vez disso, enfrentamos flutuações aleatórias. Então o processo tem que ser modificado à luz da teoria da probabilidade.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`n'(t) = lambda n(t), n(0)=a`](https://www.wolframalpha.com/input?i=n%27%28t%29+%3D+lambda+n%28t%29%2C+n%280%29%3Da){target="_blank"}
+
+[`plot 10 e^(t), t from 0 to 5 axes label "t" "y"`](https://www.wolframalpha.com/input?i=plot+10+e%5E%28t%29%2C+t+from+0+to+5+axes+label+%22t%22+%22y%22){target="_blank"}
+
+## Exemplo 11.3.3: Processo de nascimento e morte
+
+Consideremos uma população animal ou vegetal nas condições descritas no pedido anterior. Agora vamos estender o modelo permitindo a morte. A mudança líquida no tamanho da população pode ser positiva ou negativa. 
+
+Tratamos $N = N(t)$ como uma função contínua e diferenciável do tempo, embora isso signifique apenas uma aproximação da realidade. 
+
+Da mesma forma, assumimos um grande número de nascimentos e mortes, de modo que o número de nascimentos $B = B(t)$ e de mortes $D = D(t)$ também podem ser considerados como funções diferenciáveis. 
+
+A taxa de variação líquida é igual à taxa de nascimento menos a taxa de mortalidade. 
+
+A taxa $dN/dt$ pode ser positiva ou negativa conforme predominem as ocorrências de nascimento ou de óbito.
+
+Dentro de um intervalo de tempo de comprimento $dt$, obtemos 
+
+$$\text{variação líquida} = \text{número de nascimentos - número de mortes}$$
+
+ou, em uma notação conveniente, após a divisão por $dt$, obtemos a taxa de variação:
+
+$$\dfrac{dN}{dt}=\dfrac{dB}{dt}-\dfrac{dD}{dt}$$
+
+No Exemplo 11.3.2 estabelecemos hipóteses tais que a taxa de natalidade torna-se proporcional ao número de indivíduos $N(t)$.
+
+Sob suposições correspondentes sobre a morte, a taxa de mortalidade também se torna proporcional a $N(t)$. 
+
+Portanto,
+
+$$\dfrac{dB}{dt}=\lambda N \\
+\dfrac{dD}{dt}=\mu N$$
+
+sendo que $\lambda$ denota a taxa de natalidade específica e $\mu$, a taxa de mortalidade específica.
+
+Portanto,
+
+$$\dfrac{dN}{dt}=\lambda N - \mu N\\
+\dfrac{dN}{dt}=(\lambda - \mu) N$$
+
+A solução desta equação diferencial é:
+
+$$N(t)=N_0 \;e^{(\lambda - \mu)t}$$
+
+sendo que $N_0$ representa o tamanho da população no tempo $t = 0$. 
+
+Quando prevalece a taxa de natalidade, ou seja, quando $\lambda > \mu$, o tamanho da população aumenta exponencialmente. Temos uma erupção. 
+
+Quando, em vez disso, $\lambda< \mu$, o tamanho da população diminui e a população é extinta. 
+
+Somente para $\lambda =\mu$ a população permanecerá estável.
+
+Esse modelo de processo de nascimento e morte não leva em conta flutuações aleatórias. É, portanto, chamado de não estocástico ou determinístico.
+
+## Exemplo 11.3.5: Cinética química 
+
+O pentóxido de nitrogênio gasoso se decompõe conforme indicado pela equação
+
+$$2N_2O_5 \to NO_2+O_2$$
+
+Estamos interessados na velocidade dessa reação quando a temperatura é mantida constante. 
+
+Seja $C=[N_2O_5]$ a concentração de pentóxido de nitrogênio gasoso medida em mol por litro. 
+
+A concentração $C = C(t)$ é uma função decrescente do tempo de forma que a derivada $dC/dt$ é negativa.
+
+Essa derivada é chamada de taxa de reação.
+
+A velocidade da reação depende da concentração $C = [N_2O_5]$.
+
+Intuitivamente, esperamos que quanto maior a concentração, mais freqüentemente ocorrerão colisões de duas moléculas de $N_2O_5$ com o possível surgimento das novas ligações $NO_2$ e $O_2$. 
+
+Pode-se teorizar que sob temperatura constante a taxa de reação é proporcional a $C$, que é,
+
+$$\dfrac{dC}{dt}=-kC$$
+
+sendo que $k$ denota uma constante positiva. 
+
+A solução deste equação diferencial é
+
+$$C(t)=C_0\; e^{-kt}$$
+
+sendo $C_0$ a concentração de $N_2O_5$ no tempo $t=0$. 
+
+Os fatos experimentais estão de acordo com este modelo. A concentração $C$ tenderá assintoticamente para zero. Nunca chegará a zero exatamente.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`c'(t) = -k c(t), c(0)=a`](https://www.wolframalpha.com/input?i=c%27%28t%29+%3D+-k+c%28t%29%2C+c%280%29%3Da){target="_blank"}
+
+[`plot 10 e^t, t from 0 to 5 axes label "t" "C"`](https://www.wolframalpha.com/input?i=plot+10+e%5E%28-t%29%2C+t+from+0+to+5+axes+label+%22t%22+%22C%22){target="_blank"}
+
+# Equação diferencial linear: $y'=ay+b$
+
+$$\Large y'(t)= ay(t) + b, \;\;y(0)=y_0 \\
+\Large y(t)=\left(y_0+\dfrac{b}{a}\right)e^{at}-\dfrac{b}{a} $$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t)= ay(t) + b, y(0)=c`](https://www.wolframalpha.com/input?i=y%27%28t%29%3D+ay%28t%29+%2B+b%2C+y%280%29%3Dc){target="_blank"}
+
+[`DSolve[y'[t] == a y[t] + b, y[t], t]`](https://www.wolframalpha.com/input?i=DSolve%5By%27%5Bt%5D+%3D%3D+a+y%5Bt%5D+%2B+b%2C+y%5Bt%5D%2C+t%5D){target="_blank"}
+
+`c_1 = y(0) + b/a`
+
+[`y(t) = (y(0) + b/a) e^(a t) - b/a` ](https://www.wolframalpha.com/input?i=y%28t%29+%3D+%28y%280%29+%2B+b%2Fa%29+e%5E%28a+t%29+-+b%2Fa+){target="_blank"}
+
+* Mathematica
+
+`DSolve[{y'[t] == a y[t] + b, y[0] == c}, y[t], t]`
+
+$$y(t) = \dfrac{b \left(e^{a t}-1\right)}{a}+c e^{a t}$$
+
+## Exemplo 11.4.1: Crescimento limitado
+
+Nenhum organismo e nenhuma população cresce indefinidamente. 
+
+Existem limitações impostas pela escassez de alimentos ou abrigo, pela falta de espaço, por condições físicas intoleráveis ou por algum mecanismo de controle.
+
+Assuma que existe um limite superior fixo para o tamanho $y$ de um indivíduo, um tecido, uma população ou uma cultura. O tamanho pode ser um volume, uma massa, um diâmetro, uma quantidade etc. 
+
+Denotamos o limite superior por $B$.
+
+Então $y = y(t)$ pode se aproximar de $B$ assintoticamente. 
+
+Isso implica que a taxa de crescimento $dy/dt$ tende a 0 à medida que $B-y$ se torna cada vez menor.
+
+Uma formulação matemática plausível de tal modelo é dada pela equação diferencial:
+
+$$\dfrac{dy}{dt} = k(B - y)$$ 
+
+sendo que $k$ é uma constante positiva que determina a rapidez com que $dy/dt$ tende a 0. 
+
+Se $y$ é pequeno em relação a $B$, então temos aproximadamente $y' \approx kB = \text{constante}$, ou seja, o tamanho de $y$ aumenta aproximadamente em função linear do tempo. 
+
+No entanto, se $y$ estiver próximo de $B$, então $B - y$ é uma pequena quantidade positiva, assim como a taxa de crescimento $dy/dt$.
+
+Esta equação diferencial pode ser reescrita na forma: 
+
+$$y^{\prime}=kB-ky=ay+b$$
+
+com $a = - k$ e $b = kB$. 
+
+Assim, obtemos a solução particular, se $y(0)=0$:
+
+$$y(t)=B\left(1-e^{-kt}\right)$$
+
+Este modelo foi proposto por E. A. Mitscherlich em 1939. Ele se ajusta muito bem a alguns dados experimentais na agricultura.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t)=k (B-y(t)), y(0)=0`](https://www.wolframalpha.com/input?i=y%27%28t%29%3Dk+%28B-y%28t%29%29%2C+y%280%29%3D0){target="_blank"}
+
+[`plot 2 (1 - e^(-t)), t from 0 to 5 axes label "t" "y"`](https://www.wolframalpha.com/input?i=plot+2+%281+-+e%5E%28-t%29%29%2C+t+from+0+to+5+axes+label+%22t%22+%22y%22){target="_blank"}
+
+[`limit B (1 - e^(-k t)) as t -> infinity`](https://www.wolframalpha.com/input?i=limit+B+%281+-+e%5E%28-k+t%29%29+as+t+-%3E+infinity){target="_blank"}
+
+## Exemplo 11.4.2: Processo de nascimento e imigração 
+
+No Exemplo 11.3.2, estudamos um processo de nascimento. Várias suposições foram feitas sobre a população. Mantemos essas suposições com a exceção de que agora permitimos a imigração de indivíduos a uma taxa constante. A taxa é medida em número de indivíduos por unidade de tempo e denotada por $\nu>0$. Então:
+
+$$\dfrac{dN}{dt}=\lambda N+\nu$$
+
+Portanto, a solução particular é:
+
+$$N(t)=\left(N_0+\dfrac{\nu}{\lambda}\right)e^{\lambda t}-\dfrac{\nu}{\lambda}$$
+
+
+# Equação diferencial não linear: $y^{\prime}=ay^2+by+c$
+
+$$\begin{align}
+\Large y^{\prime}(t) &\Large = a (y(t))^2 + b y(t) + c, \; y(0) = y_0 \\
+\Large y(t)&\Large = A + \dfrac{B-A}{1+\dfrac{B-y_0}{y_0-A}e^{a(B-A)t}}
+\end{align}$$
+
+Sendo que $A$ e $B$ são raízes reais de $a y^2 + b y + c=0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t) = a (y(t))^2 + b y(t) + c, y(0) = d`](https://www.wolframalpha.com/input?i=y%27%28t%29%3D+a+%28y%28t%29%29%5E2+%2B+b+y%28t%29+%2B+c%2C++y%280%29%3Dd){target="_blank"}
+
+[`solve for k: y_0=A+(B-A)/(1+k)` ](https://www.wolframalpha.com/input?i=solve+for+k%3A+y_0%3DA%2B%28B-A%29%2F%281%2Bk%29){target="_blank"}
+
+[`A + (B-A)/(1+ke^(a(B-A)t)) /. k = (y_0 - B)/(A - y_0)` ](https://www.wolframalpha.com/input?i=A+%2B+%28B-A%29%2F%281%2Bke%5E%28a%28B-A%29t%29%29+%2F.+k+%3D+%28y_0+-+B%29%2F%28A+-+y_0%29+){target="_blank"}
+
+[`DSolve[y'[t] == a (y[t])^2 + b y[t] + c, y[t], t]`](https://www.wolframalpha.com/input?i=DSolve%5By%27%5Bt%5D+%3D%3D+a+%28y%5Bt%5D%29%5E2+%2B+b+y%5Bt%5D+%2B+c%2C+y%5Bt%5D%2C+t%5D){target="_blank"}
+
+[`a y^2 + b y + c=0`](https://www.wolframalpha.com/input?i=a+y%5E2+%2B+b+y+%2B+c%3D0){target="_blank"}
+
+## Exemplo 11.5.1. Crescimento limitado II 
+
+Voltamos ao estudo do crescimento das populações. 
+
+Seja $y = y(t)$ o número de indivíduos em uma população no instante de tempo $t$. 
+
+A equação diferencial $y^{\prime} = ay$ com $a> 0$ fornece um crescimento exponencial irrestrito, enquanto $y^{\prime} = a(B - y)$ com $a> 0$, $B > 0$ resulta em crescimento que é quase linear no início e se nivela mais tarde.
+
+Para obter um modelo de crescimento que seja biologicamente mais significativo, podemos combinar as duas abordagens, ou seja, assumir que $y^{\prime}$ é proporcional a $y$ assim como a $B - y$. Essa ideia leva à equação diferencial
+
+$$\dfrac{dy}{dt}=\lambda y(B-y)$$
+
+sendo que $\lambda>0$. 
+
+Portanto, a solução particular é, sendo $y(0)=y_0$, $A=0$ e $a=-\lambda$: 
+
+$$\begin{align}
+y(t)&= A + \dfrac{B-A}{1+\dfrac{B-y_0}{y_0-A}e^{a(B-A)t}} \\
+y(t)&= \dfrac{B}{1+\dfrac{B-y_0}{y_0}e^{-\lambda B t}}
+\end{align}$$
+
+Sendo que $A$ e $B$ são raízes reais de $\lambda y(B-y)=-\lambda y^2 + \lambda B y=0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t) = lambda y(t) (B - y(t))`](https://www.wolframalpha.com/input?i=y%27%28t%29+%3D+lambda+y%28t%29+%28B+-+y%28t%29%29){target="_blank"}
+
+Em nosso modelo, $y$ nunca pode exceder $B$. 
+
+Portanto, o denominador da solução deve ser maior que $1$ e $(B-y_0)/y_0$ deve ser restrito a valores positivos. 
+
+A quantidade $y$ aumenta monotonicamente desde que a equação diferencial  implica que $dy/dt> 0$. 
+
+Para $t\to-\infty$, $y$ tende a 0, e para $t\to+\infty$, $y$ tende a $B$. 
+
+O crescimento começa lentamente, então se torna mais rápido e, finalmente, desacelera. O crescimento é mais rápido na vizinhança do ponto de inflexão. 
+
+Para obter a sua localização temos que igualar a segunda derivada de $y = y(t)$ a 0. 
+
+$$\dfrac{d^2y}{dt^2}=\lambda (B-2y)\dfrac{dy}{dt}$$
+
+Esta expressão só pode ser nula se $B - 2y = 0$ ou $y=B/2$, ou seja, o ponto de inflexão está a meio caminho entre as linhas $y = 0$ e $y = B$. 
+
+Para obter a abcissa, fazemos $y = B/2$ na equação da solução particular e resolvemos em relação a $t$:
+
+$$t=\dfrac{\ln(k)}{B\lambda}$$
+
+Esta abcissa particular é positiva ou negativa dependendo se $(B-y_0)/y_0>1$ ou $(B-y_0)/y_0< 1$.
+
+A Fig. 11.5 mostra um gráfico da função da solução particular em uma aplicação particular. A curva é em forma de S ou sigmoide. 
+
+A fórmula da solução particular é geralmente conhecida como a função logística. 
+
+Ela foi introduzido na dinâmica populacional por Verhulst em 1838. 
+
+O gráfico da função logística é chamado de curva logística. 
+
+Existem inúmeros dados experimentais de crescimento, especialmente para protozoários e bactérias, para os quais o ajuste de uma curva logística foi bastante bem-sucedido. Mas em algumas outras populações o ajuste foi ruim e a previsão foi enganosa.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 11.5. Crescimento de uma população de Drosophila sob condições experimentais controladas."}
+knitr::include_graphics("./image/Fig11.5.png")
+```
+
+## Exemplo 11.5.2: Propagação de infecção 
+
+Como uma doença infecciosa se espalha em uma comunidade de indivíduos suscetíveis? 
+
+Claro, isso depende de muitas circunstâncias. Para simplificar, faremos algumas suposições. Em uma população de indivíduos igualmente suscetíveis, introduzimos um único infeccioso. Pelo contato entre os indivíduos, a doença se espalhará, i.e., o número de infectantes aumentará. No início, o número de infecciosos aumentará lentamente, depois o processo será acelerado e, finalmente, estabilizado quando a maioria dos indivíduos se tornarem infectados. Além disso, assumimos que um indivíduo que já foi infectado permanecerá infectado durante o processo e que ninguém será removido.
+
+Seja $x = x(t)$ o número de susceptíveis, $y = y(t)$ o número de infectados no instante $t$ e $n$ o tamanho total da população na qual um infectado foi introduzido. Assumimos agora que o processo começou no tempo $t=0$ com o único infectado. Assim, a qualquer momento, 
+
+$$x+y=n+1$$
+
+Tratamos $x$ e $y$ como variáveis reais. A taxa na qual o número de infectados aumenta é então $dy/dt$. Quanto mais infectados e susceptíveis estiverem presentes, mais frequentemente ocorrerão contatos que levarão à infecção. Portanto, é plausível assumir que $dy/dt$ é proporcional a $y$ e também a $x$. Assim, obtemos a equação diferencial:
+
+$$\begin{align}
+\dfrac{dy}{dt}&=\beta yx\\
+\dfrac{dy}{dt}&=\beta y(n+1-y)
+\end{align}$$
+
+sendo que $\beta>0$ é chamada taxa de infecção específica.
+
+A solução geral é:
+
+$$y(t)=\dfrac{n+1}{1+ke^{-\beta(n+1)t}}$$
+
+Se $y(0) = 1 = (n + 1)/(1 + k)$, então $k = n$. 
+
+Portanto, a solução particular é:
+
+$$y(t)=\dfrac{1}{\dfrac{1}{n+1}+\dfrac{n}{n+1}e^{-\beta(n+1)t}}$$
+
+Sob nossas suposições simplificadoras, a propagação da doença segue uma lei logística.
+
+O ponto de inflexão é:
+
+$$\begin{align}
+t_i&=\dfrac{1}{\beta}\dfrac{\ln(n)}{n+1}\\
+y(t_i)&=\dfrac{n+1}{2}
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`y'(t)=beta y(t) (n +1 - y(t)), y(0) = 1`](https://www.wolframalpha.com/input?i=y%27%28t%29%3Dbeta+y%28t%29+%28n+%2B1+-+y%28t%29%29%2C+y%280%29+%3D+1){target="_blank"}
+
+[`plot (100+1)/(1+100 e^(-0.005 (100+1) t)), t from 0 to 20 axes label "t" "y"`](https://www.wolframalpha.com/input?i=plot+%28100%2B1%29%2F%281%2B100+e%5E%28-0.005+%28100%2B1%29+t%29%29%2C+t+from+0+to+20+axes+label+%22t%22+%22y%22){target="_blank"}
+
+[`Solve[D[(n+1)/(1+ne^(- beta (n+1) t)),{t,2}]==0,t]`](https://www.wolframalpha.com/input?i=Solve%5BD%5B%28n%2B1%29%2F%281%2Bne%5E%28-+beta+%28n%2B1%29+t%29%29%2C%7Bt%2C2%7D%5D%3D%3D0%2Ct%5D){target="_blank"}
+
+[`(n+1)/(1+ne^(-beta (n+1) t)) /. t = ln(n)/(beta (n+1))`](https://www.wolframalpha.com/input?i=%28n%2B1%29%2F%281%2Bne%5E%28-beta+%28n%2B1%29+t%29%29+%2F.+t+%3D+ln%28n%29%2F%28beta+%28n%2B1%29%29){target="_blank"}
+
+## Exemplo: Modelo geral para o crescimento ontogênico
+
+Conforme Bertalanffy (1957), o crescimento animal pode ser considerado como resultado de uma contraposição entre síntese e destruição, do anabolismo e catabolismo dos materiais constituintes do corpo. Haverá crescimento enquanto a construção prevalecer sobre a degradação; o organismo atinge um estado estacionário se e quando ambos os processos forem iguais. Podemos expressar isso em uma fórmula geral:
+
+\[ \dfrac{dW}{dt} = \eta W^m - \kappa W^n \]
+
+Em palavras: A mudança do peso corporal \( W \) é dada pela diferença entre os processos de construção e degradação; \( \eta \) e \( \kappa \) são constantes do anabolismo e catabolismo, respectivamente, e os expoentes \( m \) e \( n \) indicam que estes são proporcionais a alguma potência da massa corporal \( W \).
+
+A solução (\(n = 1\)) é (Bertalanffy, 1941b):
+
+\[ W = \left( \dfrac{\eta}{\kappa} - \left( \dfrac{\eta}{\kappa} - W_0^{1-m} \right) e^{-(1-m)\kappa t} \right)^{\frac{1}{1-m}} \]
+
+com \( W_0 \) sendo a massa corporal no tempo \( t = 0 \).
+
+O expoente \( n \) em nossa equação básica denota a dependência do anabolismo no peso corporal. Se inserirmos para esse valor o que é experimentalmente encontrado para a dependência do metabolismo basal no tamanho, as leis de crescimento para o organismo em questão seguem automaticamente. Assim, podemos prever o tipo de crescimento de um animal a partir de seu tipo metabólico, e essa previsão tem se mostrado correta em um grande número de casos, muitas vezes de maneira bastante inesperada.
+
+Em um primeiro tipo, a respiração é proporcional à \( \frac{2}{3} \) da potência do peso, de acordo com a regra da superfície. Consequentemente, a lei do crescimento assume a seguinte forma:
+
+\[ \dfrac{dW}{dt} = \eta W^{2/3} - \kappa W \]
+
+Para o caso específico onde \( m = \frac{2}{3} \) e \( n = 1 \), a solução da equação diferencial é:
+
+\[ W(t) = \left( \dfrac{\eta}{\kappa} - \left( \dfrac{\eta}{\kappa} - W_0^{1/3} \right) e^{-\frac{1}{3}\kappa t} \right)^{3} \]
+
+Onde:
+
+- \( W_0 \) é o peso inicial no tempo \( t = 0 \).
+- \( \eta \) é a constante do anabolismo.
+- \( \kappa \) é a constante do catabolismo.
+
+O limite de \( W(t) \) quando \( t \) tende para infinito é:
+
+\[ \lim_{t \to \infty} W(t) = \left( \dfrac{\eta}{\kappa} \right)^{3} \]
+
+Este é o valor assintótico superior para a massa corporal \( W(t) \) quando \( t \) tende para infinito.
+
+```{r echo=FALSE, out.width="70%", fig.cap=""}
+knitr::include_graphics("./image/Fig3.Guppy.png")
+```
+
+Conforme West et al. (2001), o expoente \( m=\frac{3}{4} \) é bem apoiado por dados sobre mamíferos, aves, peixes, moluscos e plantas.
+
+$$\dfrac{dm}{dt}=a m^{3/4}\left(1-\left(\dfrac{m}{M}\right)^{1/4}\right)$$
+
+Sendo que $M$ é a massa corporal máxima.
+
+Solução:
+
+$$\left(\dfrac{m(t)}{M}\right)^{1/4}= 1-\left(1-\left(\dfrac{m_0}{M}\right)^{1/4}\right)\exp\left(-\dfrac{a t}{4M^{1/4}}\right)$$
+
+Sendo que $m_0$ é a massa corporal ao nascer em $t=0$.
+
+```{r echo=FALSE, out.width="70%", fig.cap=""}
+knitr::include_graphics("./image/Table1.Values.png")
+```
+
+```{r echo=FALSE, out.width="100%", fig.cap=""}
+knitr::include_graphics("./image/Fig1.Four.png")
+```
+
+```{r echo=FALSE, out.width="100%", fig.cap=""}
+knitr::include_graphics("./image/Fig2.Four.png")
+```
+
+# Lei alométrica
+
+[Allometry: Wikipedia](https://en.wikipedia.org/wiki/Allometry){target="_blank"}
+
+É fácil observar que a cabeça de uma criança cresce mais devagar que seu corpo e que seus olhos crescem ainda mais devagar que a cabeça. Este padrão diferente de crescimento é estudado em alometria.
+
+Seja $x = x(t)$ o tamanho (comprimento, volume ou massa) de um órgão e
+$y= y(t)$ o tamanho de outro órgão ou parte no mesmo indivíduo no instante de tempo $t$. 
+
+As taxas de crescimento dessas duas partes são $dx/dt$ e $dy/dt$. 
+
+Quando afirmamos que uma parte cresce mais lentamente que outra, não queremos dizer simplesmente que $dx/dt \ne dy/dt$, pois, por exemplo, uma parte menor em tamanho que outra parte naturalmente ganhará menos por unidade de tempo.
+
+Numerosos dados empíricos suportam a afirmação de que as taxas específicas de crescimento (elasticidades instantâneas) são aproximadamente proporcionais, isto é, que a equação:
+
+$$\begin{align}
+\eta(y(t))&\propto \eta(x(t)) \\
+\eta(y(t))&=k\; \eta(x(t)) \\
+\dfrac{dy/y}{dt/t}&=k\dfrac{dx/x}{dt/t} \\
+\dfrac{dy/y}{dt}&=k\dfrac{dx/x}{dt} \\
+\dfrac{1}{y}\dfrac{dy}{dt}&=k\dfrac{1}{x}\dfrac{dx}{dt}
+\end{align}$$
+
+funciona com precisão satisfatória. A constante $k>0$ depende apenas da natureza dos dois órgãos ou partes em consideração. A equação anterior é chamada de lei alométrica.
+
+A equação anterior pode ser simplificada eliminando o tempo:
+
+$$\begin{align}
+\dfrac{dy}{dx}&= k \;\dfrac{y}{x}\\
+x>0, \; y>0, \; k>0 \\ \\
+\dfrac{dy/dx}{y/x}&= k \\ \\
+\eta(y(x))&= k \\
+\ln(y)&=k\;\ln(x)+C\\
+y&= c x^k
+\end{align}$$
+
+A lei alométrica pode ser expressa pela equação diferencial, pela função de potência ou pela equação logarítmica. As três expressões são equivalentes.
+
+Observe que a lei alométrica não se refere primariamente a velocidade de crescimento, pois o tempo é eliminado. Um indivíduo pode crescer em função do tempo seguindo uma lei exponencial, logística ou qualquer outra. Isso não afeta a relação alométrica.
+
+A lei alométrica foi aplicada com sucesso não apenas ao crescimento relativo de partes de um corpo, mas também ao metabolismo, a problemas de dose-resposta, a diferenças raciais e à história evolutiva. 
+
+Existem também tentativas de justificar teoricamente a lei alométrica.
+
+```{r echo=FALSE, out.width="70%", fig.cap="forame magno: Em anatomia, foramen magnum ou forame magno é a grande abertura através do osso occipital localizada no centro da fossa posterior do neurocrânio. É o maior dos forâmens do crânio e comunica a cavidade craniana com o canal vertebral."}
+knitr::include_graphics("./image/foramemagno.png")
+```
+
+```{r echo=FALSE, out.width="50%", fig.cap="Fig. 11.7. Relação entre volume endocraniano e área do forame magno em cinco ordens de mamíferos. As letras referem-se às retas ajustadas aos dados de cada grupo. I insetívoros, R roedores, P primatas prossímios, M macacos do novo e velho mundo combinados, C carnívoros fissípedes (lobo, leão, urso=pardo, guaxinim etc.), A artiodáctilos (porco, javali, camelo, lhama, ruminantes)."}
+knitr::include_graphics("./image/Fig11.7.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`dy/dx = k y/x`](https://www.wolframalpha.com/input?i=dy%2Fdx%3D+k+y%2Fx){target="_blank"}
+
+# Sistema de equações diferenciais lineares
+
+Em sistemas fisiológicos, assim como em populações, geralmente há duas ou até mais funções do tempo em consideração. 
+
+Sejam $x = x(t)$ e $y = y(t)$ duas dessas funções do tempo. 
+
+Assumimos algum tipo de interação entre as quantidades $x$ e $y$. 
+
+Assim, as taxas de variação $dx/dt$ e $dy/dt$ podem depender das quantidades $x$ e $y$. 
+
+Um caso relativamente simples consiste nas duas equações simultâneas:
+
+$$x^{\prime}=ax+by \\
+y^{\prime}= cx+dy$$
+
+sendo que $a$, $b$, $c$, $d$ são constantes dadas.
+
+As funções desconhecidas $x = x(t)$ e $y  = y(t)$ e suas derivadas aparecem na primeira potência. 
+
+Portanto, o conjunto das duas equações diferenciais lineares é dito ser um sistema de equações diferenciais lineares.
+
+Vale a pena estudar o conteúdo lógico de tal sistema. 
+
+As grandezas $x$ e $y$ interagem de tal forma que determinam totalmente as taxas $dx/dt$ e $dy/dt$. 
+
+Com o passar do tempo, $x$ e $y$ aumentarão ou diminuirão de acordo com as taxas $dx/dt$ e $dy/dt$. 
+
+Assim, as taxas determinarão os valores futuros de $x$ e $y$. 
+
+A informação originalmente fornecida para $dx/dt$ e para $dy/dt$ é então realimentada para $x$ e $y$. 
+
+Obtemos dois _loops_ de _feedback_, conforme indicado na seguinte apresentação gráfica:
+
+```{r echo=FALSE, out.width="90%"}
+knitr::include_graphics("./image/feedback.png")
+```
+
+O sistema é resolvido pelo método das funções-teste.
+
+Tentamos as seguintes funções especiais:
+
+$$\begin{align}
+x&=Ae^{\lambda t}\\
+y&=Be^{\lambda t}
+\end{align}$$ 
+
+sendo que $A$, $B$, $\lambda$ são algumas constantes a serem determinadas posteriormente.
+
+Para evitar soluções triviais, podemos assumir que $A \ne  0$ e $B \ne 0$.
+
+A equação característica é:
+
+$$\lambda^2+\left(a+d\right)\lambda+(ad-bc)=0$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`lambda^2-(a+d) lambda+(ad-bc)=0`](https://www.wolframalpha.com/input?i=lambda%5E2-%28a%2Bd%29+lambda%2B%28ad-bc%29%3D0){target="_blank"}
+
+[`determinant {{a-lambda, b},  {c, d-lambda}}=0`](https://www.wolframalpha.com/input?i=determinant+%7B%7Ba-lambda%2C+b%7D%2C++%7Bc%2C+d-lambda%7D%7D%3D0){target="_blank"}
+
+Portanto, se $\lambda_1 \ne \lambda_2$:
+
+$$x(t)=A_1e^{\lambda_1 t}+A_2e^{\lambda_2 t} \\
+y(t)=B_1e^{\lambda_1 t}+B_2e^{\lambda_2 t}$$
+
+## Exemplo: Teórico
+
+$$x^{\prime}=3x-2y \\
+y^{\prime}= 2x-2y$$
+
+$$x(t)=ke^{- t}-2me^{2 t} \\
+y(t)=2ke^{- t}-me^{2 t}$$
+
+As soluções são explosivas (tendem para infinito).
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`eigenvalues ((3, -2), (2, -2))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%283%2C+-2%29%2C+%282%2C+-2%29%29){target="_blank"}
+
+[`{x'(t) = 3 x(t) - 2 y(t), y' = 2 x(t) - 2 y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+3+x%28t%29+-+2+y%28t%29%2C+y%27+%3D+2+x%28t%29+-+2+y%28t%29%7D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`eigenvalues ((a, b), (c, d))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%28a%2C+b%29%2C+%28c%2C+d%29%29){target="_blank"}
+
+[`{x'(t) = a x(t) + b y(t), y' = c x(t) + d y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+a+x%28t%29%2B+b+y%28t%29%2C+y%27+%3D+c+x%28t%29+%2B+d+y%28t%29%7D){target="_blank"}
+
+[`eigenvalues ((1, 1), (1, 1))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%281%2C+1%29%2C+%281%2C+1%29%29){target="_blank"}
+
+[`{x'(t) = x(t) + y(t), y' = x(t) +  y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+x%28t%29+%2B+y%28t%29%2C+y%27+%3D+x%28t%29+%2B+y%28t%29%7D){target="_blank"}
+
+[`eigenvalues ((1, 1), (1, -1))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%281%2C+1%29%2C+%281%2C+-1%29%29){target="_blank"}
+
+[`{x'(t) = x(t) + y(t), y' = x(t) - y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+x%28t%29+%2B+y%28t%29%2C+y%27+%3D+x%28t%29+-+y%28t%29%7D){target="_blank"}
+
+[`eigenvalues ((1, -1), (1, 1))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%281%2C+-1%29%2C+%281%2C+1%29%29){target="_blank"}
+
+[`{x'(t) = x(t) - y(t), y' = x(t) + y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+x%28t%29+-+y%28t%29%2C+y%27+%3D+x%28t%29+%2B+y%28t%29%7D){target="_blank"}
+
+[`eigenvalues ((1, -1), (1, -1))`](https://www.wolframalpha.com/input?i=eigenvalues+%28%281%2C+-1%29%2C+%281%2C+1%29%29){target="_blank"}
+
+[`{x'(t) = x(t) - y(t), y' = x(t) - y(t)}`](https://www.wolframalpha.com/input?i=%7Bx%27%28t%29+%3D+x%28t%29+-+y%28t%29%2C+y%27+%3D+x%28t%29+-+y%28t%29%7D){target="_blank"}
+
+## Exemplo 11.7.2: Passagem de alimentos em ruminantes
+
+Ruminantes, como veados, ovelhas, cabras, bois, têm um estômago complicado.
+
+Alimentos recém-comidos, mas não mastigados, são passados para um compartimento de armazenamento chamado rúmen.
+
+Mais tarde, quando mastigado, o alimento passa pelo abomaso para o duodeno, onde é processado posteriormente. A partir daí, ele entra lentamente nos intestinos. Para obter uma descrição matemática da passagem do alimento pelo trato digestivo, Blaxter, Graham e Wainman (1956) propuseram o seguinte modelo:
+
+Seja $r = r(t)$ a quantidade de alimento no rúmen no instante $t$. 
+Em $t = 0$ esta quantidade é uma quantidade conhecida, digamos $r_0$.
+
+Por $u = u(t)$ denotamos a quantidade de alimento no abomaso no instante $t$. Em $t = 0$ temos $u= 0$. A taxa de diminuição de $r= r(t)$ é provavelmente proporcional a $r$.
+
+Também é razoável supor que $du/dt$ consiste em dois termos: uma taxa de aumento igual à taxa de diminuição de $r$ e uma taxa de diminuição proporcional a $u$. Assim obtemos as equações diferenciais lineares:
+
+$$\begin{align}
+\dfrac{dr}{dt}&=-k_1r \\
+\dfrac{du}{dt}&=k_1r-k_2u
+\end{align}$$
+
+sendo que $k_1$ e $k_2$ são constantes positivas. Eles podem ser chamados de taxas específicas de digestão. Assumimos que $k_1 \ne k_2$. A primeira equação contém um sinal de menos, pois _r_ diminui.
+
+Além disso, denotamos a quantidade total de alimento que entrou no duodeno no tempo $t$ por $v= v(t)$ e a quantidade de fezes por $w= w(t)$.
+
+Como o duodeno recebe exatamente a mesma quantidade que sai do abomaso, obtemos a equação diferencial
+
+$$\dfrac{dv}{dt}=k_2u$$
+
+sendo que $v= 0$ no tempo $t = 0$. 
+
+Finalmente, assumimos que as fezes deixam o animal com um atraso de tempo constante que denotamos por $\tau$.
+
+Desprezando a perda de matéria que entra nos vasos sanguíneos, obtemos
+$w(t) = v$ no tempo $t - \tau$:
+
+$$w(t) = v (t - \tau), \; t> \tau$$
+
+O processo geral pode ser resumido graficamente por:
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics("./image/ruminante.png")
+```
+
+A equação característica do sistema $\{r^{\prime}, u^{\prime}\}$ é:
+
+$$\lambda^2+\left(k_1+k_2\right)\lambda+k_1k_2=0$$
+
+de modo que $\lambda_1=-k_1$ e $\lambda_2=-k_2$ onde por suposição $\lambda_1 \ne \lambda_2$.
+
+A solução geral pode ser escrita na forma:
+
+$$r=A_1e^{-k_1t}+A_2e^{-k_2t} \\
+u=B_1e^{-k_1t}+B_2e^{-k_2t}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`r'(t)= -k_1 r(t), u'(t) = k_1 r(t) - k_2 u(t)`](https://www.wolframalpha.com/input?i=r%27%28t%29%3D+-k_1+r%28t%29%2C+u%27%28t%29+%3D+k_1+r%28t%29+-+k_2+u%28t%29){target="_blank"}
+
+A solução particular é, se $r(0)=r_0, u(0)=0$:
+
+$$\begin{align}
+r(t)&=r_0\;e^{-k_1t} \\
+u(t)&=r_0\dfrac{k_1}{k_2-k_1}\left(e^{-k_1t}-e^{-k_2t}\right)
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Plot[{100 E^(-0.1 t)}, {t, 0, 50}]`](https://www.wolframalpha.com/input?i=Plot%5B%7B100+E%5E%28-0.1+t%29%7D%2C+%7Bt%2C+0%2C+50%7D%5D){target="_blank"}
+
+[`Plot[{100 (0.1 / (0.2-0.1)) (E^(-0.1 t) - E^(-0.2 t))}, {t, 0, 50}]`](https://www.wolframalpha.com/input?i=Plot%5B%7B100+%280.1+%2F+%280.2-0.1%29%29+%28E%5E%28-0.1+t%29+-+E%5E%28-0.2+t%29%29%7D%2C+%7Bt%2C+0%2C+50%7D%5D){target="_blank"}
+
+[`Plot[{100 E^(-0.1 t), 100 (0.1 / (0.2-0.1)) (E^(-0.1 t) - E^(-0.2 t))}, {t, 0, 50}]`](https://www.wolframalpha.com/input?i=Plot%5B%7B100+E%5E%28-0.1+t%29%2C+100+%280.1+%2F+%280.2-0.1%29%29+%28E%5E%28-0.1+t%29+-+E%5E%28-0.2+t%29%29%7D%2C+%7Bt%2C+0%2C+50%7D%5D){target="_blank"}
+
+Por integração:
+
+$$v(t)=k_2\int_{0}^{t}{u(x)}dx=r_0\left(1+\dfrac{k_1\;e^{-k_2t}-k_2\;e^{-k_1t}}{k_2-k_1}\right)$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`integral r (k_1 / (k_2 - k_1)) (E^(- k_1 t) - E^(- k_2 t)) for t`](https://www.wolframalpha.com/input?i=integral+r+%28k_1+%2F+%28k_2+-+k_1%29%29+%28E%5E%28-+k_1+t%29+-+E%5E%28-+k_2+t%29%29+for+t){target="_blank"}
+
+Portanto:
+
+$$w(t) = v (t - \tau)$$
+
+Modelamos o trato digestivo como um sistema de três compartimentos que pode ser interpretado como um exemplo de análise de compartimento.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 11.8. A passagem do alimento pelo trato digestivo dos ruminantes. A quantidade de alimento no rúmen e no abomaso é denotada por r(t), u(t), respectivamente. w(t) é a quantidade de fezes."}
+knitr::include_graphics("./image/Fig11.8.png")
+```
+
+# Sistema de equações diferenciais não lineares
+
+$$x^{\prime}=ax-bxy \\
+y^{\prime}= cxy-dy$$
+
+sendo que $a>0$, $b>0$, $c>0$, $d>0$ são constantes dadas.
+
+$$a\;\ln(y)-by=cx-d\;\ln(x)+k$$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 11.11. Gráfico logarítmico duplo de pontos (x, y) que satisfazem a equação da solução com as constantes particulares a = 1, b = 0.002, c = 0.00001, d = 0.08, k = 5.8. O conjunto solução é uma curva fechada. Se considerarmos x e y como funções do tempo, o ponto (x, y) move-se ao longo da curva fechada no sentido anti-horário, descrevendo assim ciclo por ciclo."}
+knitr::include_graphics("./image/Fig11.11.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Plot[ln(y) - 0.002 y = 0.00001 x - 0.08 ln(x) + 5.8, {x,1000, 22000}, {y,300,700}]`](https://www.wolframalpha.com/input?i=Plot%5Bln%28y%29+-+0.002+y+%3D+0.00001+x+-+0.08+ln%28x%29+%2B+5.8%2C+%7Bx%2C1000%2C+22000%7D%2C+%7By%2C300%2C700%7D%5D){target="_blank"}
+
+# Bibliografia
+
+* Allen, LJS (2007) _An Introduction to Mathematical Biology_. NJ: Pearson.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. SP: EDUSP e RJ: Interciência.
+* Bertalanffy, L von (1957) Quantitative Laws in Metabolism and Growth.
+_The Quarterly Review of Biology_ 32(3): 217-231.
+* Garﬁnkel, A et al. (2017) _Modeling Life: The Mathematics of Biological Systems_. USA: Springer.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. 
+* Jones, DS, Plank, MJ & Sleeman, BD (2009) _Differential Equations and Mathematical Biology_. 2nd ed. UK: CRC.
+* Kreider, DL; Kuller, RG & Ostberg, DR (1972) _Equações diferenciais_. Tradução: Elza F. Gomide. SP: Blucher.
+* [Paul's Online Notes: Wikipedia](https://tutorial.math.lamar.edu/){target="_blank"}
+* Poularikas, AD (1999) _The Handbook of Formulas and Tables for Signal Processing_. Boca Raton: CRC/Springer/IEEE. 
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. SP: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* West, GB, Brown, JH & Enquist, BJ (2001) A general model for ontogenetic growth. _Nature_ 413(6856): 628–631. doi:10.1038/35098076.
+* Zwillinger, D (1997) _Handbook of differential equations_. 3rd ed. USA: Academic. 
+
+# Manual do WolframAlpha
+
+* [Ordinary Differential Equations (ODEs)](https://reference.wolfram.com/language/tutorial/DSolveOrdinaryDifferentialEquations.html){target="_blank"}
+
+* [Symbolic Differential Equation Solving](https://reference.wolfram.com/language/tutorial/DSolveOverview.html){target="_blank"}
+
+* [An elementary introduction to the Wolfram language](https://www.wolfram.com/language/elementary-introduction/2nd-ed/){target="_blank"}
+
+# Matemática no YouTube 
+
+* [Brilliant: This is why you're learning differential equations](https://www.youtube.com/watch?v=ifbaAqfqpc4){target="_blank"}
+* [Physics with Elliot: Physics Students Need to Know These 5 Methods for Differential Equations](https://www.youtube.com/watch?v=0kY3Wpvutfs&list=WL&index=9&t=2s){target="_blank"}
+* [Dr. Trefor Bazett: The MATH of Pandemics | Intro to the SIR Model](https://www.youtube.com/watch?v=Qrp40ck3WpI){target="_blank"}
+* [Brian Sullivan: SIR Model For Disease Spread- 1. Introduction](https://www.youtube.com/watch?v=vL6NfB7BKeY){target="_blank"}
+* [Jeffrey Chasnov: Derivation of the basic reproductive ratio from the SIR model | Differential Equations for Engineers](https://www.youtube.com/watch?v=UldcLrMI4fM&list=WL&index=6){target="_blank"}
+* [The Efficient Engineer: Entendendo a Equação de Bernoulli](https://www.youtube.com/watch?v=DW4rItB20h4&list=WL&index=5&t=704s){target="_blank"}

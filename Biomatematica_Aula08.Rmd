@@ -1,0 +1,2845 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 8: Função de duas ou mais variáveis independentes" 
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    footer: "Biomatematica_Aula08"
+    font_adjustment: 1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    footer: "Biomatematica_Aula08"
+    font_adjustment: -1
+    df_print: tibble
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_title: Sumário
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:", "Usuarios", "Jose", "scilab2023", "bin", "Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r eval=TRUE,  echo=TRUE, warning=FALSE, error=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(nlsr, warn.conflicts=FALSE))
+suppressMessages(library(Deriv, warn.conflicts=FALSE))
+suppressMessages(library(ggplot2, warn.conflicts=FALSE))
+suppressMessages(library(reshape2, warn.conflicts=FALSE))
+suppressMessages(library(rayshader, warn.conflicts=FALSE))
+suppressMessages(library(plotly, warn.conflicts=FALSE))
+suppressMessages(library(dplyr, warn.conflicts=FALSE))
+```
+
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMat){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+```{r echo=FALSE, out.width="90%", fig.cap="https://derdo.wordpress.com/2012/07/09/not-a-level-flaying-field-not-ceteris-paribus/"}
+knitr::include_graphics("./image/fair.png")
+```
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+2.	Função e relação (Capítulo 3)
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+
+__8.	Função de duas ou mais variáveis independentes (Capítulo 12)__
+
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e vetor (Capítulo 14)
+
+# Adicionar
+
+<!-- * [Desmos: calculadora gráfica](https://www.desmos.com/?lang=pt-BR){target="_blank"} -->
+<!-- * [Desmos 2D](https://www.desmos.com/calculator?lang=pt-BR){target="_blank"} -->
+<!-- * [Desmos 3D](https://www.desmos.com/3d?lang=pt-BR){target="_blank"}  -->
+
+<!-- * Modeling Life - The Mathematics of Biological Systems - Garﬁnkel et al - 2017.pdf -->
+<!--   * linear approximation to the curve f at the point (X0, Y0) (Figure 7.15), p. 379 -->
+<!--   * Exercicios 7 e 8 -->
+<!--   * Explora $f(X,Y)=e^{−X^2−Y^2}$, p. 423: use linear approximation relacionado com gradiente -->
+<!--     * Use this method to classify the critical points of the functions in Exercise 7.7.10 as local maxima, local minima, or saddle points., p. 431 -->
+<!--     * Therefore, the Hessian matrix is always symmetric. We can therefore apply a theorem from linear algebra that says that a symmetric matrix can have only real eigenvalues. This has the consequence that there can be no spiraling in a gradient vector field: the state point must head straight upward by the steepest path., p. 431 -->
+
+<!-- * 5.2. THE SIR MODEL OF INFECTIOUS DISEASE, p. 360:  -->
+<!--   * Explorations of mathematical models in biology with MATLAB - Shahin - 2014.pdf -->
+
+<!-- * Fundamentals of Applied Statistics - 4e - Gupta & Kapoor.pdf -->
+<!--     * Cap. 4: Demand analysis: elastícidade simple e cruzada -->
+<!--     * Cap. 9: Vital Statistics -->
+
+<!-- * _Differential Equations and Mathematical Biology_ - Jones & Sleeman - 2003.pdf -->
+
+# Introdução
+
+* [Multivariable calculus: Wikipedia](https://en.wikipedia.org/wiki/Multivariable_calculus){target="_blank"}
+
+* [Ceteris paribus: Wikipedia](https://en.wikipedia.org/wiki/Ceteris_paribus){target="_blank"}
+
+_Ceteris paribus_ é o método de analisar o efeito de uma variável independente sobre a variável dependente mantendo todas as outras variáveis independentes constantes.
+
+A derivada parcial é uma maneira de implementar _ceteris paribus_ na análise de modelo matemático.
+
+* [Multivariable calculus: Math Insight](https://mathinsight.org/thread/multivar#s3){target="_blank"}
+
+Recordamos a fórmula para da média geométrica de dois números $x$ e $y$:
+
+$$z(x,y) = \sqrt{xy} \\
+x \ge 0 \\
+y \ge 0$$ 
+
+Considere $x$ e $y$ como variáveis cujos valores podem ser escolhidos independentemente um do outro. Então, a cada par $(x, y)$ está associado exclusivamente um número $z$, a média geométrica. No Capítulo 3, chamamos essa associação de função.
+
+Dizemos que $z$ é uma função do par $(x, y)$, ou o par $(x, y)$ é mapeado em $z$. Também é comum chamar $z$ de função de duas variáveis $x$ e $y$.
+
+Os números $x$ e $y$ são conhecidos como variáveis independentes, enquanto $z$ é chamado de variável dependente. O domínio $D$ da função é o conjunto de todos os pares $(x, y)$ com $x \ge 0$ e $y \ge 0$. 
+
+O domínio é:
+
+$$D= \{(x, y)|x\ge0, y\ge0\}$$
+
+A imagem $R$ da função é o conjunto de todos os números $z \ge0$ ou
+
+$$R = \{z|z\ge 0\}$$
+
+Para um gráfico de uma função de duas variáveis independentes, podemos usar um sistema de coordenadas tridimensionais com eixos $x$, $y$, $z$ perpendiculares aos pares. Um par $(x, y)$ é representado por um ponto no plano $xy$. A cada um desses pontos está associada uma coordenada $z$ plotada em uma linha que passa pelo ponto e plotada perpendicularmente ao plano $xy$. Esta coordenada determina um ponto. Denotamos esse ponto simplesmente por $(x, y, z)$.
+
+Se $z$ é uma função de $(x, y)$, os pontos $(x, y, z)$ formam uma superfície que pode ser contínua ou não. Normalmente, é desenhada uma vista em perspectiva do sistema de coordenadas e da superfície. A Fig. 12.1 representa a superfície definida pela função $z$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.1. Gráfico da média geométrica z = sqrt(x y) em um sistema de coordenadas retangulares."}
+knitr::include_graphics("./image/Fig12.1.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Definindo a nova função com sqrt(x * y)
+sqrt_xy <- function(a, b) {
+  sqrt(a * b)
+}
+
+# Gerando os valores de a e b
+a_values <- seq(0, 5, length.out = 100)
+b_values <- seq(0, 5, length.out = 100)
+
+# Criando a grade de combinações de a e b
+grid <- base::expand.grid(a = a_values, b = b_values)
+
+# Calculando os valores da função sqrt(a * b)
+grid$z <- base::with(grid, sqrt_xy(a, b))
+
+# Transformando os dados para o formato longo
+grid_melt <- reshape2::melt(grid, id.vars = c("a", "b"), measure.vars = "z")
+
+# Criando o gráfico de contorno
+ggplot_contour <- ggplot2::ggplot(grid_melt, ggplot2::aes(x = a, y = b, z = value)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::geom_contour(color = "black") +
+  ggplot2::scale_fill_gradientn(colours = grDevices::terrain.colors(10)) +
+  ggplot2::labs(title = "Gráfico de Contorno da Função sqrt(a * b)", x = "a", y = "b", fill = "C") +
+  ggplot2::theme_minimal()
+
+# Exibindo o gráfico
+print(ggplot_contour)
+
+# Renderizando o gráfico em 3D usando rayshader
+rayshader::plot_gg(ggplot_contour, multicore = TRUE, zoom = 0.8, phi = 40, theta = 30)
+rayshader::render_snapshot(clear = FALSE)
+
+# Criando o gráfico 3D interativo com plotly
+fig <- plotly::plot_ly(x = ~a_values, y = ~b_values, z = ~matrix(grid$z, nrow = 100)) %>%
+  plotly::add_surface(
+    contours = list(
+      z = list(
+        show = TRUE,
+        usecolormap = TRUE,
+        highlightcolor = "#ff0000",
+        project = list(z = TRUE)
+      )
+    )
+  ) %>%
+  plotly::layout(
+    scene = list(
+      xaxis = list(title = "a"),
+      yaxis = list(title = "b"),
+      zaxis = list(title = "C"),
+      camera = list(
+        eye = list(x = 1.87, y = 0.88, z = -0.64)
+      )
+    ),
+    title = "Superfície 3D da Função sqrt(a * b)"
+  )
+
+# Exibindo o gráfico interativo
+fig
+```
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- seq(0, 5, length.out = 30)
+y <- seq(0, 5, length.out = 30)
+z <- outer(x, y, function(x, y) sqrt(x * y))
+persp(x, y, z, main = "Gráfico de sqrt(x*y)", 
+      xlab = "x", ylab = "y", zlab = "sqrt(x*y)",
+      theta = 30, phi = 20, expand = 1, col = "lightblue")
+persp(x, y, z, main = "Gráfico de sqrt(x*y)", 
+      xlab = "x", ylab = "y", zlab = "sqrt(x*y)",
+      theta = -30, phi = 20, expand = 1, col = "lightblue")
+persp(x, y, z, main = "Gráfico de sqrt(x*y)", 
+      xlab = "x", ylab = "y", zlab = "sqrt(x*y)",
+      theta = 120, phi = 0, expand = 1, col = "lightblue")
+```
+
+[sqrt(x y): Desmos3D](https://www.desmos.com/3d/dcnjigseir){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+* [`sqrt(x y)`](https://www.wolframalpha.com/input?i=sqrt%28x+y%29){target="_blank"}
+
+* [`contour plot sqrt(x y)` ](https://www.wolframalpha.com/input?i=contour+plot+sqrt%28x+y%29+){target="_blank"}
+
+* [`contour plot sqrt(x y) from x=0 to x=5 from y=0 to y=5 axes label "x" "y" plot legend`](https://www.wolframalpha.com/input?i=contour+plot+sqrt%28x+y%29+from+x%3D0+to+x%3D5+from+y%3D0+to+y%3D5+axes+label+%22x%22+%22y%22+plot+legend){target="_blank"}
+
+Nem sempre é conveniente plotar ou usar uma vista em perspectiva. Para funções contínuas, um gráfico de isolinhas pode ser mais fácil de preparar e interpretar. Isolinhas são linhas ao longo das quais o valor funcional permanece constante, da mesma forma que linhas de contorno em um mapa geográfico conectam pontos de elevação constante. Um gráfico de isolinhas da função $z$ é apresentado na Fig. 12.2.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.2. Isolinhas representando a função z = sqrt(x y)."}
+knitr::include_graphics("./image/Fig12.2.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+z <- function(x, y) {
+  sqrt(x*y)
+}
+x <- seq(0, 5, length.out = 400)
+y <- seq(0, 5, length.out = 400)
+grid <- expand.grid(x = x, y = y)
+grid$z <- z(grid$x, grid$y)
+graf <- ggplot2::ggplot(grid, ggplot2::aes(x, y, z = z)) +
+  ggplot2::geom_contour(ggplot2::aes(colour = ggplot2::after_stat(level)), 
+                        bins = 10) +
+  ggplot2::labs(title = "Isolinhas de sqrt(x y)", 
+       x = "x", 
+       y = "y", 
+       color = "z") +
+  ggplot2::theme_minimal()
+print(graf)
+```
+
+# Derivada parcial
+
+* [Partial derivative: Wikipedia](https://en.wikipedia.org/wiki/Partial_derivative){target="_blank"}
+
+* [Introduction to partial derivatives: Math Insight](https://mathinsight.org/partial_derivative_introduction){target="_blank"}
+
+## Exemplo 12.2.1: Média geométrica
+
+Consideramos novamente a média geométrica $z(x,y)=\sqrt{xy}$.
+
+Mantendo $y$ constante, $z$ é proporcional a $\sqrt{x}$. 
+
+Portanto, a derivada parcial resulta em: 
+
+$$\begin{align}
+\dfrac{\partial z}{\partial x}&=\left(\sqrt{xy}\right)^{\prime} \\
+&=\left(x^{1/2}y^{1/2}\right)^{\prime} \\
+&=y^{1/2}\left(x^{1/2}\right)^{\prime} \\
+&=y^{1/2}\dfrac{1}{2}x^{-1/2} \\
+&=\dfrac{1}{2}x^{-1/2}y^{1/2}  \\
+\dfrac{\partial z}{\partial x} &= \dfrac{1}{2}\sqrt{\dfrac{y}{x}}
+\end{align}$$
+
+Da mesma forma, quando $x$ é mantida constante, 
+
+$$\dfrac{\partial z}{\partial y} = \dfrac{1}{2}\sqrt{\dfrac{x}{y}}$$
+
+## Notação de derivada parcial
+
+$$\begin{align}
+\dfrac{\partial f(x,y)}{\partial x}&=f_{x}(x,y)=f_{x}\\
+\dfrac{\partial f(x,y)}{\partial y}&=f_{y}(x,y)=f_{y}\\
+\dfrac{\partial^2 f(x,y)}{\partial x^2}&=f_{xx}(x,y)=f_{xx}\\
+\dfrac{\partial^2 f(x,y)}{\partial y^2}&=f_{yy}(x,y)=f_{yy}\\
+\dfrac{\partial^2 f(x,y)}{\partial x \partial y}&=\dfrac{\partial^2 f(x,y)}{\partial y \partial x}=f_{xy}(x,y)=f_{xy}
+\end{align}$$
+
+## Exemplo 12.2.2: Corrente elétrica
+
+Consideramos a corrente elétrica $I$ que flui através de um resistor que é mantido sob temperatura constante. 
+
+De acordo com a lei de Ohm,
+
+$$I=\dfrac{V}{R}$$
+
+sendo que $V$ denota a tensão e $R$ a resistência. A corrente $I$ é uma função de duas variáveis independentes $V$ e $R$. Se a tensão $V$ mudar enquanto $R$ permanecer constante, obtemos a taxa de variação de:
+
+$$I_V=\dfrac{\partial I}{\partial V}=\dfrac{1}{R}=R^{-1}$$
+
+Se, no entanto, a resistência $R$ mudar enquanto $V$ permanecer constante, a taxa de mudança torna-se
+
+$$I_R=\dfrac{\partial I}{\partial R}=-\dfrac{V}{R^2}=-VR^{-2}$$
+
+Uma maior diferenciação leva a:
+
+$$\begin{align}
+I_{VV}&=\dfrac{\partial^2 I}{\partial^2 V}=0 \\
+I_{RR}&=\dfrac{\partial^2 I}{\partial^2 R}=2VR^{-3}=2\dfrac{V}{R^3} \\
+I_{VR}&=\dfrac{\partial}{\partial R}\left(\dfrac{\partial I}{\partial V}\right)=\dfrac{\partial}{\partial V}\left(\dfrac{\partial I}{\partial R}\right)=-R^{-2}=-\dfrac{1}{R^2}
+\end{align}$$
+
+Para obter a derivada mista primeiro diferenciamos em relação a $V$ e depois em relação a $R$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`partial derivative V/R`](https://www.wolframalpha.com/input?i=partial+derivative+V%2FR){target="_blank"}
+
+[`second derivative V/R for V`](https://www.wolframalpha.com/input?i=second+derivative+V%2FR+for+V){target="_blank"}
+
+[`second derivative V/R for R`](https://www.wolframalpha.com/input?i=second+derivative+V%2FR+for+R){target="_blank"}
+
+[`second derivative V/R for V and R`](https://www.wolframalpha.com/input?i=second+derivative+V%2FR+for+V+and+R){target="_blank"}
+
+## Exemplo: bens substitutos e complementares
+
+Os bens podem ser classificadas como substitutos ou complementares no mercado. 
+
+Os bens substitutos são, por exemplo, manteiga e margarina. Já os bens complementares são, por exemplo, café e açúcar. 
+
+Dois bens são substitutos se, ao aumentar o preço de um bem, a demanda pela outra aumenta. 
+
+Dois bens são complementares se, ao aumentar o preço de um bem, a demanda pela outra diminui. 
+
+Para formalizar e distinguir matematicamente bens complementares e substitutos, é necessário usar a elasticidade cruzada. 
+
+A elasticidade instantânea cruzada utiliza a derivada parcial cruzada. 
+Um exemplo é necessário para ilustrar o problema. 
+
+As duas funções de demanda, uma para cada bem, são funções dos preços dos dois bens:  
+
+$$d^A=1000-2p^A+10p^B\\
+d^B=2000+5p^A-20p^B$$
+
+sendo $d^A>0$ e $d^B>0$ as quantidades semanais em quilograma de manteiga (A) e margarina (B) em um hipermercado, respectivamente, e $p^A>0$ e $p^B>0$ são preços unitários da manteiga e da margarina, respectivamente.
+
+Verifique se as funções de demanda são economicamente válidas e se os bens são substitutos.
+
+__Solução__:
+
+As elasticidades instantâneas parciais são dadas por:
+
+$$E^A_A=p^A\dfrac{d^A_A}{d^A}\\
+E^B_B=p^B\dfrac{d^B_B}{d^B}$$ 
+
+O sinal das elasticidades instantâneas parciais dependem diretamente das derivadas parciais das funções de demanda. 
+
+As derivadas parciais são dadas por:
+
+$$d^A_A=-2\\
+d^B_B=-20$$ 
+
+Como essas derivadas parciais são estritamente negativas, as funções de demanda são economicamente plausíveis (aumento de preço do bem causa diminuição de demanda deste bem) e, portanto, as elasticidades instantâneas parciais são estritamente negativas:
+
+$$E^A_A=-\dfrac{2p^A}{d^A}<0\\
+E^B_B=-\dfrac{20p^B}{d^B}<0$$  
+
+As derivadas parciais cruzadas são:
+
+$$d^A_B=10\\
+d^B_A=5$$  
+
+Observe que as duas derivadas parciais cruzadas são estritamente positivas. 
+
+As elasticidades instantâneas cruzadas da demanda pelos bens A e B são expressas, respectivamente, da seguinte maneira:
+
+$$E^A_B=p^B\dfrac{d^A_B}{d^A}\\
+E^B_A=p^A\dfrac{d^B_A}{d^B}$$  
+
+O sinal da elasticidade instantânea cruzada depende diretamente do sinal da derivada parcial cruzada. 
+
+Como essas derivadas parciais cruzadas são estritamente positivas, as funções de demanda são economicamente plausíveis (aumento de preço do bem causa aumento de demanda pelo outro bem) e, portanto, as elasticidades instantâneas parciais cruzadas são estritamente positivas:
+
+$$E^A_B=\dfrac{10p^B}{d^A}>0\\
+E^B_A=\dfrac{5p^A}{d^B}>0$$ 
+
+Dois bens são substitutos se as elasticidades instantâneas cruzadas são estritamente positivas, ou seja: 
+
+$$E^A_B>0\\
+E^B_A>0$$  
+
+Por outro lado, dois bens são complementares se as elasticidades instantâneas cruzadas são estritamente negativas.
+
+$$E^A_B<0\\
+E^B_A<0$$  
+
+Conclui-se que manteiga e margarina são bens substitutos.
+
+# Derivada total
+
+* [Total derivative: Wikipedia ](https://en.wikipedia.org/wiki/Total_derivative){target="_blank"}
+
+A **derivada total** é uma ferramenta matemática poderosa utilizada para analisar a variação de uma função que depende de múltiplas variáveis em relação a uma única variável. Enquanto a derivada parcial mede a taxa de variação de uma função em relação a uma variável específica, mantendo as outras constantes, a derivada total leva em consideração a variação de todas as variáveis independentes simultaneamente.
+
+## Conceito
+
+Se temos uma função $z = f(x, y)$, onde $z$ depende de $x$ e $y$, a derivada total de $z$ em relação a uma variável $t$ é dada por:
+
+$$
+\dfrac{dz}{dt} = \dfrac{\partial z}{\partial x} \dfrac{dx}{dt} + \dfrac{\partial z}{\partial y} \dfrac{dy}{dt}
+$$
+
+Aqui, $\dfrac{\partial z}{\partial x}$ e $\dfrac{\partial z}{\partial y}$ são as derivadas parciais de $z$ em relação a $x$ e $y$, respectivamente, e $\dfrac{dx}{dt}$ e $\dfrac{dy}{dt}$ são as taxas de variação de $x$ e $y$ em relação a $t$.
+
+## Exemplo Biológico: Crescimento Populacional com Disponibilidade de Alimento e Nível de Predação
+
+Vamos estudar uma população de coelhos $P$ que depende da quantidade de alimento disponível $A$ e nível de predação $R$. A relação pode ser expressa como uma função:
+
+$$P = f(A, R)$$
+
+1. **Identificação das Variáveis**:
+
+   - $P$: População de coelhos (variável dependente).
+   - $A$: Quantidade de alimento disponível (variável independente).
+   - $R$: Nível de predação (variável independente).
+
+2. **Função da População**:
+
+   - Suponhamos que a função da população seja dada por:
+     $$P(A, R) = \dfrac{A^2}{R}$$
+
+3. **Derivadas Parciais**:
+
+   - $\dfrac{\partial P}{\partial A}$: A taxa de variação da população em relação à quantidade de alimento.
+     $$\dfrac{\partial P}{\partial A} = \dfrac{2A}{R}$$
+   - $\dfrac{\partial P}{\partial R}$: A taxa de variação da população em relação ao nível de predação.
+     $$\dfrac{\partial P}{\partial R} = -\dfrac{A^2}{R^2}$$
+
+4. **Taxas de Variação das Variáveis**:
+
+   - Suponha que a quantidade de alimento disponível varia de forma senoidal com o tempo:
+     $$A = \sin(t)$$
+     Então, a taxa de variação de $A$ em relação ao tempo é:
+     $$\dfrac{dA}{dt} = \cos(t)$$
+   - E o nível de predação varia como a raiz quadrada do tempo:
+     $$R = \sqrt{t}$$
+     Então, a taxa de variação de $R$ em relação ao tempo é:
+     $$\dfrac{dR}{dt} = \dfrac{1}{2\sqrt{t}}$$
+
+5. **Derivada Total**:
+
+A derivada total de $P$ em relação ao tempo $t$ é dada por:
+
+$$
+\dfrac{dP}{dt} = \dfrac{\partial P}{\partial A} \dfrac{dA}{dt} + \dfrac{\partial P}{\partial R} \dfrac{dR}{dt}
+$$
+
+Substituindo os valores das derivadas parciais e das taxas de variação:
+
+- $\dfrac{\partial P}{\partial A} = \dfrac{2A}{R} = \dfrac{2 \sin(t)}{\sqrt{t}}$
+- $\dfrac{\partial P}{\partial R} = -\dfrac{A^2}{R^2} = -\dfrac{\sin^2(t)}{t}$
+
+Então:
+
+$$
+\dfrac{dP}{dt} = \left( \dfrac{2 \sin(t)}{\sqrt{t}} \right) \cos(t) + \left( -\dfrac{\sin^2(t)}{t} \right) \dfrac{1}{2\sqrt{t}}
+$$
+
+Portanto, a derivada total da população de coelhos em relação ao tempo $t$ é:
+
+$$
+\dfrac{dP}{dt} = \dfrac{\sin(t)}{\sqrt{t}} \left( 2 \cos(t) - \dfrac{\sin(t)}{2t} \right)
+$$
+
+# Vetor gradiente
+
+* [The gradient vector: Math Insight](https://mathinsight.org/gradient_vector){target="_blank"}
+
+* [Gradient: Wikipedia](https://en.wikipedia.org/wiki/Gradient){target="_blank"}
+
+O conceito de gradiente é fundamental em cálculo multivariado e é amplamente utilizado em otimização e análise de funções. O gradiente de uma função escalar de várias variáveis é um vetor que aponta na direção de maior taxa de aumento da função. Vamos usar a função \( f(x, y) = \sqrt{x y} \) como exemplo para entender como calcular o gradiente.
+
+A função \( f(x, y) = \sqrt{x y} \) pode ser reescrita como \( f(x, y) = (xy)^{1/2} \).
+
+O gradiente de \( f \) é o vetor das suas derivadas parciais:
+
+\[ 
+\nabla f(x, y) = \left( \dfrac{\partial f}{\partial x}, \dfrac{\partial f}{\partial y} \right) 
+\]
+
+Portanto, o gradiente de \( f(x, y) = \sqrt{xy} \) é:
+
+\[ 
+\nabla f(x, y) = \left( \dfrac{y}{2 \sqrt{xy}}, \dfrac{x}{2 \sqrt{xy}} \right) 
+\]
+
+O gradiente \( \nabla f(x, y) \) aponta na direção de maior aumento de \( f \) e sua magnitude indica a taxa de variação de \( f \) nessa direção. 
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+f <- function(x, y) {
+  sqrt(x * y)
+}
+
+grad_f <- function(x, y) {
+  c(y / (2 * sqrt(x * y)), x / (2 * sqrt(x * y)))
+}
+
+# Gerar uma grade de pontos
+x <- seq(0.1, 5, length.out = 10)
+y <- seq(0.1, 5, length.out = 10)
+grid <- expand.grid(x = x, y = y)
+
+# Calcular os valores da função e do gradiente
+grid$z <- mapply(f, grid$x, grid$y)
+gradients <- t(mapply(grad_f, grid$x, grid$y))
+grid$u <- gradients[, 1]
+grid$v <- gradients[, 2]
+
+# Criar o gráfico
+g <- ggplot2::ggplot(grid, ggplot2::aes(x = x, y = y)) +
+     ggplot2::geom_tile(ggplot2::aes(fill = z), alpha = 0.3) +
+     ggplot2::geom_segment(ggplot2::aes(xend = x + u, 
+                               yend = y + v),
+                  arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm")), 
+                                         color = "black") +
+     ggplot2::scale_fill_gradient(low = "white", high = "black") +
+     ggplot2::labs(title = "Vetor Gradiente de f(x, y) = sqrt(x * y)",
+                   x = "x", y = "y") +
+     ggplot2::theme_minimal()
+print(g)
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.3. Encontrando o máximo de função."}
+knitr::include_graphics("./image/Fig12.3.png")
+```
+
+# Matriz hessiana
+
+* [Hessian matrix: Wikipedia](https://en.wikipedia.org/wiki/Hessian_matrix){target="_blank"}
+
+* [Jacobian matrix and determinant: Wikipedia](https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant){target="_blank"}
+
+* [The derivative matrix: Math Insight](https://mathinsight.org/derivative_matrix){target="_blank"}
+
+A matriz hessiana foi desenvolvida no século XIX pelo matemático alemão Ludwig Otto Hesse e posteriormente nomeada em sua homenagem. Hesse originalmente usou o termo "determinantes funcionais". 
+
+A matriz hessiana é uma matriz quadrada e simétrica de segundas derivadas parciais de uma função. Ela é fundamental em cálculo multivariado e otimização para entender a curvatura e a natureza dos pontos críticos da função.
+
+Matriz hessiana descreve a _curvatura_ local de uma função de várias variáveis.
+
+A Hessiana é às vezes denotada por $\mathcal{H}$ ou $\nabla^2$.
+
+$$\mathcal{H}(f(x,y))=\left[\begin{array}{cc} 
+f_{xx} & f_{xy}\\
+f_{yx} & f_{yy}
+\end{array}\right] = \nabla(\nabla f(x,y)) = (J(\nabla f(x,y))^T$$
+
+## Exemplo
+
+Para determinar a matriz Hessiana de \( \sqrt{x y} \), calculamos todas as derivadas parciais de segunda ordem.
+
+A função dada é \( f(x, y) = \sqrt{x y} \).
+
+Primeiro, calculamos as derivadas parciais de primeira ordem:
+
+$$
+\frac{\partial f}{\partial x} = \frac{\partial}{\partial x} \sqrt{x y} = \frac{y}{2 \sqrt{x y}}
+$$
+
+$$
+\frac{\partial f}{\partial y} = \frac{\partial}{\partial y} \sqrt{x y} = \frac{x}{2 \sqrt{x y}}
+$$
+
+Agora, calculamos as derivadas parciais de segunda ordem:
+
+1. Derivada parcial de \( \frac{\partial f}{\partial x} \) em relação a \( x \):
+
+$$
+\frac{\partial}{\partial x} \left( \frac{y}{2 \sqrt{x y}} \right) =   -\frac{y^2}{4 (x y)^{3/2}}
+$$
+
+2. Derivada parcial de \( \frac{\partial f}{\partial x} \) em relação a \( y \):
+
+$$
+\frac{\partial}{\partial y} \left( \frac{y}{2 \sqrt{x y}} \right) =  \frac{1}{2 \sqrt{x y}} - \frac{1}{4 (x y)^{1/2}}
+$$
+
+Como \(\frac{x y}{(x y)^{3/2}} = \frac{1}{(x y)^{1/2}}\), temos:
+
+$$
+\frac{\partial^2 f}{\partial y \partial x} =  \frac{1}{4 \sqrt{x y}}
+$$
+
+3. Derivada parcial de \( \frac{\partial f}{\partial y} \) em relação a \( x \):
+
+$$
+\frac{\partial}{\partial x} \left( \frac{x}{2 \sqrt{x y}} \right) =  \frac{1}{2 \sqrt{x y}} - \frac{1}{4 (x y)^{1/2}}
+$$
+
+Como \(\frac{x y}{(x y)^{3/2}} = \frac{1}{(x y)^{1/2}}\), temos:
+
+$$
+\frac{\partial^2 f}{\partial x \partial y} =  \frac{1}{4 \sqrt{x y}}
+$$
+
+4. Derivada parcial de \( \frac{\partial f}{\partial y} \) em relação a \( y \):
+
+$$
+\frac{\partial}{\partial y} \left( \frac{x}{2 \sqrt{x y}} \right) = -\frac{x^2}{4 (x y)^{3/2}}
+$$
+
+Portanto, a matriz Hessiana de \( \sqrt{x y} \) é:
+
+$$
+\mathcal{H} = \begin{pmatrix}
+-\frac{y^2}{4 (x y)^{3/2}} & \frac{1}{4 \sqrt{x y}} \\
+\frac{1}{4 \sqrt{x y}} & -\frac{x^2}{4 (x y)^{3/2}}
+\end{pmatrix}
+$$
+
+Para encontrar a matriz Hessiana de \( \sqrt{x y} \) com \( x = 4 \) e \( y = 1 \), substituímos esses valores na matriz Hessiana simplificada:
+
+
+$$
+\mathcal{H} = \begin{pmatrix}
+-\frac{1}{32} & \frac{1}{8} \\
+\frac{1}{8} & -\frac{1}{2}
+\end{pmatrix}
+$$
+
+Portanto, a matriz Hessiana em valores decimais é:
+
+$$
+\mathcal{H} = \begin{pmatrix}
+-0.03125 & 0.125 \\
+0.125 & -0.5
+\end{pmatrix}
+$$
+
+* [Examples of calculating the derivative: Math Insight](https://mathinsight.org/derivative_multivariable_examples){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`partial derivative sqrt(x y)`](https://www.wolframalpha.com/input?i=partial+derivative+sqrt%28x+y%29){target="_blank"}
+
+[`partial derivative sqrt(x y) where x=4, y=1`](https://www.wolframalpha.com/input?i=partial+derivative+sqrt%28x+y%29+where+x%3D4%2C+y%3D1){target="_blank"}
+
+[`{D[Sqrt[x y], x], D[Sqrt[x y], y]}`](https://www.wolframalpha.com/input?i=%7BD%5BSqrt%5Bx+y%5D%2C+x%5D%2C+D%5BSqrt%5Bx+y%5D%2C+y%5D%7D){target="_blank"}
+
+[`second derivative sqrt(x y) for x and x`](https://www.wolframalpha.com/input?i=second+partial+derivative+sqrt%28x+y%29+for+x+and+x){target="_blank"}
+
+[`second derivative sqrt(x y) for y and y`](hhttps://www.wolframalpha.com/input?i=second+derivative+sqrt%28x+y%29+for+y+and+y){target="_blank"}
+
+[`second derivative sqrt(x y) for x and y`](https://www.wolframalpha.com/input?i=second+derivative+sqrt%28x+y%29+for+x+and+y){target="_blank"}
+
+[`second derivative sqrt(x y) for y and x`](https://www.wolframalpha.com/input?i=second+derivative+sqrt%28x+y%29+for+y+and+x){target="_blank"}
+
+[`{D[Sqrt[x y], {x,2}], D[Sqrt[x y], {y,2}]}`](https://www.wolframalpha.com/input?i=%7BD%5BSqrt%5Bx+y%5D%2C+%7Bx%2C2%7D%5D%2C+D%5BSqrt%5Bx+y%5D%2C+%7By%2C2%7D%5D%7D){target="_blank"}
+
+[`{D[Sqrt[x y], x,y}], D[Sqrt[x y], y,x]}`](https://www.wolframalpha.com/input?i=%7BD%5BSqrt%5Bx+y%5D%2C+x%2Cy%7D%5D%2C+D%5BSqrt%5Bx+y%5D%2C+y%2Cx%5D%7D){target="_blank"}
+
+[`D[Sqrt[x y], x , y] /. x=4, y=1`](https://www.wolframalpha.com/input?i=D%5BSqrt%5Bx+y%5D%2C+x+%2C+y%5D+%2F.+x%3D4%2C+y%3D1){target="_blank"}
+
+[`gradient sqrt(x y)`](https://www.wolframalpha.com/input?i=gradient+sqrt%28x+y%29){target="_blank"}
+
+[`Grad[Sqrt[x y], {x, y}]`](https://www.wolframalpha.com/input?i=gradient+sqrt%28x+y%29){target="_blank"}
+
+[`gradient  sqrt(x y) where x=4, y=1`](https://www.wolframalpha.com/input?i=gradient++sqrt%28x+y%29+where+x%3D4%2C+y%3D1){target="_blank"}
+
+[`jacobian sqrt(x y)`](https://www.wolframalpha.com/input?i=jacobian+sqrt%28x+y%29){target="_blank"}
+
+[`hessian matrix sqrt(x y)`](https://www.wolframalpha.com/input?i=hessian+matrix+sqrt%28x+y%29){target="_blank"}
+
+## Cálculo multivariado em R 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# symbolic partial derivatives
+
+f <- expression(sqrt(x*y))
+
+f_x <- calculus::derivative(f=f, var="x", order=1)
+f_x
+f_y <- calculus::derivative(f=f, var="y", order=1)
+f_y
+
+# symbolic higher order partial derivatives
+
+f_xx <- calculus::derivative(f=f, var="x", order=2)
+f_xx
+f_yy <- calculus::derivative(f=f, var="y", order=2)
+f_yy
+f_xy <- calculus::derivative(f=f, var=c("x","y"), order=c(1,1))
+f_xy
+gradiente <- calculus::gradient(f, var=c("x","y"))
+gradiente
+hessiana <- calculus::hessian(f, var=c("x","y"))
+hessiana
+
+# numerical partial derivatives
+
+x <- seq(0, 5, 0.5)
+y <- 2
+eval(f)
+f_x.f_y <- deriv(f, c("x", "y"), func=TRUE)
+f_x.f_y(x, y)
+
+f_xn <- calculus::derivative(f=f, var=c(x=4, y=1), order=1)
+f_xn # calcula primeiro a derivada parcial em x
+f_yn <- calculus::derivative(f=f, var=c(x=4, y=1), order=1)
+f_yn
+
+f_xxn <- calculus::derivative(f=f, var=c(x=4, y=1), order=2)
+f_xxn
+f_yyn <- calculus::derivative(f=f, var=c(x=4, y=1), order=2)
+f_yyn
+f_xyn <- calculus::derivative(f=f, var=c(x=4, y=1), order=c(1,1))
+f_xyn
+gradienten <- calculus::gradient(f, var=c(x=4, y=1))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=4, y=1))
+hessianan
+```
+
+# Aproximação de Taylor quadrática de função de duas variáveis
+
+* [Taylor Polynomials of Functions of Two Variables: math.libretexts.org](hhttps://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Multivariable_Calculus/3%3A_Topics_in_Partial_Derivatives/Taylor__Polynomials_of_Functions_of_Two_Variables){target="_blank"}
+
+* [Introduction to Taylor's theorem for multivariable functions: Math Insight](https://mathinsight.org/taylors_theorem_multivariable_introduction){target="_blank"}
+
+## Exemplo
+
+* [Multivariable Taylor polynomial example: Math Insight](https://mathinsight.org/taylor_polynomial_multivariable_examples){target="_blank"}
+
+# Determinante da hessiana
+
+Conforme Goldman (2005), a curvatura de uma função com duas ou mais variáveis independentes, $\kappa(x,y)$, é proporcional ao determinante da hessiana. O sinal da curvatura dependente apenas deste determinante. 
+
+## Exemplo: $f(x,y)=e^{-x^2-y^2}$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot exp(-x^2-y^2) where x from -2 to 2 and y from -2 to 2`](https://www.wolframalpha.com/input?i=plot+exp%28-x%5E2-y%5E2%29+where+x+from+-2+to+2+and+y+from+-2+to+2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+exp_neg_xy <- function(x, y) {
+  exp(-x^2 - y^2)
+}
+
+x_values <- seq(-2, 2, length.out = 100)
+y_values <- seq(-2, 2, length.out = 100)
+
+grid <- base::expand.grid(x = x_values, y = y_values)
+grid$z <- base::with(grid, exp_neg_xy(x, y))
+
+grid_melt <- reshape2::melt(grid, id.vars = c("x", "y"), measure.vars = "z")
+
+ggplot_contour <- ggplot2::ggplot(grid_melt, ggplot2::aes(x = x, y = y, z = value)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::geom_contour(color = "black") +
+  ggplot2::scale_fill_gradientn(colours = grDevices::terrain.colors(10)) +
+  ggplot2::labs(title = "Gráfico de Contorno da Função e^{-x^2 - y^2}", x = "x", y = "y", fill = "z") +
+  ggplot2::theme_minimal()
+
+print(ggplot_contour)
+
+rayshader::plot_gg(ggplot_contour, multicore = TRUE, zoom = 0.8, phi = 40, theta = 30)
+rayshader::render_snapshot(clear = FALSE)
+
+fig <- plotly::plot_ly(x = ~x_values, y = ~y_values, z = ~matrix(grid$z, nrow = 100)) %>%
+  plotly::add_surface(
+    contours = list(
+      z = list(
+        show = TRUE,
+        usecolormap = TRUE,
+        highlightcolor = "#ff0000",
+        project = list(z = TRUE)
+      )
+    )
+  ) %>%
+  plotly::layout(
+    scene = list(
+      xaxis = list(title = "x"),
+      yaxis = list(title = "y"),
+      zaxis = list(title = "z"),
+      camera = list(
+        eye = list(x = 1.87, y = 0.88, z = -0.64)
+      )
+    ),
+    title = "Superfície 3D da Função e^{-x^2 - y^2}"
+  )
+
+fig
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+f <- function(x, y) {
+  exp(-x^2 - y^2)
+}
+grad_f <- function(x, y) {
+  c(-2 * x * exp(-x^2 - y^2), -2 * y * exp(-x^2 - y^2))
+}
+x <- seq(-2, 2, length.out = 10)
+y <- seq(-2, 2, length.out = 10)
+grid <- expand.grid(x = x, y = y)
+grid$z <- mapply(f, grid$x, grid$y)
+gradients <- t(mapply(grad_f, grid$x, grid$y))
+grid$u <- gradients[, 1]
+grid$v <- gradients[, 2]
+g <- ggplot2::ggplot(grid, ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = z), alpha = 0.3) +
+  ggplot2::geom_segment(ggplot2::aes(xend = x + u, 
+                                     yend = y + v),
+                        arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm")), 
+                        color = "black") +
+  ggplot2::scale_fill_gradient(low = "white", high = "black") +
+  ggplot2::labs(title = "Vetor Gradiente de f(x, y) = exp(-x^2 - y^2)",
+                x = "x", y = "y") +
+  ggplot2::theme_minimal()
+print(g)
+```
+
+A matriz Hessiana de \( e^{-x^2-y^2} \) é:
+
+$$
+\mathcal{H} = \exp(-(x^2 + y^2)) 
+\begin{bmatrix}
+4x^2 - 2 & 4xy \\
+4xy & 4y^2 - 2
+\end{bmatrix}
+$$ 
+
+O determinante da matriz Hessiana de \( e^{-x^2-y^2} \) é:
+
+$$\det(\mathcal{H})=4e^{-2(x^2 + y^2)}(1 - 2x^2 - 2y^2)$$
+
+```{r echo=FALSE, out.width="90%", fig.cap="Aula08.nb"}
+knitr::include_graphics("./image/bicurvature2.png")
+```
+
+```{r echo=FALSE, out.width="60%", fig.cap="Binormal por PSPS"}
+knitr::include_graphics("./image/bicurvature.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot e^(-2 (x^2 + y^2)) (4 - 8 x^2 - 8 y^2) from x=-1 to x=1 from y=-1 to y=1 axes label "x" "y" `](https://www.wolframalpha.com/input?i=plot+e%5E%28-2+%28x%5E2+%2B+y%5E2%29%29+%284+-+8+x%5E2+-+8+y%5E2%29+from+x%3D-1+to+x%3D1+from+y%3D-1+to+y%3D1+axes+label+%22x%22+%22y%22+){target="_blank"}
+
+[`contour plot e^(-2 (x^2 + y^2)) (4 - 8 x^2 - 8 y^2) from x=-1 to x=1 from y=-1 to y=1 axes label "x" "y" plot legend`](https://www.wolframalpha.com/input?i=contour+plot+e%5E%28-2+%28x%5E2+%2B+y%5E2%29%29+%284+-+8+x%5E2+-+8+y%5E2%29+from+x%3D-1+to+x%3D1+from+y%3D-1+to+y%3D1+axes+label+%22x%22+%22y%22+plot+legend){target="_blank"}
+
+O sinal deste determinante depende apenas de $1 - 2x^2 - 2y^2$. 
+
+A curva de inflexão, meste caso, é obtida por $\det(\mathcal{H})=0$. 
+
+solução é a equação da circunferência $x^2 + y^2=\left(\frac{1}{\sqrt{2}}\right)^2$.
+
+$\det(\mathcal{H})>0$ implica $x^2 + y^2<\left(\dfrac{1}{\sqrt{2}}\right)^2$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x_values <- seq(-2, 2, length.out = 100)
+y_values <- seq(-2, 2, length.out = 100)
+grid <- expand.grid(x = x_values, y = y_values)
+grid$condition <- (grid$x^2 + grid$y^2) < (1 / sqrt(2))^2
+
+plot(grid$x, grid$y, col = ifelse(grid$condition, "darkgray", "white"),
+     pch = 15, cex = 0.6,
+     xlab = "x", ylab = "y",
+     main = "Região onde x^2 + y^2 < (1 / sqrt(2))^2",
+     asp = 1)
+
+theta <- seq(0, 2*pi, length.out = 200)
+lines(1/sqrt(2) * cos(theta), 1/sqrt(2) * sin(theta), col = "black", lwd = 2)
+abline(v=0,h=0,lty=2)
+```
+
+$\det(\mathcal{H})<0$ implica $x^2 + y^2>\left(\dfrac{1}{\sqrt{2}}\right)^2$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x_values <- seq(-2, 2, length.out = 100)
+y_values <- seq(-2, 2, length.out = 100)
+grid <- expand.grid(x = x_values, y = y_values)
+grid$condition <- (grid$x^2 + grid$y^2) > (1 / sqrt(2))^2
+
+plot(grid$x, grid$y, col = ifelse(grid$condition, "darkgray", "white"),
+     pch = 15, cex = 0.6,
+     xlab = "x", ylab = "y",
+     main = "Região onde x^2 + y^2 > (1 / sqrt(2))^2",
+     asp = 1)
+
+theta <- seq(0, 2*pi, length.out = 200)
+lines(1/sqrt(2) * cos(theta), 1/sqrt(2) * sin(theta), col = "black", lwd = 2)
+abline(v=0,h=0,lty=2)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`1 - 2x^2 - 2y^2>0`](https://www.wolframalpha.com/input?i=1+-+2x%5E2+-+2y%5E2%3E0){target="_blank"}
+
+[`1 - 2x^2 - 2y^2<0`](https://www.wolframalpha.com/input?i=1+-+2x%5E2+-+2y%5E2%3C0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Hessian Exp(-x^2-y^2)` ](https://www.wolframalpha.com/input?i=Hessian+Exp%28-x%5E2-y%5E2%29){target="_blank"}
+
+## Exemplo: $f(x,y)=-e^{-x^2-y^2}$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot -exp(-x^2-y^2) x from -2 to 2 and y from -2 to 2`](https://www.wolframalpha.com/input?i=plot+-exp%28-x%5E2-y%5E2%29+x+from+-2+to+2+and+y+from+-2+to+2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+exp_neg_xy <- function(x, y) {
+  -exp(-x^2 - y^2)
+}
+
+x_values <- seq(-2, 2, length.out = 100)
+y_values <- seq(-2, 2, length.out = 100)
+
+grid <- base::expand.grid(x = x_values, y = y_values)
+grid$z <- base::with(grid, exp_neg_xy(x, y))
+
+grid_melt <- reshape2::melt(grid, id.vars = c("x", "y"), measure.vars = "z")
+
+ggplot_contour <- ggplot2::ggplot(grid_melt, ggplot2::aes(x = x, y = y, z = value)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::geom_contour(color = "black") +
+  ggplot2::scale_fill_gradientn(colours = grDevices::terrain.colors(10)) +
+  ggplot2::labs(title = "Gráfico de Contorno da Função e^{-x^2 - y^2}", x = "x", y = "y", fill = "z") +
+  ggplot2::theme_minimal()
+
+print(ggplot_contour)
+
+rayshader::plot_gg(ggplot_contour, multicore = TRUE, zoom = 0.8, phi = 40, theta = 30)
+rayshader::render_snapshot(clear = FALSE)
+
+fig <- plotly::plot_ly(x = ~x_values, y = ~y_values, z = ~matrix(grid$z, nrow = 100)) %>%
+  plotly::add_surface(
+    contours = list(
+      z = list(
+        show = TRUE,
+        usecolormap = TRUE,
+        highlightcolor = "#ff0000",
+        project = list(z = TRUE)
+      )
+    )
+  ) %>%
+  plotly::layout(
+    scene = list(
+      xaxis = list(title = "x"),
+      yaxis = list(title = "y"),
+      zaxis = list(title = "z"),
+      camera = list(
+        eye = list(x = 1.87, y = 0.88, z = -0.64)
+      )
+    ),
+    title = "Superfície 3D da Função e^{-x^2 - y^2}"
+  )
+
+fig
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Definir a nova função
+f <- function(x, y) {
+  -exp(-x^2 - y^2)
+}
+
+# Definir o gradiente da função
+grad_f <- function(x, y) {
+  c(2 * x * exp(-x^2 - y^2), 2 * y * exp(-x^2 - y^2))
+}
+
+# Gerar uma grade de pontos
+x <- seq(-2, 2, length.out = 10)
+y <- seq(-2, 2, length.out = 10)
+grid <- expand.grid(x = x, y = y)
+
+# Calcular os valores da função e do gradiente
+grid$z <- mapply(f, grid$x, grid$y)
+gradients <- t(mapply(grad_f, grid$x, grid$y))
+grid$u <- gradients[, 1]
+grid$v <- gradients[, 2]
+
+# Criar o gráfico
+library(ggplot2)
+
+g <- ggplot2::ggplot(grid, ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = z), alpha = 0.3) +
+  ggplot2::geom_segment(ggplot2::aes(xend = x + u, 
+                                     yend = y + v),
+                        arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm")), 
+                        color = "black") +
+  ggplot2::scale_fill_gradient(low = "white", high = "black") +
+  ggplot2::labs(title = "Vetor Gradiente de f(x, y) = -exp(-x^2 - y^2)",
+                x = "x", y = "y") +
+  ggplot2::theme_minimal()
+print(g)
+
+```
+
+A matriz Hessiana de \( -e^{-x^2-y^2} \) é:
+
+$$
+\mathcal{H} = \exp(-(x^2 + y^2)) 
+\begin{bmatrix}
+2-4x^2 & -4xy \\
+-4xy & 2-4y^2 
+\end{bmatrix}
+$$ 
+
+O determinante da matriz Hessiana de \( e^{-x^2-y^2} \) é:
+
+$$\det(\mathcal{H})=4e^{-2(x^2 + y^2)}(1 - 2x^2 - 2y^2)$$
+
+O determinante da hessiana das duas funções é o mesmo. Portanto, o ponto extremante (mínimo ou máximo) local pode ser encontrado na região com determinante da hessiana positivo, $\det(\mathcal{H})>0$.  
+
+```{r echo=FALSE, out.width="90%", fig.cap="Aula08.nb"}
+knitr::include_graphics("./image/bicurvature3.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`second derivative exp(-(x^2+y^2)) for x` ](https://www.wolframalpha.com/input?i=second+derivative+exp%28-%28x%5E2%2By%5E2%29%29+for+x){target="_blank"}
+
+[`-2 + 4 x^2>0` ](https://www.wolframalpha.com/input?i=-2+%2B+4+x%5E2%3E0){target="_blank"}
+
+[`Hessian Exp(-x^2-y^2) = Hessian -Exp(-x^2-y^2)` ](https://www.wolframalpha.com/input?i=Hessian+Exp%28-x%5E2-y%5E2%29+%3D+Hessian+-Exp%28-x%5E2-y%5E2%29+){target="_blank"}
+
+```{r}
+f <- expression(exp(-x^2-y^2))
+
+gradiente <- calculus::gradient(f, var=c("x","y"))
+gradiente
+hessiana <- calculus::hessian(f, var=c("x","y"))
+hessiana
+
+gradienten <- calculus::gradient(f, var=c(x=0, y=0))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=0, y=0))
+hessianan
+det(hessianan)
+
+gradienten <- calculus::gradient(f, var=c(x=1, y=1))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=1, y=1))
+hessianan
+det(hessianan)
+
+gradienten <- calculus::gradient(f, var=c(x=0+1e-2, y=0+1e-2))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=0+1e-2, y=0+1e-2))
+hessianan
+det(hessianan)
+
+f <- expression(-exp(-x^2-y^2))
+
+gradiente <- calculus::gradient(f, var=c("x","y"))
+gradiente
+hessiana <- calculus::hessian(f, var=c("x","y"))
+hessiana
+
+gradienten <- calculus::gradient(f, var=c(x=0, y=0))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=0, y=0))
+hessianan
+det(hessianan)
+
+gradienten <- calculus::gradient(f, var=c(x=1, y=1))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=1, y=1))
+hessianan
+det(hessianan)
+
+gradienten <- calculus::gradient(f, var=c(x=0+1e-2, y=0+1e-2))
+gradienten
+hessianan <- calculus::hessian(f, var=c(x=0+1e-2, y=0+1e-2))
+hessianan
+det(hessianan)
+```
+
+# Otimização de função de duas variáveis (sem restrições)
+
+* [Introduction to local extrema of functions of two variables: Math Insight](https://mathinsight.org/local_extrema_introduction_two_variables){target="_blank"}
+
+## Exemplos
+
+* [Two variable local extrema examples: Math Insight](https://mathinsight.org/local_extrema_examples_two_variables){target="_blank"}
+
+## Ponto crítico e extremante
+
+Extremante é um ponto de máximo ou de mínimo da função.
+
+Ponto crítico é um ponto que anula o gradiente.
+
+Extremante pode ser ponto crítico, mas nem todo ponto crítico é extremante.
+
+## Condição necessária
+
+A condição necessária para extremante é a existência de ponto crítico, i.e., $\nabla f\left(x^*, y^*\right)=0$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.3. Encontrando o máximo de função."}
+knitr::include_graphics("./image/Fig12.3.png")
+```
+
+### \( f(x, y) = \sqrt{xy} \)
+
+O gradiente de \( f \) é dado por:
+
+\[
+\nabla f(x, y) = \left( \frac{\partial f}{\partial x}, \frac{\partial f}{\partial y} \right)
+\]
+
+Calculando as derivadas parciais:
+
+\[
+\frac{\partial f}{\partial x} = \frac{y}{2\sqrt{xy}}
+\]
+
+\[
+\frac{\partial f}{\partial y} = \frac{x}{2\sqrt{xy}}
+\]
+
+Portanto, o gradiente de \( f(x, y) = \sqrt{xy} \) é:
+
+\[
+\nabla f(x, y) = \left( \frac{y}{2\sqrt{xy}}, \frac{x}{2\sqrt{xy}} \right)
+\]
+
+Note que o gradiente não pode ser nulo. Portanto, não há ponto crítico e, desta forma, não há extremante.
+
+### \( g(x, y) = \exp(-x^2 - y^2) \)
+
+O gradiente de \( g \) é dado por:
+
+\[
+\nabla g(x, y) = \left( \frac{\partial g}{\partial x}, \frac{\partial g}{\partial y} \right)
+\]
+
+Calculando as derivadas parciais:
+
+\[
+\frac{\partial g}{\partial x} = -2x \exp(-x^2 - y^2)
+\]
+
+\[
+\frac{\partial g}{\partial y} = -2y \exp(-x^2 - y^2)
+\]
+
+Portanto, o gradiente é:
+
+\[
+\nabla g(x, y) = \exp(-x^2 - y^2)\left( -2x , -2y  \right)
+\]
+
+$$
+\nabla g(0, 0) =\exp(-0^2 - 0^2)\left( -2\times 0 , -2\times 0  \right)=(0,0)
+$$
+
+Note que o ponto crítico é $(0,0)$. Ainda não temos condição de determinar se este ponto crítico é extremante.
+
+## Condição suficiente
+
+A condição suficiente de segunda ordem determina se um ponto crítico extremo, i.e., de mínimo ou máximo local.
+
+A condição suficiente de segunda ordem de ponto extremante demonstrada em Teichroew (1964) usando [_principal minor_ ](https://en.wikipedia.org/wiki/Minor_(linear_algebra)){target="_blank"} e está relacionada com a teoria de autovalor (_eigenvalue_) de álgebra linear (Moylan, 1977; Venit & Katz, 2000; González-Vega et al., 2023).
+
+O ponto crítico $\left(a^*, b^*\right)$ da função $f(x,y)$ é ponto de mínimo local se:
+
+$$\begin{align}
+f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2>0\\
+f_{xx}\left(x^*, y^*\right)>0 
+\end{align}$$
+
+Note que:
+
+$$\det(\mathcal{H}(f(x,y)))|_{x^*, y^*}=f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2$$
+
+Conforme Neuhauser & Roper, 2018, p. 614, a matriz hessiana é definida positiva: no caso geral, há autovalores apenas positivos; neste caso, os produtórios acumulados dos autovalores têm sinais positivos.
+
+O ponto crítico $\left(a^*, b^*\right)$ da função $f(x,y)$ é ponto de máximo local se:
+
+$$\begin{align}
+f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2>0\\
+f_{xx}\left(x^*, y^*\right)<0
+\end{align}$$
+
+Conforme Neuhauser & Roper, 2018, p. 614, matriz hessiana é definida negativa: no caso geral, há autovalores apenas negativos; neste caso, os produtórios acumulados dos autovalores têm sinais alternados.
+
+O ponto crítico $\left(a^*, b^*\right)$ da função $f(x,y)$ não é ponto de mínimo ou máximo, se:
+
+$$f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2<0$$
+
+Conforme Neuhauser & Roper, 2018, p. 614, a matriz hessiana é indefinida: no caso geral, há autovalores positivo(s) e negativo(s); neste caso, os produtórios acumulados dos autovalores têm sinais não definidos.
+
+O ponto crítico $\left(a^*, b^*\right)$ da função $f(x,y)$ pode ser ponto de mínimo ou máximo se:
+
+$$f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2=0$$
+
+Conforme Neuhauser & Roper, 2018, p. 614, a matriz hessiana é semi-definida: no caso geral, há autovalores positivo(s) e nulo(s); o produtório de todos os autovalores é nulo; note que zero não é um número positivo.
+
+### $f(x, y) = \sqrt{xy}$
+
+Gradiente:
+
+$$
+\nabla f(x, y) = \left( \frac{y}{2\sqrt{xy}}, \frac{x}{2\sqrt{xy}} \right)
+$$
+
+Não há ponto crítico.
+
+Hessiana:
+
+$$
+\mathcal{H}_f = \begin{bmatrix}
+-\frac{y}{4(xy)^{3/2}} & \frac{1}{2\sqrt{xy}} \\
+\frac{1}{2\sqrt{xy}} & -\frac{x}{4(xy)^{3/2}}
+\end{bmatrix}
+$$
+
+<!-- Determinante da Hessiana: -->
+
+<!-- $$ -->
+<!-- \det(H_f) = \left(-\frac{y}{4(xy)^{3/2}}\right)\left(-\frac{x}{4(xy)^{3/2}}\right) - \left(\frac{1}{2\sqrt{xy}}\right)^2 = \frac{y}{16(xy)^3} \cdot x - \frac{1}{4xy} = \frac{1}{16xy} - \frac{1}{4xy} = -\frac{3}{16xy} -->
+<!-- $$ -->
+
+### $g(x, y) = \exp(-x^2 - y^2)$
+
+Gradiente:
+
+$$
+\nabla g(x, y) = \exp(-x^2 - y^2)\left[ -2x , -2y  \right]
+$$
+
+Ponto crítico: $(0,0)$
+
+Hessiana:
+
+$$
+\mathcal{H}_g = \exp(-x^2 - y^2)
+\begin{bmatrix}
+4x^2 - 2  & 4xy \\
+4xy & 4y^2 - 2 
+\end{bmatrix}
+$$
+
+Determinante da Hessiana:
+
+$$
+\det(\mathcal{H}_g) = -8 \exp\left(-2\left(x^2 + y^2\right)\right) \left(x^2 + y^2 - \frac{1}{2}\right)
+$$
+
+
+Hessiana em $(0,0)$:
+
+$$
+\mathcal{H}_g = \begin{bmatrix}
+-2  & 0 \\
+0 & -2 
+\end{bmatrix}
+$$
+
+Determinante da Hessiana em $(0,0)$:
+
+$$
+\det(\mathcal{H}_g) = 4
+$$
+
+O ponto crítico é extremante de máximo.
+
+###  $h(x, y) = -\exp(-x^2 - y^2)$
+
+Gradiente:
+
+$$
+\nabla h(x, y) = \exp(-x^2 - y^2)\left[2x , 2y \right]
+$$
+
+Ponto crítico: $(0,0)$
+
+Hessiana:
+
+$$
+\mathcal{H}_h = \exp(-x^2 - y^2)
+\begin{bmatrix}
+-(4x^2 - 2)  & -4xy  \\
+-4xy  & -(4y^2 - 2) 
+\end{bmatrix}
+$$
+
+Determinante da Hessiana:
+
+$$
+\det(\mathcal{H}_g) = -8 \exp\left(-2\left(x^2 + y^2\right)\right) \left(x^2 + y^2 - \frac{1}{2}\right)
+$$
+
+Hessiana em $(0,0)$:
+
+$$
+\mathcal{H}_h = 
+\begin{bmatrix}
+2  & 0  \\
+0  & 2 
+\end{bmatrix}
+$$
+
+Determinante da Hessiana em $(0,0)$:
+
+$$
+\det(\mathcal{H}_g) = 4
+$$
+
+O ponto crítico é extremante de mínimo.
+
+## Exemplo: Transporte fluvial de produto granular
+
+Quatrocentos metros cúbicos de um produto granular devem ser transportados para outro lado do rio por meio de um serviço de ferryboat. Qualquer quantidade do produto pode ser transportada em uma viagem que custa dez centavos por viagem. Os ancoradouros do ferryboat estão construídos de modo que o contêiner no qual o produto vai ser transportado deve ter meio metro de profundidade, ao passo que a largura e o comprimento podem variar. Os custos por metro quadrado das superfícies terminais (da parte da frente à parte detrás), laterais e do fundo do contêiner são R$ 20, R$ 10 e R$ 10, respectivamente. Se o tamanho do contêiner for pequeno, seu custo poderá ser baixo, mas o número de viagens será maior, aumentando o custo do transporte e vice-versa. Quais são os valores do comprimento e largura em metro do contêiner, isto é, quais as dimensões do contêiner que minimizam o custo total do transporte do produto granular?
+
+```{r echo=FALSE, out.width="70%", fig.cap="Dimensões do contêiner."}
+knitr::include_graphics("./image/conteiner.png")
+```
+
+__Solução__:
+
+* $a$: largura da base retangular do contêiner (m)
+* $b$: comprimento da base retangular do contêiner (m)
+* Custo das superfícies terminais: $20a\dfrac{1}{2}2=20a$  (R$)
+* Custo das superfícies laterais: $10b\dfrac{1}{2}2=10b$  (R$)
+* Custo da superfície do fundo: $10ab$  (R$)
+* Quantidade de viagens: $\dfrac{400}{\dfrac{1}{2}ab}=\dfrac{800}{ab}$ (viagem)
+* Custo da quantidade de viagens: $0.10\dfrac{400}{\dfrac{1}{2}ab}=\dfrac{80}{ab}$ (R$)
+* $C(a,b)$: custo total do transporte do produto granular (R$).
+
+A função do custo total de transporte do produto granular por via fluvial é dada por:
+
+$$C(a,b)=\dfrac{80}{ab}+20a+10b+10ab$$
+
+O contêiner de 0.5 m de altura, 1 m de largura e 2 m de comprimento, isto é, de 1 m<sup>3</sup>, realiza 400 viagens. O custo total mínimo do transporte fluvial de produto granular é R$ 100, isto é, $C_{\text{min}}(1,2)=100$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+f <- function(a, b) {
+  80 / (a * b) + 20 * a + 10 * b + 10 * a * b
+}
+a_values <- seq(0.5, 2, length.out = 100)
+b_values <- seq(1, 3, length.out = 100)
+grid <- base::expand.grid(a = a_values, b = b_values)
+grid$z <- base::with(grid, f(a, b))
+grid_melt <- reshape2::melt(grid, id.vars = c("a", "b"), 
+                            measure.vars = "z")
+
+ggplot_contour <- ggplot2::ggplot(grid_melt, 
+                                       ggplot2::aes(x = a, y = b, 
+                                                    z = value)) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::geom_contour(color = "black") +
+  ggplot2::scale_fill_gradientn(colours = grDevices::terrain.colors(10)) +
+  ggplot2::labs(title = "Gráfico de Contorno", 
+                x = "a", y = "b", fill = "C") +
+  ggplot2::theme_minimal()
+print(ggplot_contour)
+rayshader::plot_gg(ggplot_contour, 
+                   multicore = TRUE, 
+                   zoom = 0.8, phi = 40, theta = 30)
+rayshader::render_snapshot(clear = FALSE)
+fig <- plotly::plot_ly(x = ~a_values, y = ~b_values, z = ~base::matrix(grid$z, nrow = 100)) %>%
+  plotly::add_surface(
+    contours = list(
+      z = list(
+        show = TRUE,
+        usecolormap = TRUE,
+        highlightcolor = "#ff0000",
+        project = list(z = TRUE)
+      )
+    )
+  ) %>%
+  plotly::layout(
+    scene = list(
+      xaxis = list(title = "a"),
+      yaxis = list(title = "b"),
+      zaxis = list(title = "C"),
+      camera = list(
+        eye = list(x = 1.87, y = 0.88, z = -0.64)
+      )
+    ),
+    title = "Superfície 3D da Função"
+  )
+fig
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`80/ab+20a+10b+10ab`](https://www.wolframcloud.com/obj/ec8c1792-6c52-44d2-9d85-e29458329c40){target="_blank"}
+
+[`Plot[80/ab+20a+10b+10ab, {a,0.5,2}, {b,1,3}]`](https://www.wolframalpha.com/input?i=Plot%5B80%2Fab%2B20a%2B10b%2B10ab%2C+%7Ba%2C0.5%2C2%7D%2C+%7Bb%2C1%2C3%7D%5D){target="_blank"}
+
+[`contour plot 80/(a b) + 20 a+ 10 b + 10 a b from a=0.5 to a=2 from b=1 to b=3 axes label "a" "b" plot legend`](https://www.wolframalpha.com/input?i=contour+plot+80%2F%28a+b%29+%2B+20+a%2B+10+b+%2B+10+a+b+from+a%3D0.5+to+a%3D2+from+b%3D1+to+b%3D3+axes+label+%22a%22+%22b%22+plot+legend){target="_blank"}
+
+[`optimize 80/(a b) + 20 a+ 10 b + 10 a b for a>0 and b>0`](https://www.wolframalpha.com/input?i=optimize+80%2F%28a+b%29+%2B+20+a%2B+10+b+%2B+10+a+b+for+a%3E0+and+b%3E0){target="_blank"}
+
+```{r}
+f <- function(a, b) {
+  80 / (a * b) + 20 * a + 10 * b + 10 * a * b
+}
+grad_f <- function(a, b) {
+  c(-80 / (a^2 * b) + 20 + 10 * b, -80 / (a * b^2) + 10 + 10 * a)
+}
+a <- seq(0.5, 2, length.out = 5)
+b <- seq(1, 3, length.out = 3)
+grid <- expand.grid(a = a, b = b)
+grid$z <- mapply(f, grid$a, grid$b)
+gradients <- t(mapply(grad_f, grid$a, grid$b))
+grid$u <- gradients[, 1]
+grid$v <- gradients[, 2]
+g <- ggplot2::ggplot(grid, ggplot2::aes(x = a, y = b)) +
+     ggplot2::geom_tile(ggplot2::aes(fill = z), alpha = 0.3) +
+     ggplot2::geom_segment(ggplot2::aes(xend = a + u, 
+                                        yend = b + v),
+                           arrow = ggplot2::arrow(length = 
+                                                  ggplot2::unit(0.2, 
+                                                                "cm")), 
+                           color = "darkgray") +
+     ggplot2::scale_fill_gradient(low = "white", high = "black") +
+     ggplot2::labs(title = "Vetor Gradiente de f(a, b) = 80/(ab) + 20a + 10b + 10ab",
+                x = "a", y = "b") +
+     ggplot2::geom_point(ggplot2::aes(x = 1, y = 2), color = "blue", 
+                      size = 3) +
+     ggplot2::theme_minimal()
+print(g)
+```
+
+A solução exata do problema do custo total mínimo do transporte fluvial de produto granular é dada pelas condições de primeira e segunda ordens. A condição necessária de primeira ordem consiste na determinação dos pontos críticos, isto é, candidatos a ponto extremante de mínimo, por meio da resolução do sistema de equações de duas derivadas parciais da função de custo total, ou seja:
+
+$$C_{a}\left(a^*, b^*\right)=0 \\
+C_{b}\left(a^*, b^*\right)=0\\$$
+
+A primeira equação $C_{a}\left(a^*, b^*\right)=0$ contém no lado esquerdo uma derivada parcial da função do custo total em relação à dimensão $a$ do contêiner. 
+
+A segunda equação $C_{b}\left(a^*, b^*\right)=0$ contém no lado esquerdo uma derivada parcial da função do custo total em relação à dimensão $b$ do contêiner. 
+
+A ideia subjacente ao sistema de derivadas parciais igualadas a zero é que há uma superfície plana paralela ao plano do domínio que tangencia a superfície convexa do custo total no ponto de mínimo.
+
+Portanto:
+
+$$C_{a}\left(a^*, b^*\right)=-\dfrac{80}{(a^{*})^2b^*}+20+10b^*=0 \\
+C_{b}\left(a^*, b^*\right)=-\dfrac{80}{a^{*}(b^{*})^2}+10+10a^{*}=0\\$$
+
+A solução do sistema de equações é $a^*=1$ m e  $b^*=2$ m.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`{D[80/(a b) + 20 a +10 b + 10 a b, a], D[80/(a b)+20 a+10 b+10 a b, b]}`](https://www.wolframalpha.com/input?i=%7BD%5B80%2F%28a+b%29+%2B+20+a+%2B10+b+%2B+10+a+b%2C+a%5D%2C+D%5B80%2F%28a+b%29%2B20+a%2B10+b%2B10+a+b%2C+b%5D%7D){target="_blank"}
+
+Portanto, há um ponto crítico no problema, isto é, $\left(a^*, b^*\right)=(1,2)$.
+
+Resta saber se o ponto crítico é de mínimo ou máximo da função.
+
+Um ponto crítico pode ser de mínimo (máximo) se neste ponto a função é convexa (côncava). O tipo de concavidade da superfície da função no ponto depende de sua curvatura (Goldman, 2005).
+
+Se a função é convexa (côncava) na região e tem extremante, ele é um ponto de mínimo (máximo).
+
+O extremante $\left(x^*, y^*\right)$ é mínimo, se:
+
+$$\begin{align}
+f_{xx}\left(x^*, y^*\right)f_{yy}\left(x^*, y^*\right) - \left(f_{xy}\left(x^*, y^*\right)\right)^2>0\\
+f_{xx}\left(x^*, y^*\right)>0 \\
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+f <- expression(80/(a*b) + 20*a + 10*b + 10*a*b)
+
+gradiente <- calculus::gradient(f, var=c("a","b"))
+gradiente
+hessiana <- calculus::hessian(f, var=c("a","b"))
+hessiana
+
+gradienten <- calculus::gradient(f, var=c(a=1, b=2))
+gradienten
+hessianan <- calculus::hessian(f, var=c(a=1, b=2))
+hessianan
+det(hessianan)
+```
+
+No problema, tem-se:
+
+$$\begin{align}
+C_{aa}\left(a^*, b^*\right)C_{bb}\left(a^*, b^*\right)-\left(C_{ab}\left(a^*, b^*\right)\right)^2&=\dfrac{25600}{(a^*b^*)^4}-\left(\dfrac{80}{(a^*b^*)^2}+10\right)^2=700\\
+C_{aa}\left(a^*, b^*\right)&=\dfrac{160}{(a^*)^3b^*}=80
+\end{align}$$
+
+Portanto, o ponto crítico $\left(a^*, b^*\right)=(1,2)$ é de mínimo local. Como a função é convexa em todo domínio, então o ponto é de mínimo global.
+
+<!-- No problema, o sistema de inequações diferenciais para determinar a concavidade da função do custo total $C(a,b)$ no ponto crítico $\left(a^*, b^*\right)=(1,2)$ é o seguinte: -->
+
+<!-- $$\begin{align} -->
+<!-- C_{aa}\left(a^*, b^*\right)&=\dfrac{160}{(a^*)^3b^*}=80 \\ -->
+<!-- C_{bb}\left(a^*, b^*\right)&=\dfrac{160}{a^*(b^*)^3}=20 -->
+<!-- \end{align}$$ -->
+
+<!-- Desse modo, a função do custo total é convexa no ponto crítico, sugerindo ponto crítico de mínimo. A convexidade no ponto crítico não é suficiente para decretar que o ponto crítico é ponto de mínimo. -->
+
+<!-- De modo geral, pode-se concluir que a função de custo total é convexa em todo seu domínio. -->
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`D[80/(a b)+20 a + 10 b + 10 a b, a, a]`](https://www.wolframalpha.com/input?i=D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+a%2C+a%5D){target="_blank"}
+
+[`D[80/(a b)+20 a + 10 b + 10 a b, b, b]`](https://www.wolframalpha.com/input?i=D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+b%2C+b%5D){target="_blank"}
+
+[`D[80/(a b)+20 a + 10 b + 10 a b, a, b]`](https://www.wolframalpha.com/input?i=D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+a%2C+b%5D){target="_blank"}
+
+[`D[80/(a b)+20 a + 10 b + 10 a b, a, b] ^2 - D[80/(a b)+20 a + 10 b + 10 a b, a, a] D[80/(a b)+20 a + 10 b + 10 a b, b, b]`](https://www.wolframalpha.com/input?i=D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+a%2C+b%5D+%5E2+-+D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+a%2C+a%5D+D%5B80%2F%28a+b%29%2B20+a+%2B+10+b+%2B+10+a+b%2C+b%2C+b%5D){target="_blank"}
+
+[`160/(a^3 b) /. a=1,  b=2`](https://www.wolframalpha.com/input?i=160%2F%28a%5E3+b%29+%2F.+a%3D1%2C+b%3D2){target="_blank"}
+
+[`160/(a b^3) /. a=1, b=2`](https://www.wolframalpha.com/input?i=160%2F%28a+b%5E3%29+%2F.+a%3D1%2C+b%3D2){target="_blank"}
+
+[`(10 + 80/(a^2 b^2))^2 - 25600/(a^4 b^4) /. a=1, b=2`](https://www.wolframalpha.com/input?i=%2810+%2B+80%2F%28a%5E2+b%5E2%29%29%5E2+-+25600%2F%28a%5E4+b%5E4%29+%2F.+a%3D1%2C+b%3D2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`optimize  80/(a b) + 20 a+ 10 b + 10 a b for a>0 and b>0`](https://www.wolframalpha.com/input?i=optimize++80%2F%28a+b%29+%2B+20+a%2B+10+b+%2B+10+a+b+for+a%3E0+and+b%3E0){target="_blank"}
+
+# Generalizando a otimização
+
+Para calcular os "principal minors" da matriz Hessiana fornecida, precisamos calcular os determinantes das submatrizes principais. A matriz Hessiana é uma matriz simétrica quadrada, e os "principal minors" são os determinantes das submatrizes obtidas ao remover as mesmas colunas e linhas da matriz original.
+
+Dada a matriz Hessiana:
+
+$$
+\mathcal{H} = \begin{pmatrix}
+80 & 30 \\
+30 & 20
+\end{pmatrix}
+$$
+
+Vamos calcular os determinantes das submatrizes principais:
+
+1. Determinante da matriz \(1 \times 1\) obtida ao considerar apenas o primeiro elemento:
+$$
+\mathcal{H}_1 = \begin{pmatrix}
+80
+\end{pmatrix} \implies \det(\mathcal{H}_1) = 80
+$$
+
+2. Determinante da matriz \(2 \times 2\) original:
+$$
+\mathcal{H}_2 = \begin{pmatrix}
+80 & 30 \\
+30 & 20
+\end{pmatrix} \implies \det(\mathcal{H}_2) = 80 \cdot 20 - 30 \cdot 30 = 1600 - 900 = 700
+$$
+
+Portanto, os "principal minors" da matriz Hessiana são 80 e 700.
+
+Para determinar a natureza dos pontos críticos usando a matriz Hessiana, devemos verificar os sinais dos seus "principal minors". Se todos os "principal minors" tiverem sinais positivos e não alternantes, isso indica que o ponto crítico é um mínimo local.
+
+No nosso caso, calculamos os "principal minors" da matriz Hessiana:
+
+$$
+\mathcal{H}=\begin{pmatrix}
+80 & 30 \\
+30 & 20
+\end{pmatrix}
+$$
+
+Ambos os "principal minors" são positivos:
+
+- \(\det(\mathcal{H}_1) = 80 > 0\)
+- \(\det(\mathcal{H}_2) = 700 > 0\)
+
+Como ambos são positivos e não alternam de sinal, isso indica que a matriz Hessiana é definida positiva. Portanto, o ponto crítico associado a essa matriz Hessiana é um mínimo local extremo.
+
+Matriz definida positiva tem autovalores positivos. Neste caso, a matriz hessiana tem autovalores aproximadamente iguais a 92.43 e 7.57.
+
+A análise correta dos sinais dos "principal minors" para determinar a natureza de um ponto crítico é dada pelos seguintes critérios:
+
+- **Mínimo Local (Ponto de Mínimo)**: Todos os "principal minors" da matriz Hessiana são positivos.
+- **Máximo Local (Ponto de Máximo)**: Os "principal minors" alternam de sinal começando com um sinal negativo.
+- **Ponto de Sela**: Se os "principal minors" alternam de sinal de outra forma ou se o maior principal minor não é positivo, o ponto crítico pode ser um ponto de sela.
+
+Vamos definir isso de maneira mais clara:
+
+1. **Primeiro principal minor (\( \mathcal{H}_1 \))**: Determinante da submatriz \(1 \times 1\) (o elemento \(H_{11}\)).
+2. **Segundo principal minor (\( \mathcal{H}_2 \))**: Determinante da matriz Hessiana completa \(2 \times 2\).
+
+### Critérios para Determinar a Natureza dos Pontos Críticos:
+
+- **Mínimo Local**: Todos os "principal minors" (\( \mathcal{H}_i \)) são positivos.
+- **Máximo Local**: Os "principal minors" alternam de sinal, começando com um sinal negativo (\( \mathcal{H}_1 < 0, \mathcal{H}_2 > 0, \ldots \)).
+- **Ponto de Sela**: Se os "principal minors" não seguem um padrão consistente de sinais, ou se há uma alternância diferente da descrita.
+
+Dado os "principal minors" calculados:
+
+$$
+\mathcal{H}_1 = 80 \quad (\text{positivo})
+$$
+
+$$
+\mathcal{H}_2 = 700 \quad (\text{positivo})
+$$
+
+Ambos são positivos, o que indica que a matriz Hessiana é definida positiva, portanto o ponto crítico é um mínimo local extremo.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+```{r}
+# Definir a matriz Hessiana
+hessian_matrix <- matrix(c(80, 30, 30, 20), nrow = 2, byrow = TRUE)
+
+# Calcular os autovalores
+eigenvalues <- eigen(hessian_matrix)$values
+
+# Calcular os principal minors
+principal_minor_1 <- det(hessian_matrix[1, 1, drop = FALSE])
+principal_minor_2 <- det(hessian_matrix)
+
+# Determinar a natureza do ponto crítico
+if (principal_minor_1 > 0 && principal_minor_2 > 0) {
+  point_nature <- "Mínimo Local"
+} else if (principal_minor_1 < 0 && principal_minor_2 > 0) {
+  point_nature <- "Máximo Local"
+} else {
+  point_nature <- "Ponto de Sela"
+}
+
+# Exibir os resultados
+cat("Autovalores:\n")
+print(eigenvalues)
+
+cat("Principal minors:\n")
+cat("Principal minor 1:", principal_minor_1, "\n")
+cat("Principal minor 2:", principal_minor_2, "\n")
+
+cat("Natureza do ponto crítico:", point_nature, "\n")
+```
+
+## Exemplo: Ajustamento de curva pelo método de mínimos quadrados
+
+* [Ordinary least squares: Wikipedia](https://en.wikipedia.org/wiki/Ordinary_least_squares){target="_blank"}
+
+Há fenômenos nas ciências biológicas que não permitem a adoção de uma função formulada matematicamente a partir de suposições teóricas. Às vezes, é necessário estimar a função a partir de dados observados. O fenômeno mais simples é aquele no qual os dados observados consistem em uma coleção finita de pares ordenados, e uma coordenada é o valor da variável dependente e a outra é o valor da variável independente. 
+
+A coleção de pontos é ordenada pelos valores da variável independente e o gráfico pode ser desenhado, sendo essa variável uma abscissa. Uma condição importante é que, para cada valor observado da variável independente, há apenas um valor observado da variável dependente. Surge então a pergunta: qual é a função que melhor representa os pontos observados no domínio observado. O domínio observado consiste no intervalo entre o menor e o maior valores observados da variável independente. 
+
+Há duas formas de responder a essa questão. A primeira abordagem consiste em determinar os parâmetros de uma única função que melhor representa a disposição dos pontos no gráfico sem necessariamente passar por todos os pontos observados. Essa abordagem é denominada ajustamento de curva. A segunda abordagem consiste em ligar os pontos por meio de diferentes polinômios de terceiro grau, isto é, por splines cúbicos ou naturais. Essa abordagem é denominada interpolação natural ou por spline cúbico. 
+
+O intuito das duas abordagens é preencher os valores ausentes da variável dependente dentro do domínio observado. Evidentemente, se há apenas dois pontos distintos observados, o melhor modelo de função é o afim. A função adotada para ajustamento de curva possui necessariamente parâmetros que precisam ser estimados a partir dos dados observados. Uma competição entre funções plausíveis para modelar o fenômeno pode ocorrer e, dessa forma, é necessário estabelecer um critério para selecionar a melhor função estimada. 
+
+Além das funções polinomiais, as curvas de crescimento também podem ser utilizadas para modelar. Os valores da variável independente não precisam ser equiespaçados. Do ponto de vista artístico, as curvas francesas podem ser usadas para desenhar uma curva contínua e não lisa para interligar os pontos. A interpolação natural é a que produz a curva que menos dista da curva original se os pontos são alterados de posição, isto é, ela é a mais robusta diante de modificações nos dados. Além disso, a curva gerada por interpolação natural ou por _splines_ cúbicos é a que minimiza a curvatura total no domínio observado, ou seja, a curva com a tensão máxima que liga os pontos mantendo a continuidade (sem salto) e suavidade (sem cúspide) –  um formato orgânico da função. 
+
+A interpolação natural resulta em curvas cúbicas ligando os pontos observados. O ajustamento de curva difere da interpolação pelo fato de exigir apenas uma função polinomial que melhor represente os pontos sem necessariamente passar por eles. Na interpolação exige-se que as funções resultantes passem pelos pontos observados. No ajustamento de curva não se exige que a função resultante passe pelos pontos observados. Isso pode ocorrer, mas não é compulsório. 
+
+Dessa maneira, no ajustamento de curva é necessário experimentar algumas formas de funções e escolher a que melhor represente os pontos observados. Naturalmente, se houver apenas dois pontos distintos observados, então a curva de melhor ajustamento é a retilínea.
+
+Ajustar uma curva linear, quadrática e cúbica e selecionar aquela com melhor ajustamento aos dados observados da tabela a seguir:
+
+| $i$ | $t_i$ (ano) | $Y_i$ (milhão de R$/ano) |
+|----:|----:|----:|
+| 1 | 1 | 5 |
+| 2 | 2 | 8 |
+| 3 | 3 | 25 |
+
+### Modelo linear
+
+$$Y_i=\beta_0+\beta_1t_i+\epsilon_i\\
+i=1,2,3$$
+
+O modelo linear tem os seguintes elementos: 
+
+* variável dependente $Y$, 
+* variável independente $t$, 
+* parâmetros desconhecidos $\beta_0$  e $\beta_1$ 
+* termo de erro $\epsilon$. 
+
+O domínio observado é $t\in[1,3]$.
+
+O termo de erro $\epsilon$ é o valor que adicionado à curva retilínea resulta no valor observado da variável dependente $Y$.
+
+O sistema linear nos parâmetros é o seguinte:
+
+$$\begin{align}
+5&=\beta_0+\beta_1+\epsilon_1\\
+8&=\beta_0+2\beta_1+\epsilon_2\\
+25&=\beta_0+3\beta_1+\epsilon_3
+\end{align}$$ 
+
+Observe que há 2 parâmetros e 3 termos de erro desconhecidos totalizando 5 incógnitas a serem estimadas com 3 pontos. 
+
+Seriam necessárias mais 2 equações não redundantes para estimar de modo único as 5 incógnitas. No entanto, essas duas equações adicionais não existem.
+
+É preciso impor o critério dos mínimos quadrados ordinários (OLS), i.e., de minimização da soma dos quadrados dos termos de erro. 
+
+Matematicamente, a quantidade a ser minimizada em relação aos dois parâmetros pelos mínimos quadrados é dada pela soma de quadrados dos termos de erro:
+
+$$Q=\sum_{i=1}^{3}{\epsilon_{i}^{2}}$$ 
+
+As variáveis independentes da função anterior $Q$  são os parâmetros $\beta_0$  e $\beta_1$. 
+
+O lado direito da equação deve ser expresso em função dos parâmetros $\beta_0$  e $\beta_1$ para a aplicação das condições de primeira e de segunda ordens. 
+
+Os termos de erro são expressos em função dos parâmetros a serem estimados:
+
+$$\epsilon_i=Y_i-\beta_0-\beta_1t_i\\
+i=1,2,3$$
+
+Dessa forma, tem-se que:
+
+$$Q=\sum_{i=1}^{3}\left({Y_i-\beta_0-\beta_1t_i}\right)^2$$ 
+
+A condição de primeira ordem para a determinação do ponto crítico é dada pelas derivadas parciais da soma dos quadrados dos termos de erro em relação a cada um dos parâmetros igualadas a zero:
+
+$$\begin{align}
+Q_{\beta_0}&=-2\sum_{i=1}^{3}\left({Y_i-b_0-b_1t_i}\right)=0\\
+Q_{\beta_1}&=-2\sum_{i=1}^{3}\left({Y_i-b_0-b_1t_i}\right)t_i=0
+\end{align}$$ 
+
+O ponto crítico $(b_0,b_1)$ é obtido pela resolução do sistema de equações de derivadas parciais anterior e seus estimadores pontuais são:
+
+$$\begin{align}
+b_1&=\dfrac{\sum_{i=1}^{3}{\left(t_i-\dfrac{\sum_{i=1}^{3}{t_i}}{3}\right)Y_i}}{\sum_{i=1}^{3}{\left(t_i-\dfrac{\sum_{i=1}^{3}{t_i}}{3}\right)^2}}=\dfrac{\sum\left(t_i-\bar{t}\right)Y_i}{\sum{\left(t_i-\bar{t}\right)^2}}\\
+b_0&=\dfrac{\sum_{i=1}^{3}{Y_i}}{3}-b_1\dfrac{\sum_{i=1}^{3}{t_i}}{3}=\bar{Y}-b_1\bar{t}
+\end{align}$$
+
+Os valores estimados dos parâmetros são os seguintes:
+
+$$\begin{align}
+b_1&=\dfrac{(1-2)5+(2-2)8+(3-2)25}{(1-2)^2+(2-2)^2+(3-2)^2}=10\\
+b_0&=\dfrac{5+8+25}{3}-10\dfrac{1+2+3}{3}=-7.\bar{3}
+\end{align}$$
+
+O extremante $(b_0,b_1)=(-7.\bar{3},10)$ minimiza a soma de quadrados dos termos de erro, pois as seguintes desigualdades são sempre válidas:
+
+$$\begin{align}
+Q_{\beta_0\beta_0}\left(b_0,b_1\right)Q_{\beta_1\beta_1}\left(b_0,b_1\right)-\left(Q_{\beta_0\beta_1}\left(b_0,b_1\right)\right)^2>0\\
+Q_{\beta_0\beta_0}\left(b_0,b_1\right)>0\\
+\end{align}$$
+
+No problema, temos:
+
+$$\begin{align}
+Q_{\beta_0\beta_0}\left(b_0,b_1\right)Q_{\beta_1\beta_1}\left(b_0,b_1\right)-\left(Q_{\beta_0\beta_1}\left(b_0,b_1\right)\right)^2&=\left(\sum_{i=1}^{3}{2}\right) \left(2\sum_{i=1}^{3}{t_{i}^{2}}\right)-\left(2\sum_{i=1}^{3}{t_{i}}\right)^2=12\\
+Q_{\beta_0\beta_0}\left(b_0,b_1\right)&=\sum_{i=1}^{3}{2}=6
+\end{align}$$
+
+Portanto, o modelo linear estimado por OLS é:
+
+$$y=-7.\bar{3}+10t\\
+t\in[1,3]$$
+
+Note que $t$ e $y$ são variáveis contínuas (reais) no domínio observado.
+
+O resíduo é a estimativa do termo de erro:
+
+$$e_i=Y_i-y_i\\
+i=1,2,3$$
+
+A soma dos dos resíduos é sempre nula:
+
+$$\sum_{i=1}^{3}{e_{i}}=0$$
+
+No modelo linear, a reta passa sempre pelo centróide:
+
+$$y\left(\bar{t}\right)=\bar{Y}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`LeastSquares[{{1, 1}, {1, 2}, {1, 3}}, {5, 8,  25}]`](https://www.wolframalpha.com/input?i=LeastSquares%5B%7B%7B1%2C+1%7D%2C+%7B1%2C+2%7D%2C+%7B1%2C+3%7D%7D%2C+%7B5%2C+8%2C++25%7D%5D){target="_blank"}
+
+[`linear fit {{1,5},{2,8},{3,25}}`](https://www.wolframalpha.com/input?i=linear+fit+%7B%7B1%2C5%7D%2C%7B2%2C8%7D%2C%7B3%2C25%7D%7D){target="_blank"}
+
+[`linear fit 5, 8, 25`](https://www.wolframalpha.com/input?i=linear+fit+5%2C+8%2C+25){target="_blank"}
+
+[`Fit[{{1, 5}, {2, 8}, {3, 25}}, {1, t}, t]`](https://www.wolframalpha.com/input?i=Fit%5B%7B%7B1%2C+5%7D%2C+%7B2%2C+8%7D%2C+%7B3%2C+25%7D%7D%2C+%7B1%2C+t%7D%2C+t%5D){target="_blank"}
+
+[`Fit[{5, 8, 25}, {1, t}, t]`](https://www.wolframalpha.com/input?i=Fit%5B%7B5%2C+8%2C+25%7D%2C+%7B1%2C+t%7D%2C+t%5D){target="_blank"}
+
+[`FindFit[{{1, 5}, {2, 8}, {3, 25}}, \beta_0+\beta_1 t, {\beta_0, \beta_1}, t]`](https://www.wolframalpha.com/input?i=FindFit%5B%7B%7B1%2C+5%7D%2C+%7B2%2C+8%7D%2C+%7B3%2C+25%7D%7D%2C+%5Cbeta_0%2B%5Cbeta_1+t%2C+%7B%5Cbeta_0%2C+%5Cbeta_1%7D%2C+t%5D){target="_blank"}
+
+[`NonlinearModelFit[{{1, 5}, {2, 8}, {3, 25}}, \beta_0+\beta_1 t, {\beta_0, \beta_1}, t]`](https://www.wolframalpha.com/input?i=NonlinearModelFit%5B%7B%7B1%2C+5%7D%2C+%7B2%2C+8%7D%2C+%7B3%2C+25%7D%7D%2C+%5Cbeta_0%2B%5Cbeta_1+t%2C+%7B%5Cbeta_0%2C+%5Cbeta_1%7D%2C+t%5D){target="_blank"}
+
+A notação matricial permite resolver o problema e possibilita ganho de escala para ajustamento de curva polinomial de ordem maior que 1.
+
+A fórmula geral do método OLS é dada por:
+
+$$\Large b=\left(x^Tx\right)^{-1}x^TY$$
+
+Sendo que $x^T$ é a matriz transposta da matriz de planejamento ([_design matrix_: Wikipedia](https://en.wikipedia.org/wiki/Design_matrix){target="_blank"}) $x$.
+
+A matriz $x^Tx$ é conhecida como matriz de informação. A matriz de informação é quadrada e simétrica. 
+
+$$\begin{align}
+b&=\left[\begin{array}{r} 
+b_0\\
+b_1
+\end{array}\right] =
+\left[\begin{array}{r} 
+-7.\bar{3}\\
+10
+\end{array}\right]\\
+Y&=\left[\begin{array}{r} 
+Y_1\\
+Y_2\\
+Y_3
+\end{array}\right] =
+\left[\begin{array}{r} 
+5\\
+8\\
+25
+\end{array}\right]\\
+x&=\left[\begin{array}{rr} 
+1 & t_1\\
+1 & t_2\\
+1 & t_3
+\end{array}\right] =
+\left[\begin{array}{rr} 
+1 & 1\\
+1 & 2\\
+1 & 3
+\end{array}\right]
+\end{align}$$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+Y <- c(5, 
+       8, 
+       25)
+x <- matrix(c(1, 1, 
+              1, 2, 
+              1, 3), 
+            ncol=2, 
+            byrow=TRUE)
+solve(t(x)%*%x)%*%t(x)%*%Y
+solve(crossprod(x), crossprod(x,Y))
+
+plot(x[,2],Y)
+abline(reg=lm(Y~x[,2]))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+Y=[5;8;25]
+x=[1 1;1 2;1 3]
+inv(x'*x)*x'*Y
+lsq(x,Y)
+quit
+```
+
+### Modelo quadrático
+
+$$Y_i=\beta_0+\beta_1t_i+\beta_2t_{i}^{2}+\epsilon_i\\
+i=1,2,3$$
+
+Portanto, o modelo linear estimado por OLS é:
+
+$$y=16-18t+7t^2\\
+t\in[1,3]$$
+
+Note que $t$ e $y$ são variáveis contínuas (reais) no domínio observado.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`LeastSquares[{{1, 1, 1}, {1, 2, 4}, {1, 3, 9}}, {5, 8,  25}]`](https://www.wolframalpha.com/input?i=LeastSquares%5B%7B%7B1%2C+1%2C+1%7D%2C+%7B1%2C+2%2C+4%7D%2C+%7B1%2C+3%2C+9%7D%7D%2C+%7B5%2C+8%2C++25%7D%5D){target="_blank"}
+
+[`quadratic fit {{1,5},{2,8},{3,25}}`](https://www.wolframalpha.com/input?i=quadratic+fit+%7B%7B1%2C5%7D%2C%7B2%2C8%7D%2C%7B3%2C25%7D%7D){target="_blank"}
+
+[`FindFit[{{1, 5}, {2, 8}, {3, 25}}, \\beta_0+\\beta_1 t +\\beta_2 t^2, {\\beta_0, \\beta_1, \\beta_2}, t]`](https://www.wolframalpha.com/input?i=FindFit%5B%7B%7B1%2C+5%7D%2C+%7B2%2C+8%7D%2C+%7B3%2C+25%7D%7D%2C+%5Cbeta_0%2B%5Cbeta_1+t+%2B%5Cbeta_2+t%5E2%2C+%7B%5Cbeta_0%2C+%5Cbeta_1%2C+%5Cbeta_2%7D%2C+t%5D){target="_blank"}
+
+[`NonlinearModelFit[{{1, 5}, {2, 8}, {3, 25}}, \\beta_0+\\beta_1 t +\\beta_2 t^2, {\\beta_0, \\beta_1, \\beta_2}, t]`](https://www.wolframalpha.com/input?i=NonlinearModelFit%5B%7B%7B1%2C+5%7D%2C+%7B2%2C+8%7D%2C+%7B3%2C+25%7D%7D%2C+%5Cbeta_0%2B%5Cbeta_1+t+%2B%5Cbeta_2+t%5E2%2C+%7B%5Cbeta_0%2C+%5Cbeta_1%2C+%5Cbeta_2%7D%2C+t%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+Y <- c(5, 
+       8, 
+       25)
+x <- matrix(c(1, 1, 1, 
+              1, 2, 4, 
+              1, 3, 9), 
+            ncol=3, 
+            byrow=TRUE)
+solve(t(x)%*%x)%*%t(x)%*%Y
+solve(crossprod(x), crossprod(x,Y))
+
+# Dados fornecidos
+Y <- c(5, 8, 25)
+X <- x[,2]
+
+# Ajustando o modelo de ajuste quadrático
+model <- lm(Y ~ poly(X, 2, raw=TRUE))
+
+# Gerando valores preditos para a curva quadrática
+x_seq <- seq(min(X), max(X), length.out = 100)
+y_pred <- predict(model, newdata = data.frame(X = x_seq))
+
+# Plotando os dados e a curva ajustada
+plot(X, Y, pch = 19, col = "blue", xlab = "X", ylab = "Y",
+     main = "Ajuste Quadrático")
+lines(x_seq, y_pred, col = "red", lwd = 2)
+
+# Adicionando a equação da reta ao gráfico
+eq <- paste0("Y = ", round(coef(model)[1], 2), " + ", 
+             round(coef(model)[2], 2), "*X + ", 
+             round(coef(model)[3], 2), "*X^2")
+legend("topleft", legend = eq, col = "red", lty = 1, bty = "n")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoS.png")
+```
+
+```{r engine="scilab"}
+Y=[5;8;25]
+x=[1 1 1;1 2 4;1 3 9]
+inv(x'*x)*x'*Y
+lsq(x,Y)
+quit
+```
+
+### Modelo cúbico
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`Fit[{5, 8, 25}, {1, t, t^2, t^3}, t]`](https://www.wolframalpha.com/input?i=Fit%5B%7B5%2C+8%2C+25%7D%2C+%7B1%2C+t%2C+t%5E2%2C+t%5E3%7D%2C+t%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# Dados fornecidos
+X <- c(1, 2, 3)
+Y <- c(5, 8, 25)
+
+# Ajustando o modelo de regressão quadrática
+model_quadratic <- lm(Y ~ poly(X, 2, raw=TRUE))
+
+# Gerando valores preditos para as curvas cúbica e quadrática
+x_seq <- seq(min(X), max(X), length.out = 100)
+y_pred_quadratic <- predict(model_quadratic, newdata = data.frame(X = x_seq))
+
+# Plotando os dados e as curvas ajustadas
+plot(X, Y, pch = 19, col = "blue", xlab = "X", ylab = "Y",
+     main = "Comparação entre Ajuste Cúbico e Quadrático")
+
+# Adicionando a curva cúbica
+curve(8.97-5.11*x-0.03*x^2+1.17*x^3, 1,3,col = "red", lwd = 2, lty = 1, add=TRUE)
+
+# Adicionando a curva quadrática
+lines(x_seq, y_pred_quadratic, col = "black", lwd = 2, lty = 2)
+
+# Adicionando a legenda
+legend("topleft", legend = c("Dados", "Curva cúbica", "Curva quadrática"),
+       col = c("blue", "red", "black"), pch = c(19, NA, NA), lty = c(NA, 1, 2), bty = "n")
+
+# Exibindo as equações dos modelos
+coef_quadratic <- coef(model_quadratic)
+eq_cubic <- paste0("Cúbico: Y = ", 
+                   "8.97", " - ", 
+                   "5.11*X - ", 
+                   "0.33*X^2 + ",
+                   "1.17*X^3")
+eq_quadratic <- paste0("Quadrático: Y = ", round(coef_quadratic[1], 2), " + ", 
+                       round(coef_quadratic[2], 2), "*X + ", 
+                       round(coef_quadratic[3], 2), "*X^2")
+text(1, 20, eq_cubic, pos = 4, col = "red")
+text(1, 18, eq_quadratic, pos = 4, col = "black")
+```
+
+Com 3 pontos observados não é possível estimar um modelo polinomial de ordem 4.
+
+Um critério para avaliação da curva ajustada aos pontos observados é o índice de qualidade de ajuste denominado coeficiente de determinação:
+
+$$R^2=\dfrac{\sum\left(y_i-\bar{Y}\right)^2}{\sum\left(Y_i-\bar{Y}\right)^2}$$
+
+Note que $R^2\in[0,1]$.
+
+Quanto mais próximo de 1 o índice de qualidade de ajuste estiver, melhor o ajuste da curva aos pontos observados. Se o índice de qualidade de ajuste é exatamente igual a 1, então ocorre a interpolação.
+
+| Modelo | $R^2$ | $k$ parâmetros | $R^2/k$ |
+|----:|----:|----:| ----:|
+| linear     | 0.860 | 2 | 0.43 |
+| quadrático | 1.000 | 3 | 0.33 |
+| cúbico     | 1.000 | 4 | 0.25 |
+
+O critério de qualidade de ajuste relativo para comparar os modelo aos pontos observados é $R^2/k$. Quando maior seu valor, melhor é o modelo. 
+
+Portanto, o modelo linear é o que melhor se ajusta aos pontos, pois tem o maior valor de $R^2/k=0.43$. 
+
+O sobreajustamento ([_overfitting_](https://en.wikipedia.org/wiki/Overfitting){target="_blank"}) ocorreu nos modelos quadrático e cúbico pelo fato de $R^2=1$, i.e., o modelo "decorou" os pontos observados. Pelo princípio da parcimônia e também pela experiência prática, os modelos até a ordem 3, inclusive, costumam ser úteis nas aplicações com pelo menos quatro pontos.
+
+# Equação diferencial parcial (PDE)
+
+* [Partial differential equation](https://en.wikipedia.org/wiki/Partial_differential_equation){target="_blank"}
+
+Uma equação diferencial parcial (EDP) é uma equação que envolve derivadas parciais de uma função desconhecida em relação a duas ou mais variáveis independentes. Enquanto as equações diferenciais ordinárias (ODE) envolvem apenas derivadas em relação a uma única variável independente, as EDP incluem derivadas parciais em relação a várias variáveis independentes.
+
+As EDP são amplamente utilizadas para modelar fenômenos físicos e processos dinâmicos que envolvem várias variáveis independentes. Elas são especialmente relevantes em áreas como física, engenharia, finanças, meteorologia, entre outras. As EDP descrevem relações entre a função desconhecida e suas derivadas parciais em termos das variáveis independentes e possíveis constantes ou parâmetros.
+
+As EDP podem ser classificadas em diferentes tipos, dependendo de suas características. Alguns exemplos comuns de EDP incluem a equação da difusão, a equação da onda, a equação de Laplace e a equação de Schrödinger, entre outras. Cada tipo de EDP possui propriedades e métodos de solução específicos.
+
+A solução de uma EDP envolve encontrar uma função que satisfaça a equação diferencial e quaisquer condições de contorno ou condições iniciais especificadas. Resolver EDP pode ser um desafio complexo e requer técnicas matemáticas avançadas, como transformadas de Fourier, métodos de separação de variáveis, métodos numéricos, entre outros.
+
+Em resumo, uma equação diferencial parcial é uma equação que envolve derivadas parciais em relação a várias variáveis independentes. Elas são amplamente utilizadas para modelar fenômenos físicos e descrever processos dinâmicos em várias áreas da ciência e da engenharia.
+
+O primeiro artigo científico que resolveu uma equação diferencial parcial é atribuído a Jean le Rond d'Alembert. Em 1746, d'Alembert publicou um artigo chamado "Recherches sur la courbe que forme une corde tendue mise en vibration" ("Investigações sobre a curva formada por uma corda esticada posta em vibração", em tradução livre). Nesse artigo, d'Alembert resolveu a equação diferencial parcial conhecida como a equação da onda unidimensional.
+
+A equação da onda descreve a propagação de ondas em um meio.
+Nessa equação, $f$ representa a função desconhecida que descreve a amplitude da onda, $t$ é o tempo, $x$ é a posição ao longo da corda e $k$ é a velocidade de propagação da onda.As acelerações da onda em relação ao tempo e posição são proporcionais:
+
+$$\begin{align}
+\dfrac{\partial^2 f}{dt^2}&=k^2 \dfrac{\partial^2 f}{dx^2}\\
+f(x,t)&=c_1\left(t-\dfrac{x}{k}\right)+c_2\left(t+\dfrac{x}{k}\right)
+\end{align}$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`DSolve[D[f[x,t],{t,2}] - k^2 D[f[x,t],{x,2}]==0, f[x,t], {x,t}]`](https://www.wolframalpha.com/input?i=DSolve%5BD%5Bf%5Bx%2Ct%5D%2C%7Bt%2C2%7D%5D+-+k%5E2+D%5Bf%5Bx%2Ct%5D%2C%7Bx%2C2%7D%5D%3D%3D0%2C+f%5Bx%2Ct%5D%2C+%7Bx%2Ct%7D%5D){target="_blank"}
+
+D'Alembert obteve a solução particular da equação da onda aplicando o método de separação de variáveis. Ele mostrou que a forma geral da solução envolve a soma de duas funções, uma avançando e outra retrocedendo na direção da propagação da onda.
+
+O trabalho de d'Alembert foi um marco importante no campo das equações diferenciais parciais e contribuiu para o desenvolvimento de métodos de solução e compreensão dos fenômenos ondulatórios. Desde então, as equações diferenciais parciais têm sido objeto de estudo e pesquisa em várias áreas da ciência e da matemática aplicada.
+
+## Equação de difusão unidimensional
+
+A equação de difusão (dispersão) unidimensional, também conhecida como equação do calor, foi formulada por Joseph Fourier no início do século XIX. Fourier apresentou suas ideias sobre a propagação do calor e a equação de difusão em seu trabalho seminal "Théorie analytique de la chaleur" (Teoria Analítica do Calor), publicado em 1822. Nesse trabalho, Fourier desenvolveu a teoria matemática da condução de calor e introduziu a equação diferencial parcial que descreve a difusão de calor em sólidos.
+
+Existem muitas combinações possíveis de substâncias e solventes que poderiam ser usadas em um experimento de injeção em um tubo cheio de líquido. Aqui estão alguns exemplos comuns:
+
+1. Azul de Metileno em Água: Usado frequentemente para estudos de difusão e transporte de massa.
+1. Cloreto de Sódio em Água: Comum em experimentos de química.
+1. Ácido Acético em Água: Usado em muitas reações químicas e estudos de difusão.
+1. Oxigênio em Água: Importante em estudos de transferência de gás e processos biológicos.
+
+A escolha da substância e do solvente dependerá dos objetivos específicos do experimento e das propriedades físicas e químicas desejadas.
+
+Suponha que injetamos uma substância em um tubo cheio de um líquido solvente (Fig. 12.5). As moléculas da substância estão em movimento aleatório. Eles se espalharão em todas as direções. Assumimos que o líquido solvente não está em movimento.
+
+Em locais de alta concentração, as moléculas tenderão a diminuir em número e, inversamente, em locais de baixa concentração, elas tenderão a aumentar em número. Esse processo de migração aleatória, chamado difusão, finalmente terminará com as moléculas em densidades iguais em todo o tubo.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.5. As moléculas de uma substância dissolvida em um líquido estão em movimento aleatório. Isso resulta em uma migração lenta, chamada difusão. A densidade C(x, t) da substância dissolvida tende à uniformidade no espaço."}
+knitr::include_graphics("./image/Fig12.5.png")
+```
+
+Na Fig. 12.5 colocamos um eixo _x_ paralelo ao eixo do tubo. Para simplificar, assumimos que a concentração da substância varia apenas na direção _x_. A cada _x_, a concentração depende também do instante de tempo _t_. Assim, podemos denotar a concentração por:
+
+$$C=C(x,t)$$
+
+Como unidade de medida, tomamos, por exemplo, g/cm<sup>3</sup>.
+
+A função $C$ é plotada na Fig. 12.5 para três diferentes instantes de tempo $t_1$, $t_2$, $t_3$.
+
+Nosso objetivo é determinar a função desconhecida $C$ ou, pelo menos, encontrar uma equação que $C$ deva satisfazer.
+
+Para isso, assumimos que $C$ é diferenciável em relação a $x$ e a $t$.
+
+Estritamente falando, a matéria é discreta. No entanto, o número de moléculas é tão grande que o erro no uso de uma função suave é desprezível (cf. Fig. 9.5).
+
+Faça $x = 0$ coincidir com a extremidade esquerda do tubo e $x = a$ com a extremidade direita. Denotamos a área (constante) da seção transversal por $A$.
+
+Seja $M = M(x, t)$ a massa da substância contida entre a extremidade esquerda do tubo e a seção transversal em $x$ no instante $t$ (Fig. 12.5).
+
+Para um primeiro resultado, consideramos $M$ apenas como uma função de $x$ e mantemos o tempo $t$ constante. 
+
+Seja $x$ um valor fixo (local de aplicação da substância) e $\Delta x = h$ um aumento de $x$. 
+
+A massa $M(x + h, t)$ consiste na massa $M(x, t)$ e na massa adicional $\Delta M$ localizada entre $x$ e $x + h$ (Fig. 12.6).
+
+Por isso:
+
+$$\Delta M = M(x+h, t) - M(x, t)$$
+
+O volume ocupado por essa massa é $A h$. 
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.6. Explicação de &Delta;M."}
+knitr::include_graphics("./image/Fig12.6.png")
+```
+
+Sua densidade média é, portanto:
+
+$$\dfrac{\Delta M}{A h}=\dfrac{1}{A}\dfrac{M(x+h,t)-M(x,t)}{h}$$
+
+Como $h$ tende a zero, o lado esquerdo tende a $C$ e o segundo fator no lado direito para $\partial M/\partial x$.
+
+Por isso,
+
+$$\begin{align}
+C&= \dfrac{1}{A}\dfrac{\partial M}{\partial x} \\
+\dfrac{\partial M}{\partial x}&= A C
+\end{align}$$
+
+Para obter um segundo resultado, consideramos $M$ como uma função apenas de $t$ e mantemos $x$ constante. 
+
+A massa $M(x, t)$ aumenta com o tempo se o fluxo líquido de moléculas em $x$ for direcionado para a esquerda. 
+
+Esse caso ocorre se $C$ aumenta com o aumento de $x$, ou seja, se $\partial C/\partial x > 0$ (ver Fig. 12.5).
+
+Chamamos de $\partial C/\partial x$ o gradiente da concentração. 
+
+É intuitivamente claro que $M$ aumenta mais rapidamente à medida que esse gradiente se torna maior. 
+
+É razoável esperar que a taxa de aumento de $\partial M/\partial t$ seja proporcional a $\partial C/\partial x$, bem como à área $A$ da seção transversal. 
+
+De fato, essa suposição é bem apoiada por fatos experimentais. 
+
+Portanto: 
+
+$$\dfrac{\partial M}{\partial t}= D A \dfrac{\partial C}{\partial x}$$
+
+sendo que $D$ denota uma constante positiva conhecida como constante de difusão. 
+
+Um argumento semelhante é válido quando $\partial C/\partial x < 0$. 
+
+Então o fluxo líquido é para a direita e $M$ diminui em função do tempo. 
+
+A fórmula $\dfrac{\partial M}{\partial t}= D A \dfrac{\partial C}{\partial x}$ contém duas funções desconhecidas, $M$ e $C$.
+
+Como estamos interessados em $C$, eliminaremos $M$. 
+
+Para isso, derivamos $\dfrac{\partial M}{\partial t}= D A \dfrac{\partial C}{\partial x}$ em relação a $x$ e obtemos
+
+$$\dfrac{\partial^2 M}{\partial x \partial t}= D A \dfrac{\partial^2 C}{\partial x^2}$$
+
+Em seguida, derivamos $\dfrac{\partial M}{\partial x}= A C$ em relação a $t$ e obtemos
+
+$$\dfrac{\partial^2 M}{\partial t \partial x}= A \dfrac{\partial C}{\partial t}$$
+
+Note que $\dfrac{\partial^2 M}{\partial x \partial t}=\dfrac{\partial^2 M}{\partial t \partial x}$. 
+
+Então:
+
+$$\dfrac{\partial C}{\partial t}= D \dfrac{\partial^2 C}{\partial x^2}$$
+
+Esta é a famosa _equação de difusão_ unidimensional. 
+
+Pode ser generalizado para todas as três dimensões espaciais $x$, $y$, $z$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`DSolve[D[f[x,t],{t,1}] - D D[f[x,t],{x,2}]==0, f[x,t], {x,t}]`](https://www.wolframalpha.com/input?i=DSolve%5BD%5Bf%5Bx%2Ct%5D%2C%7Bt%2C1%7D%5D+-+D+D%5Bf%5Bx%2Ct%5D%2C%7Bx%2C2%7D%5D%3D%3D0%2C+f%5Bx%2Ct%5D%2C+%7Bx%2Ct%7D%5D){target="_blank"}
+
+## Exemplo 12.4.1: Primeira solução particular
+
+Encontre os coeficientes $a$ e $b$ tais que
+
+$$C(x, t) = e^{ax + bt}$$
+
+satisfaz a equação de difusão. 
+
+Aplicando a regra da cadeia obtemos:
+
+$$\dfrac{\partial C}{\partial t}= be^{ax + bt}\\
+\dfrac{\partial^2 C}{\partial x^2}= a^2 e^{ax + bt}$$
+
+Substituindo essas derivadas na equação de difusão obtemos:
+
+$$be^{ax + bt}=D a^2 e^{ax + bt}$$
+
+Esta equação é satisfeita para todos os valores de $x$ e $t$ se escolhermos o coeficiente $a$ arbitrariamente e se adotarmos $b=Da^2$.
+
+[Exemplo14.2.1: Desmos3D](https://www.desmos.com/3d/pqvpvmytsl){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot e^(x+t)`](https://www.wolframalpha.com/input?i=plot+e%5E%28x%2Bt%29){target="_blank"}
+
+## Exemplo 12.4.2: Segunda solução particular
+
+Verifique se
+
+$$C(x, t) = t^{-1/2} \exp\left(-\dfrac{x^2}{4Dt}\right)$$
+
+é uma solução particular da equação de difusão. 
+
+[Exemplo14.2.2: Desmos3D](https://www.desmos.com/3d/xwqq1rztjn){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot (1/sqrt(t)) e^(-x^2/(4 t))`](https://www.wolframalpha.com/input?i=plot+%281%2Fsqrt%28t%29%29+e%5E%28-x%5E2%2F%284+t%29%29){target="_blank"}
+
+$C(x, t)$ é um produto de duas funções de $t$. 
+
+Assim:
+
+$$\dfrac{\partial C}{\partial t}=\left(t^{-1/2}\right)^{\prime} \exp\left(-\dfrac{x^2}{4Dt}\right) + t^{-1/2} \left(\exp\left(-\dfrac{x^2}{4Dt}\right)\right)^{\prime}$$
+
+Então, obtemos:
+
+$$\begin{align}
+\dfrac{\partial C}{\partial t}&=\left(-\dfrac{1}{2}t^{-1/2}+\dfrac{x^2}{4Dt}t^{-1/2}\right) \exp\left(-\dfrac{x^2}{4Dt}\right)\\
+\dfrac{\partial C}{\partial x}&=t^{-1/2}\dfrac{-x}{2Dt}\exp\left(-\dfrac{x^2}{4Dt}\right)\\
+\dfrac{\partial^2 C}{\partial x^2}&=t^{-1/2}\dfrac{-1}{2Dt}\exp\left(-\dfrac{x^2}{4Dt}\right)+t^{-1/2}\left(\dfrac{-x}{2Dt}\right)^{2}\exp\left(-\dfrac{x^2}{4Dt}\right)
+\end{align}$$
+
+Substituindo essas derivadas na equação de difusão obtemos:
+
+$$\dfrac{x^2}{4D} t^{-5/2} - \dfrac{1}{2} t^{-3/2}  = D t^{-1/2} \left(\dfrac{x^2}{4 D^{2} t^{2}}-\dfrac{1}{2Dt}\right)$$
+
+Por álgebra simples, vemos que esta equação vale para todos os valores de $t$ e $x$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`((x^2)/(4D)) t^(-5/2) + (-1/2) t^(-3/2) = D t^(-1/2) (((x^2)/(4 D^2 t^2))-1/(2 D t))`](https://www.wolframalpha.com/input?i=%28%28x%5E2%29%2F%284D%29%29+t%5E%28-5%2F2%29+%2B+%28-1%2F2%29+t%5E%28-3%2F2%29+%3D+D+t%5E%28-1%2F2%29+%28%28%28x%5E2%29%2F%284+D%5E2+t%5E2%29%29-1%2F%282+D+t%29%29){target="_blank"}
+
+$C(x, t)$ é em forma de sino para cada $t$ fixo (cf. a fórmula para a distribuição normal na Seção 13.11). Um gráfico aproximado de $C(x, t)$ é mostrado na Fig. 12.5.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot e^(-x^2)`](https://www.wolframalpha.com/input?i=plot+e%5E%28-x%5E2%29){target="_blank"}
+
+Mesmo sem uma solução explícita, a equação de difusão revela algumas propriedades principais da solução. 
+
+Considere a Fig. 12.7a. Lá assumimos que $C(x, t)$ é uma função linear de $x$ entre dois pontos com abcissas $x_1$ e $x_2$. Isso significa que $\partial^2 C/\partial x^2=0$. A equação de difusão então implica $\partial C/\partial t=0$, isto é, $C(x, t)$ não muda em função de $t$. Portanto, temos um fluxo estacionário de moléculas para todo $x$ em $[x_1,x_2]$.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 12.7. Três tipos diferentes de função de densidade C(x, t). Em (a) a densidade é uma função linear de x, em (b) a densidade é convexa para baixo e em (c) convexa para cima. O fluxo de moléculas depende essencialmente desta forma."}
+knitr::include_graphics("./image/Fig12.7.png")
+```
+
+Se, no entanto, $C(x, t)$ for côncava como na Fig. 12.7b, sabemos que a segunda derivada $\partial^2 C/\partial x^2>0$. Em virtude da equação de difusão a taxa de aumento $\partial C/\partial t>0$.
+
+Portanto, $C(x, t)$ aumentará em função de $t$ para todo $x$ em $[x_1,x_2]$. O resultado é bastante plausível, pois a Fig. 12.7b indica um "vale" de concentração entre  $x_1$ e $x_2$.
+
+Exatamente o oposto é verdadeiro na Fig. 12.7c, onde temos um "pico" de concentração. A função $C(x, t)$ é convexa. Por isso, $\partial^2 C/\partial x^2<0$ e $\partial C/\partial t<0$. A densidade $C(x, t)$ diminuirá em função do tempo para todo $x$ em $[x_1,x_2]$.
+
+Dentro das dimensões de uma célula viva, o transporte de massa por difusão é bastante eficiente. Atua em segundos ou no máximo em minutos. Em um corpo maior, as moléculas não podem se mover rápido o suficiente por difusão.
+
+A distribuição de nutrientes seria muito lenta. No ser humano levaria uma vida inteira para obter o açúcar que foi alimentado no estômago para se difundir nos pés e nas mãos (Went, 1968). Portanto, é necessário um sistema de distribuição mais rápido, bem diferente da difusão. Esta é o da _convecção_ pela corrente sanguínea. A convecção pela corrente sanguínea refere-se ao transporte de substâncias dissolvidas, como nutrientes, gases e medicamentos, pelo fluxo sanguíneo no sistema circulatório. Na prática, o estudo da convecção na corrente sanguínea é essencial para entender a distribuição de medicamentos, a troca de gases nos pulmões e o fornecimento de nutrientes às células do corpo.
+
+$\Diamond$
+
+## Equação do cabo
+
+* [Cable theory](https://en.wikipedia.org/wiki/Cable_theory){target="_blank"}
+
+* [Cable Theory Model of the Neuron And Analysis Of The Space Constant Lambda (With Derivations)](https://www.youtube.com/watch?v=2VzAY8pEbEE){target="_blank"}
+
+A importância da equação diferencial de difusão vai muito além da difusão. Em ecologia, a invasão de uma grande área por uma nova espécie pode ser matematicamente tratada pelo mesmo método que o movimento aleatório de moléculas (ver Pielou, 1969, Cap. 11). Da mesma forma, nas epidemias, a disseminação de uma doença infecciosa em uma grande área segue o mesmo padrão. Uma troca de energia cinética entre moléculas vizinhas conhecida como condução de calor é tratada matematicamente da mesma forma que a difusão. Aplicações mais sofisticadas da equação de difusão são feitas em genética de populações e evolução.
+
+Outra equação diferencial parcial biologicamente importante é a equação do cabo ou telegráfica: 
+
+$$\dfrac{\partial^2 V}{\partial x^2}-a^2 \dfrac{\partial^2 V}{\partial t^2}+b\dfrac{\partial V}{\partial t}+cV=d$$
+
+Aqui, $V = V(X, t)$ denota a tensão na abcissa $x$ do cabo e no instante de tempo $t$. 
+
+A equação do cabo foi fundamental para a análise do primeiro cabo telegráfico transatlântico. Este cabo, lançado em 1858, permitiu a comunicação telegráfica entre a América do Norte e a Europa. Devido aos efeitos resistivos e capacitivos do cabo, o sinal elétrico se atenuava e distorcia ao longo da distância, exigindo um modelo matemático para entender e melhorar a transmissão dos sinais.
+
+1. **Termo \(\dfrac{\partial^2 V}{\partial x^2}\)**:
+   - Este termo representa a difusão espacial do potencial \(V\) ao longo do cabo. É análogo ao termo de difusão em equações de condução de calor ou de difusão de partículas.
+
+2. **Termo \(- a^2 \dfrac{\partial^2 V}{\partial t^2}\)**:
+   - Este termo representa a aceleração temporal do potencial \(V\). O coeficiente \(a\) está relacionado à velocidade de propagação do sinal no cabo.
+
+3. **Termo \(b \dfrac{\partial V}{\partial t}\)**:
+   - Este termo representa um amortecimento ou dissipação do sinal no tempo. O coeficiente \(b\) está associado à resistência do material do cabo.
+
+4. **Termo \(c V\)**:
+   - Este termo representa um ganho ou perda proporcional ao próprio potencial \(V\). Pode estar relacionado a fontes ou perdas no sistema.
+
+5. **Termo \(d\)**:
+   - Este termo é uma fonte ou força externa que não depende nem de \(x\) nem de \(t\).
+
+Hoje, a equação do cabo é aplicada na teoria da condução nervosa (ver Beier, 1962, Cole, 1968, Yihe & Timofeeva, 2020).
+
+Sempre que flutuações aleatórias estão sendo consideradas no tratamento de processos biológicos, a teoria da probabilidade entra em cena. 
+
+O método matemático apropriado é o uso de _processos estocásticos_. 
+
+Eles ocorrem em trabalhos teóricos sobre crescimento populacional, competição entre espécies, disseminação de infecções etc. 
+
+Entre as ferramentas matemáticas necessárias para o estudo de processos estocásticos está uma grande variedade de equações diferenciais parciais. 
+Aqui temos que pular detalhes. O leitor é remetido a Bailey (1964) e a Chiang (1968).
+
+## Finanças Quantitativas: Modelo de Black-Scholes-Merton
+
+* [`Black–Scholes model: Wikipedia`](https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model){target="_blank"}
+
+* [Determinação Entrópica do Preço Racional da Opção Européia Simples Ordinária sobre Ação e Bond: ResearchGate](https://www.researchgate.net/publication/318849710_Determinacao_Entropica_do_Preco_Racional_da_Opcao_Europeia_Simples_Ordinaria_sobre_Acao_e_Bond){target="_blank"}
+
+* [Transformações matemáticas omitidas e obscuras na demonstração do modelo Black-Scholes-Merton: ResearchGate](https://www.researchgate.net/publication/326519324_Transformacoes_matematicas_omitidas_e_obscuras_na_demonstracao_do_modelo_Black-Scholes-Merton){target="_blank"}
+
+* [Falando grego em Finanças: estratégias de hedging com opções: ResearchGate](https://www.researchgate.net/publication/326532561_Falando_grego_em_Financas_estrategias_de_hedging_com_opcoes){target="_blank"}
+
+A equação de Black-Scholes-Merton é uma equação diferencial parcial (EDP) fundamental na matemática financeira para a modelagem do preço de opções. 
+
+Em 1997, o Prêmio Nobel de Ciências Econômicas foi concedido a Myron Scholes e Robert Merton pelo seu trabalho no desenvolvimento do modelo de precificação de opções, que inclui a equação de Black-Scholes-Merton. Fischer Black, que também contribuiu significativamente para o desenvolvimento da equação, Ele faleceu em 1995 e, portanto, não foi elegível para o prêmio. O trabalho deles revolucionou os mercados financeiros, permitindo uma precificação mais precisa dos derivativos e promovendo uma maior compreensão do risco financeiro.
+
+* Opção de Compra (Call Option)
+
+A opção de compra \( C \) pode ser definida como:
+
+\[ C_T = \max(S_T - K, 0) \]
+
+Onde:
+
+- \( C_T \) = valor da opção de compra na data de vencimento
+- \( S_T \) = preço do ativo subjacente na data de vencimento
+- \( K \) = preço de exercício (strike price)
+
+* Opção de Venda (Put Option)
+
+A opção de venda \( P \) pode ser definida como:
+
+\[ P_T = \max(K - S_T, 0) \]
+
+Onde:
+
+- \( P_T \) = valor da opção de venda na data de vencimento
+- \( S_T \) = preço do ativo subjacente na data de vencimento
+- \( K \) = preço de exercício (strike price)
+
+Estas fórmulas representam o valor das opções no vencimento, onde o valor é o maior entre a diferença entre o preço do ativo subjacente e o preço de exercício, ou zero.
+
+A equação de Black-Scholes-Merton para o preço racional de uma opção \( V(S_t, t) \) é dada por:
+
+\[ \dfrac{\partial V}{\partial t} + \dfrac{1}{2} \sigma^2 S^2 \dfrac{\partial^2 V}{\partial S^2} + r S \dfrac{\partial V}{\partial S} - r V = 0 \]
+
+onde:
+
+- \( V(S, t) \) é o preço da opção como função do preço do ativo subjacente \( S \) e do tempo \( t \).
+- \( \sigma \) é a volatilidade do ativo subjacente.
+- \( r \) é a taxa de juros livre de risco.
+- \( \dfrac{\partial V}{\partial t} \) é a derivada parcial de \( V \) em relação ao tempo \( t \).
+- \( \dfrac{\partial^2 V}{\partial S^2} \) é a derivada parcial de segunda ordem de \( V \) em relação ao preço do ativo subjacente \( S \).
+- \( \dfrac{\partial V}{\partial S} \) é a derivada parcial de primeira ordem de \( V \) em relação ao preço do ativo subjacente \( S \).
+
+Claro, aqui estão as fórmulas da solução para a equação de Black-Scholes-Merton:
+
+Para uma **opção de compra (call)**:
+
+\[ C(S_t, t) = S_t N(d_1) - K e^{-r(T-t)} N(d_2) \]
+
+Para uma **opção de venda (put)**:
+
+\[ P(S_t, t) = K e^{-r(T-t)} N(-d_2) - S_t N(-d_1) \]
+
+Onde:
+
+$d_1 = \dfrac{\ln(S_t / K) + \left(r + \dfrac{\sigma^2}{2}\right)(T - t)}{\sigma \sqrt{T - t}}$
+
+$d_2 = d_1 - \sigma \sqrt{T - t}$
+
+- \( S_t \) é o preço atual do ativo subjacente.
+- \( K \) é o preço de exercício da opção.
+- \( r \) é a taxa de juros livre de risco.
+- \( \sigma \) é a volatilidade do ativo subjacente.
+- \( T - t \) é o tempo até a maturidade da opção.
+- \( N(\cdot) \) é a função de distribuição cumulativa da distribuição normal padrão.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`black-scholes equation calculator: WolframAlpha`](https://www.wolframalpha.com/input?i=black-scholes+equation){target="_blank"}
+
+## PDEs importantes
+
+As equações diferenciais parciais (PDEs) são fundamentais na descrição de diversos fenômenos naturais e tecnológicos. Cada PDE clássica tem sua origem e evolução histórica, com soluções que foram desenvolvidas ao longo dos séculos.
+
+### 1. Equação de Laplace
+
+**Introdução Histórica**:
+A equação de Laplace é nomeada em homenagem ao matemático francês Pierre-Simon Laplace, que a introduziu no final do século XVIII. Ela surgiu no contexto da teoria do potencial e é fundamental em eletrostática, gravitação e teoria do potencial.
+
+**Aplicações**:
+
+- **Física**: Potenciais gravitacionais e eletrostáticos.
+- **Química**: Difusão de substâncias em equilíbrio.
+- **Biologia**: Distribuição de temperatura em organismos e difusão de moléculas em células.
+
+**Equação**:
+\[
+\nabla^2 u = 0 \quad \text{ou} \quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0
+\]
+
+**Solução**:
+Para uma função \(u(x, y)\) em duas dimensões:
+\[
+u(x, y) = \sum_{n=1}^{\infty} \left( A_n e^{n \pi x} + B_n e^{-n \pi x} \right) \left( C_n \sin(n \pi y) + D_n \cos(n \pi y) \right)
+\]
+
+### 2. Equação de Poisson
+
+**Introdução Histórica**:
+A equação de Poisson é uma extensão da equação de Laplace, introduzida por Siméon Denis Poisson no início do século XIX. Ela é essencial na eletrostática e em problemas de potencial.
+
+**Aplicações**:
+
+- **Física**: Eletrostática e teoria do potencial.
+- **Química**: Distribuição de carga em moléculas.
+- **Biologia**: Modelagem de campos de concentração de nutrientes em tecidos.
+
+**Equação**:
+\[
+\nabla^2 u = f(x, y) \quad \text{ou} \quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = f(x, y)
+\]
+
+**Solução**:
+Para \(f(x, y) = k\), onde \(k\) é constante:
+\[
+u(x, y) = \frac{k}{2}(x^2 + y^2) + Ax + By + C
+\]
+
+### 3. Equação da Onda
+
+**Introdução Histórica**:
+A equação da onda foi formulada no século XVIII por Jean le Rond d'Alembert, que a utilizou para descrever a propagação de ondas em cordas vibrantes.
+
+**Aplicações**:
+
+- **Física**: Propagação de ondas sonoras, sísmicas e eletromagnéticas.
+- **Química**: Dinâmica de reações em meios oscilantes.
+- **Biologia**: Propagação de sinais em nervos e ondas de pressão em fluidos biológicos.
+
+**Equação**:
+\[
+\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u \quad \text{ou} \quad \frac{\partial^2 u}{\partial t^2} = c^2 \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right)
+\]
+
+**Solução**:
+Para uma onda unidimensional em uma corda com condições de contorno \(u(0, t) = u(L, t) = 0\):
+\[
+u(x, t) = \sum_{n=1}^{\infty} \left( A_n \cos \left( \frac{n \pi c t}{L} \right) + B_n \sin \left( \frac{n \pi c t}{L} \right) \right) \sin \left( \frac{n \pi x}{L} \right)
+\]
+
+### 4. Equação do Calor
+
+**Introdução Histórica**:
+A equação do calor foi introduzida por Joseph Fourier no início do século XIX, durante seus estudos sobre a condução de calor.
+
+**Aplicações**:
+
+- **Física**: Condução de calor em sólidos.
+- **Química**: Difusão de substâncias em meios homogêneos.
+- **Biologia**: Distribuição de temperatura em organismos vivos e difusão de nutrientes em células.
+
+**Equação**:
+\[
+\frac{\partial u}{\partial t} = \alpha \nabla^2 u \quad \text{ou} \quad \frac{\partial u}{\partial t} = \alpha \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right)
+\]
+
+**Solução**:
+Para uma barra unidimensional de comprimento \(L\) com condições de contorno \(u(0, t) = u(L, t) = 0\):
+\[
+u(x, t) = \sum_{n=1}^{\infty} B_n \sin \left( \frac{n \pi x}{L} \right) e^{-\left( \frac{n \pi}{L} \right)^2 \alpha t}
+\]
+
+### 5. Equação de Schrödinger
+
+**Introdução Histórica**:
+A equação de Schrödinger foi formulada por Erwin Schrödinger em 1925 e é um pilar da mecânica quântica, descrevendo a evolução temporal de estados quânticos.
+
+**Aplicações**:
+
+- **Física**: Comportamento de partículas quânticas.
+- **Química**: Estrutura eletrônica de átomos e moléculas.
+- **Biologia**: Fenômenos quânticos em processos biológicos como fotossíntese e visão.
+
+**Equação**:
+\[
+i\hbar \frac{\partial \psi}{\partial t} = -\frac{\hbar^2}{2m} \nabla^2 \psi + V\psi
+\]
+
+**Solução**:
+Para uma partícula em um poço de potencial infinito unidimensional:
+\[
+\psi_n(x, t) = \sqrt{\frac{2}{L}} \sin \left( \frac{n \pi x}{L} \right) e^{-i E_n t / \hbar}
+\]
+onde \(E_n = \frac{n^2 \pi^2 \hbar^2}{2mL^2}\).
+
+### 6. Equação de Klein-Gordon
+
+**Introdução Histórica**:
+A equação de Klein-Gordon, formulada por Oskar Klein e Walter Gordon em 1926, é uma extensão relativística da equação de Schrödinger.
+
+**Aplicações**:
+
+- **Física**: Descrição de partículas relativísticas.
+- **Química**: Fenômenos quânticos em altas energias.
+- **Biologia**: Fenômenos relativísticos em biologia teórica.
+
+**Equação**:
+\[
+\frac{\partial^2 \phi}{\partial t^2} - c^2 \nabla^2 \phi + \frac{m^2 c^4}{\hbar^2} \phi = 0
+\]
+
+**Solução**:
+Para uma solução em uma dimensão espacial:
+\[
+\phi(x, t) = e^{i(kx - \omega t)}
+\]
+onde \(\omega = \sqrt{c^2 k^2 + \frac{m^2 c^4}{\hbar^2}}\).
+
+
+Essas são algumas das PDEs mais importantes, com suas formas explícitas, soluções analíticas e aplicações em biologia, química e física. Cada uma delas desempenha um papel crucial na compreensão e modelagem de fenômenos complexos em diversas áreas da ciência.
+
+## PDES importantes: Soluções em Mathematica
+
+### 1. Equação de Laplace
+
+**Equação**:
+
+\[
+\nabla^2 u = 0 \quad \text{ou} \quad \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0
+\]
+
+**Comando em Mathematica**:
+
+`DSolve[{Laplacian[u[x, y], {x, y}] == 0}, u[x, y], {x, y}]`
+
+
+**Resultado**:
+
+\[
+u(x, y) = C[1](I x + y) + C[2](-I x + y)
+\]
+
+### 2. Equação de Poisson
+
+**Equação**:
+
+\[
+\nabla^2 u = k \quad \text{onde} \quad k \text{ é constante}
+\]
+
+**Comando em Mathematica**:
+
+`DSolve[{Laplacian[u[x, y], {x, y}] == k}, u[x, y], {x, y}]`
+
+**Resultado**:
+
+\[
+u(x, y) = -\frac{k}{4} (x^2 + y^2) + C[1] x + C[2] y + C[3]
+\]
+
+### 3. Equação da Onda
+
+**Equação**:
+
+\[
+\frac{\partial^2 u}{\partial t^2} = c^2 \frac{\partial^2 u}{\partial x^2}
+\]
+
+**Comando em Mathematica**:
+
+`DSolve[{D[u[x, t], {t, 2}] == c^2 D[u[x, t], {x, 2}]}, u[x, t], {x, t}]`
+
+**Resultado**:
+
+\[
+u(x, t) = C[1]\left(t - \frac{x}{\sqrt{c^2}}\right) + C[2]\left(t + \frac{x}{\sqrt{c^2}}\right)
+\]
+
+### 4. Equação do Calor
+
+**Equação**:
+\[
+\frac{\partial u}{\partial t} = \alpha \frac{\partial^2 u}{\partial x^2}
+\]
+
+**Comando em Mathematica**:
+
+`DSolve[{D[u[x, t], t] == α D[u[x, t], {x, 2}]}, u[x, t], {x, t}]`
+
+**Resultado**:
+
+\[
+u(x, t) = 1 + \cosh(C[1] + x C[2] + t \alpha C[2]^2) + \sinh(C[1] + x C[2] + t \alpha C[2]^2)
+\]
+
+### 5. Equação de Schrödinger
+
+**Equação**:
+
+\[
+i\hbar \frac{\partial \psi}{\partial t} = -\frac{\hbar^2}{2m} \nabla^2 \psi + V\psi
+\]
+
+Vamos adotar \( V(x) = V_0 \) constante.
+
+**Comando em Mathematica**:
+
+`DSolve[{I hbar D[ψ[x, t], t] == -((hbar^2)/(2 m)) D[ψ[x, t], {x, 2}] + V0 ψ[x, t]}, ψ[x, t], {x, t}]`
+
+
+**Resultado**:
+
+\[
+ψ(x, t) = e^{-\frac{i t (V0 + \frac{\hbar^2 k^2}{2 m})}{\hbar}} (C[1] e^{i k x} + C[2] e^{-i k x})
+\]
+
+
+### 6. Equação de Klein-Gordon
+
+**Equação**:
+
+\[
+\frac{\partial^2 \phi}{\partial t^2} - c^2 \frac{\partial^2 \phi}{\partial x^2} + \frac{m^2 c^4}{\hbar^2} \phi = 0
+\]
+
+**Comando em Mathematica**:
+
+`DSolve[{D[ϕ[x, t], {t, 2}] - c^2 D[ϕ[x, t], {x, 2}] + (m^2 c^4 / ħ^2) ϕ[x, t] == 0}, ϕ[x, t], {x, t}]`
+
+**Resultado**:
+
+\[
+ϕ(x, t) = e^{i(kx - \omega t)}, \quad \omega = \sqrt{c^2 k^2 + \frac{m^2 c^4}{\hbar^2}}
+\]
+
+
+### Resumo das Soluções Ajustadas
+
+- **Equação de Laplace**: \(u(x, y) = C[1](I x + y) + C[2](-I x + y)\)
+- **Equação de Poisson**: \(-\frac{k}{4} (x^2 + y^2) + C[1] x + C[2] y + C[3]\)
+- **Equação da Onda**: \(C[1](t - \frac{x}{\sqrt{c^2}}) + C[2](t + \frac{x}{\sqrt{c^2}})\)
+- **Equação do Calor**: \(1 + \cosh(C[1] + x C[2] + t \alpha C[2]^2) + \sinh(C[1] + x C[2] + t \alpha C[2]^2)\)
+- **Equação de Schrödinger**: \(e^{-\frac{i t (V0 + \frac{\hbar^2 k^2}{2 m})}{\hbar}} (C[1] e^{i k x} + C[2] e^{-i k x})\)
+- **Equação de Klein-Gordon**: \(e^{i(kx - \omega t)}, \quad \omega = \sqrt{c^2 k^2 + \frac{m^2 c^4}{\hbar^2}}\)
+
+
+# Bibliografia
+
+* Allen, LJS (2007) _An Introduction to Mathematical Biology_. NJ: Pearson.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. SP: EDUSP e RJ: Interciência.
+* Garﬁnkel, A et al. (2017) _Modeling Life: The Mathematics of Biological Systems_. USA: Springer.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. 
+* Goldman, R (2005) Curvature formulas for implicit curves and surfaces. _Computer Aided Geometric Design_ 22(7): 632-58. https://doi.org/10.1016/j.cagd.2005.06.005. 
+* González-Vega, L et al. (2023) Eigenvalues of Real Matrices with Prescribed Principal Minors Sign and Descartes Law of Signs. _arXiv_. 
+https://doi.org/10.48550/arXiv.2305.08861. 
+* Hariki, S & Abdonour, OJ (2003) _Matemática aplicada em administração, economia e contabilidade_. SP: Saraiva. 
+* Jones, DS, Plank, MJ & Sleeman, BD (2009) _Differential Equations and Mathematical Biology_. 2nd ed. UK: CRC.
+* Moylan, PJ (1977) Matrices with positive principal minors. _Linear Algebra and its Applications_ 17(1): 53-8. https://doi.org/10.1016/0024-3795(77)90040-4.
+* Neuhauser, C & Roper, ML (2018) _Calculus for Biology and Medicine_. 4th ed. USA: Pearson.
+* Poularikas, AD (1999) _The Handbook of Formulas and Tables for Signal Processing_. Boca Raton: CRC/Springer/IEEE. 
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. SP: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* Venit, S & Katz, R (2000) Eigenvalues of Matrices of Low Rank. _The College Mathematics Journal_ 31(3): 208–10. https://doi.org/10.2307/2687491
+* Teichroew, D (1964) _An introduction to management science: deterministic models_. NJ: Wiley. 
+* Yihe, L & Timofeeva, Y (2020) Exact solutions to cable equations in branching neurons with tapering dendrites. _J. Math. Neurosc._ 10(1). https://doi.org/10.1186/s13408-020-0078-z
+* Zwillinger, D (1997) _Handbook of differential equations_. 3rd ed. USA: Academic. 
+
+# Matemática no YouTube 
+
+* [blackpenredpen: delta y vs. dy (differential)](https://www.youtube.com/watch?v=2ooWs_8hzxQ&list=WL&index=3&t=43s){target="_blank"}
+* [Physics for Students- Unleash your power!!: What is the meaning of Greek symbols | Delta, del, d | Greek letters in mathematics | Greek symbols](https://www.youtube.com/watch?v=1wrFF9ssHhk&list=WL&index=20){target="_blank"}
+* [Dr. Trefor Bazett : What are the big ideas of Multivariable Calculus?? Full Course Intro](https://www.youtube.com/watch?v=gsUgDpGWk-M){target="_blank"}
+* [Dr. Trefor Bazett : A full course playlist for Multivariable Calculus (aka Calculus III)](https://www.youtube.com/playlist?list=PLHXZ9OQGMqxc_CvEy7xBKRQr6I214QJcd){target="_blank"}
+* [Richard Behiel: The Beauty of Linear Regression (How to Fit a Line to your Data)](https://www.youtube.com/watch?v=my3lsV-VQjs&list=WL&index=6&t=1544s){target="_blank"}
+* [3Blue1Brown: Mas o que é uma equação diferencial parcial? | Visão geral de Equações Diferenciais, Capítulo 2](https://www.youtube.com/watch?v=ly4S0oi3Yz8&t=18s){target="_blank"}
+* [3Blue1Brown: Solving the heat equation | DE3](https://www.youtube.com/watch?v=ToIXSwZ1pJU&t=28s){target="_blank"}
+* [3Blue1Brown: Solving the heat equation | DE3](https://www.youtube.com/watch?v=ToIXSwZ1pJU&t=28s){target="_blank"}

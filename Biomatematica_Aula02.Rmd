@@ -1,0 +1,1460 @@
+--- 
+title: "MSP4092: Biomatemática: aspectos quantitativos da vida"
+subtitle: "Aula 2: Função e Relação" 
+author: |
+  | [José Siqueira](https://sites.google.com/usp.br/profjosesiqueira){target="_blank"}
+date: "`r format(Sys.time(), format='%d %B %Y %H:%Mh')`"
+output:
+  html_document:
+    css: style.css
+    font_adjustment: 1
+    df_print: tibble
+    footer: "Biomatematica_Aula02.Rmd"
+    highlight: pygments
+    theme: cerulean
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+  slidy_presentation:
+    css: style.css
+    font_adjustment: -1
+    footer: "Biomatematica_Aula02.Rmd"
+    highlight: pygments
+    theme: cerulean
+    df_print: tibble
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: yes
+      smooth_scroll: no
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=80)
+```
+
+```{css, echo=FALSE}
+.code {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid darkgray;
+  font-weight: bold;
+  max-width: none !important;
+}
+.output {
+  font-size: 18px;
+  background-color: white;
+  border: 2px solid black;
+  font-weight: bold;
+  max-width: none !important;
+}
+.main-container {
+  max-width: none !important;
+}
+pre {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+.bgobs {
+  background-color: #a0d8d8;
+}
+.bgcodigo {
+  background-color: #eeeeee;
+}
+.bgsaida {
+  background-color: #ecf7db;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE,
+                      echo=TRUE, 
+                      fig.width=7, 
+                      fig.height=6,
+                      fig.align="center",
+                      comment=NA,
+                      class.source="code",
+                      class.output="output")
+```
+
+```{r}
+invisible(Sys.setlocale("LC_CTYPE", "pt_BR.UTF-8"))
+invisible(Sys.setlocale("LC_ALL","pt_BR.UTF-8"))
+```
+
+```{r,eval=TRUE,echo=FALSE}
+systoper <- Sys.info()[[1]]
+if (systoper == "Linux")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("","home","silveira","Scilab","bin","scilab")
+  parameter <- "-nw"
+}
+# Windows
+if (systoper == "Windows")
+{
+  # Troque para o executavel de onde esta instalado o scilab em seu computador
+  executable <- file.path("D:","Usuarios","Jose","scilab","bin","Scilex")
+  parameter <- ""
+}
+```
+
+```{r,eval=TRUE,echo=FALSE}
+eng_scilab <- function(options) {
+code <- stringr::str_c(options$code, collapse = '\n')
+if (options$eval) 
+{
+  cmd <- sprintf("%s %s -e %s",
+                 executable,
+                 parameter,
+                 shQuote(code,type="cmd"))
+  out <- system(cmd, intern = TRUE)
+}else{out <- "output when eval=FALSE and engine='scilab'"}
+
+knitr::engine_output(options, options$code, out)
+
+}
+
+knitr::knit_engines$set(scilab=eng_scilab)
+```
+
+```{r}
+options(warn=-1)
+suppressMessages(library(knitr, warn.conflicts=FALSE))
+suppressMessages(library(stringr, warn.conflicts=FALSE))
+suppressMessages(library(ggplot2, warn.conflicts=FALSE))
+suppressMessages(library(latex2exp, warn.conflicts=FALSE))
+suppressMessages(library(lpSolve, warn.conflicts=FALSE))
+suppressMessages(library(gMOIP, warn.conflicts=FALSE))
+suppressMessages(library(RConics, warn.conflicts=FALSE))
+suppressMessages(library(kableExtra, warn.conflicts=FALSE))
+suppressMessages(library(ompr, warn.conflicts=FALSE))
+suppressMessages(library(ompr.roi, warn.conflicts=FALSE))
+suppressMessages(library(ROI, warn.conflicts=FALSE))
+suppressMessages(library(ROI.plugin.glpk, warn.conflicts=FALSE))
+options(warn=0)
+```
+
+* [demo_elipse.R](demo_elipse.R)
+* [demo_plot01.R](demo_plot01.R)
+* [demo_plot02.R](demo_plot02.R)
+* [demo_plot02b.R](demo_plot02b.R)
+* [demo_region01.R](demo_region01.R)
+* [demo_region02.R](demo_region02.R)
+* [demo_region03.R](demo_region03.R)
+* [demo_region03b.R](demo_region03b.R)
+* [demo_region04.R](demo_region04.R)
+* [demo_region05.R](demo_region05.R)
+* [eiras.inequality.plot.R](eiras.inequality.plot.R)
+    
+# Material
+
+* HTML de R Markdown em [`RPubs`](http://rpubs.com/josiqueira/){target="_blank"}
+* Arquivos em [`GitHub`](https://github.com/josiqueira/BioMAt){target="_blank"}
+* [Prof. José Siqueira: ResearchGate](https://www.researchgate.net/profile/Jose-Siqueira-18){target="_blank"}
+
+# Pensamento
+
+"Não é paradoxo dizer que nos nossos momentos de inspiração mais teórica podemos estar o mais próximo possível de nossas aplicações mais práticas."
+
+> WHITEHEAD, AN _apud_ BOYER, CB (1974) _História da matemática_. São Paulo: Blücher/Edusp, p. 419. 
+
+# Conteúdo
+
+1.  Número real (Capítulo 1)
+
+__2.	Função e relação (Capítulo 3)__
+
+3.	Funções potência, periódica, exponencial e logarítmica (Capítulos 4, 5 e 6)
+4.	Método gráfico (Capítulo 7)
+5.	Série e limite (Capítulo 8)
+6.	Derivada e integral (Capítulo 9 e 10)
+7.	Equação diferencial ordinária (ODE) (Capítulo 11)
+8.	Função de duas ou mais variáveis independentes (Capítulo 12)
+9.	Probabilidade (Capítulo 13)
+10.	Matriz e Vetor (Capítulo 14)
+
+# Introdução
+
+Nas ciências da vida, nem todas as relações são de natureza quantitativa.
+
+Embora os futuros cientistas possam entender células, vírus,
+genes, anticorpos etc. em termos de moléculas, suas estruturas são tão complexas que uma descrição será mais ou menos qualitativa. O estudo das interconexões entre as células, seja por troca química ou elétrica, exige ferramentas matemáticas que não sejam simplesmente fórmulas.
+
+Como um órgão funciona, sua resposta a um estímulo ou como um indivíduo se comporta dificilmente podem ser expressos apenas por números. Portanto, neste capítulo damos definições que são amplas o suficiente para incluir propriedades qualitativas e quantitativas.
+
+Usando a teoria dos conjuntos, daremos uma definição matemática do que geralmente é chamado de relação. A noção de função aparecerá como um caso especial. O capítulo terminará com uma revisão da função linear.
+
+A função é um conceito basilar em cálculo e análise. O capítulo constrói e operacionaliza o conceito de função.
+
+# Plano cartesiano
+
+O par ordenado de números reais é denotado por $(x,y)$, sendo que suas coordenadas reais x e y são chamadas respectivamente de abscissa e ordenada. Note que as coordenadas são adimensionais, isto é, não possuem unidade de medida.
+
+Dois pares ordenados são iguais se e somente se suas respectivas coordenadas são iguais, isto é, $(x_1,y_1)=(x_2,y_2)\iff(x_1=x_2~\text{e}~y_1=y_2)$. Dessa forma, o par ordenado não tem a propriedade comutativa, isto é, se $x \ne y$, então $(x,y)\ne(y,x)$.
+
+O conjunto dos pares ordenados é denominado $\mathbb{R^{2}}$ ou $\mathbb{R \times R}$ e tem uma quantidade infinita não enumerável de elementos.
+
+O conjunto de números reais, $\mathbb{R}$, é representável graficamente pela reta euclidiana ou real. A reta real horizontal representa o eixo das abscissas e a reta real vertical e ortogonal à reta anterior representa o eixo das ordenadas. As duas retas reais se cruzam no par ordenado $(0,0)$ chamado de origem. Essa representação gráfica do plano euclidiano ou real é denominado sistema de eixos cartesianos ortogonais ou simplesmente plano cartesiano. Cada ponto do plano cartesiano é representado por um par ordenado real.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[listplot (1,2) axes labels "x"  "y"](https://www.wolframalpha.com/input?i=listplot+%281%2C2%29+axes+labels+%22x%22++%22y%22){target="_blank"}
+
+# Produto cartesiano
+
+O produto cartesiano entre o subconjunto das abscissas A e o subconjunto das ordenadas B denotado por A×B é o conjunto dos pares ordenados (x,y) tais que x∈A e y∈B. 
+
+Por exemplo: 
+
+1. se $A=\{1\}$ e $B=\{2\}$, então $A \times B=\{(1,2)\}$; 
+1. se $A=[-1,1]$ e $B=\{1\}$, então $A \times B=\{(x,1)|x \in [-1,1]\}$; 
+1. se $A=\{1\}$ e $B=[-1,1]$, então $A \times B=\{(1,y)|y \in [-1,1]\}$; 
+1. se $A=\mathbb{R}$ e $B=\{2\}$, então $A \times B=\{(x,2)|x \in \mathbb{R} \}$; 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot y=1, x=-1 to 1, axes labels "x" "y"](https://www.wolframalpha.com/input?i=plot+y%3D1%2C+x%3D-1+to+1%2C+axes+labels+%22x%22+%22y%22){target="_blank"}
+
+Os pares ordenados não são ordenáveis e o produto cartesiano não tem a propriedade comutativa, pois, se $A \ne B$, então $A\times B \ne B\times A$.
+
+# Relação
+
+O conjunto de pares ordenados é chamado de relação plana ou gráfico da relação, isto é, a relação plana é qualquer subconjunto de  $\mathbb{R^{2}}$. 
+Por exemplo, 
+
+1. $S=\{(x,y)| \; 2x>y\}$ é o conjunto dos pares ordenados de um semi-plano;
+
+2. $S=\{(x,y)| \; x^2+y^2<1\}$ é o conjunto dos pares ordenados do interior do círculo centrado na origem e de raio unitário; 
+
+3. $S=\{(x,y)| \; xy=1\}$ é o conjunto dos pares ordenados da hipérbole equilátera; 
+
+4. $S=\{(x,y)| \; y \le x^2+1\}$ é o conjunto dos pares ordenados da parábola e de seu exterior; 
+
+5. $S=\{(x,y)| \; 2x+y-1=0\}$ é o conjunto dos pares ordenados da reta.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[region plot x^2 + 3y^2 = 21](https://www.wolframalpha.com/input?i=region+plot+x%5E2+%2B+3+y%5E2+%3D+21){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+Uma solução em R, usando "força bruta":
+
+<div align=right><small><small>
+
+[demo_elipse.R](demo_elipse.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_elipse.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_elipse.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[region plot y>x](https://www.wolframalpha.com/input?i=region+plot+y%3Ex){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_region01.R](demo_region01.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_region01.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_region01.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[region plot x^2 + y^2 < 1](https://www.wolframalpha.com/input?i=region+plot+x%5E2%2By%5E2%3C1){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_region02.R](demo_region02.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_region02.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_region02.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[RegionPlot[y<=x^2-1,{x, -1, 3}, {y, -1, 5}]](https://www.wolframalpha.com/input?i=RegionPlot%5By%3C%3Dx%5E2-1%2C%7Bx%2C+-1%2C+3%7D%2C+%7By%2C+-1%2C+5%7D%5D){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+Uma solução em R:
+
+<div align=right><small><small>
+
+[demo_region03.R](demo_region03.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_region03b.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_region03b.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[region plot xy=1](https://www.wolframalpha.com/input?i=region+plot+xy%3D1){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_region04.R](demo_region04.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_region04.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_region04.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[RegionPlot 2x+y-1=0](https://www.wolframalpha.com/input?i=RegionPlot+2x%2By-1%3D0){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_region05.R](demo_region05.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_region05.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_region05.R')
+```
+
+# Função
+
+A relação plana $f$ é chamada de função se e somente se para cada valor da abscissa há apenas um valor da ordenada, isto é, se $(x_1,y_1 )\in f$, $(x_2,y_2 )\in f$ e $x_1=x_2$, então $y_1=y_2$. 
+
+As seguintes relações planas, por exemplo, são funções: 
+
+a. $\{(x,1)|\;x\in[-1,1]\}$ 
+b. $\{(x,y)|\;xy=1\}$  
+c. $\{(x,y)|\;2x+y-1=0\}$ 
+
+As seguintes relações planas, por exemplo, não são funções: 
+
+a. $\{(1,y)|\;y\in[-1,1]\}$ 
+b. $\{(x,y)|\;2x>y\}$ 
+c. $\{(x,y)|\;x^2+y^2<1\}$ 
+d. $\{(x,y)|\;y≤x^2+1\}$ 
+
+e qualquer relação com desigualdade.
+
+Se a relação plana $f$ é uma função real de variável real, então existe uma lei matemática $f$ que associa cada valor da abscissa a apenas um valor da ordenada denotada por $y=f(x)$ ou $f:x\mapsto y$. A variável que representa o valor da abscissa $x$ é chamada de variável independente de $f$. A variável que representa o valor da ordenada $y$ é chamada de variável dependente de $f$. Note que a função relaciona a variável independente à dependente por meio de uma igualdade. Dessa forma, toda reta paralela à ordenada $y$ encontra o gráfico da função em, no máximo, um ponto e vice-versa.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 3.8. O domínio e a imagem de uma função."}
+knitr::include_graphics("./image/Fig3.8.png")
+```
+
+O conjunto de números reais da variável independente para o qual a função produz um número real é chamado de domínio e é denotado por $D(f)$, isto é, $x\in D(f)$ se $f(x)\in \mathbb{R}$. O conjunto de números reais da variável independente, isto é, números reais resultantes da aplicação da função, é chamado de imagem e é denotado por $Im(f)$. 
+
+Por exemplo, os conjuntos domínio e imagem da função $f(x)=1-2x$, $x\in \mathbb{R}$, são, respectivamente, $D(f)=\mathbb{R}$ e $Im(f)=\mathbb{R}$. Note que $x\in \mathbb{R}$ faz parte da definição da função impondo uma restrição ao domínio. 
+
+A função e sua restrição de domínio podem ser expressas integradamente da seguinte maneira:
+
+* $f(x)$, $x\in A \iff f(x)×I_{x\in A}$, sendo que $I_{x\in A}=1$ se $x\in A$ e $I_{x\in A}=0$ se $x\notin A$, $A\subseteq R$.
+
+Por exemplo, a função $f(x)=1-2x$, $x\in\mathbb{R}_{+}$, é equivalente a $f(x)=(1-2x) I_{x\in\mathbb{R}_{+}}$. 
+
+# Gráfico
+
+O gráfico da função $f$ é o conjunto dos pares ordenados $(x,f(x))$, sendo denotado por $G(f) = \{(x,f(x))|\;x\in D(f)\}$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot 1-2*x](https://www.wolframalpha.com/input?i=plot+1-2*x){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_plot01.R](demo_plot01.R){target="_blank"}
+
+</small></small></div>
+<!--
+``` {r eval=FALSE,code=readLines('demo_plot01.R')}
+```
+-->
+
+``` {r echo=FALSE}
+source('demo_plot01.R')
+```
+
+# Composta
+
+* [7.1 Composition and Inverse Functions](https://saylordotorg.github.io/text_intermediate-algebra/s10-01-composition-and-inverse-functi.html)
+
+* [10.2: Finding Composite and Inverse Functions](https://math.libretexts.org/Bookshelves/Algebra/Intermediate_Algebra_(OpenStax)/10%3A_Exponential_and_Logarithmic_Functions/10.02%3A_Finding_Composite_and_Inverse_Functions)
+
+A função $f$ da função $g$ é chamada de função composta $f \circ g$  ou $f(g)$. 
+
+Por exemplo, se $f(x)=x+1$  e  $g(x)=x^{2}$:
+
+a. $f(g(x))=g(x)+1=x^{2}+1$
+b. $g(f(x))=(f(x))^{2}=(x+1)^{2}$ 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[f(g(x)) where f(x) = x + 1, g(x) = x^2](https://www.wolframalpha.com/input?i=f%28g%28x%29%29+where+f%28x%29+%3D+x+%2B+1%2C+g%28x%29+%3D+x%5E2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+[demo_plot02.R](demo_plot02.R){target="_blank"}
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_plot02.R')}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_plot02.R')
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[g(f(x)) where f(x) = x + 1, g(x) = x^2](https://www.wolframalpha.com/input?i=g%28f%28x%29%29+where+f%28x%29+%3D+x+%2B+1%2C+g%28x%29+%3D+x%5E2){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoC.png")
+```
+
+<div align=right><small><small>
+
+[demo_plot02b.R](demo_plot02b.R){target="_blank"}
+
+</small></small></div>
+<!--
+
+``` {r eval=FALSE,code=readLines('demo_plot02b.R')}
+```
+
+-->
+
+``` {r echo=FALSE}
+source('demo_plot02b.R')
+```
+
+O exemplo anterior mostra que função composta não é comutativa. 
+
+# Bijetora
+
+A função $f$  é chamada de bijetora ou um-a-um se e somente $x_{1}\in D(f)$, $x_{2}\in D(f)$ e $x_{1}\ne x_{2}$, então $f(x_{1})\ne f(x_{2})$. 
+
+Se a função $f$  é bijetora no domínio  $D(f)$, então ela é bijetora num subconjunto desse domínio. Em outras palavras cada abscissa do domínio corresponde a apenas uma ordenada da imagem e vice-versa ou ainda cada abscissa e cada ordenada podem fazer parte de apenas um par ordenado. 
+
+Por exemplo, 
+
+a. Bijetora: $f(x)=x^{2}$, $x\in\mathbb{R}_{+}$
+b. Não bijetora: $f(x)=x^{2}$, $x\in\mathbb{R}$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot x^2, x:0 to 5](https://www.wolframalpha.com/input?i=plot+x%5E2%2C+x%3A0+to+5){target="_blank"}
+
+[plot x^2, x:-5 to 5](https://www.wolframalpha.com/input?i=plot+x%5E2%2C+x%3A-5+to+5){target="_blank"}
+
+# Inversa
+
+* [7.1 Composition and Inverse Functions](https://saylordotorg.github.io/text_intermediate-algebra/s10-01-composition-and-inverse-functi.html)
+
+* [10.2: Finding Composite and Inverse Functions](https://math.libretexts.org/Bookshelves/Algebra/Intermediate_Algebra_(OpenStax)/10%3A_Exponential_and_Logarithmic_Functions/10.02%3A_Finding_Composite_and_Inverse_Functions)
+
+Se a função $f$ é bijetora, então tem função bijetora denominada inversa e denotada por  $f^{-1}=\{(y,x)|\;(x,y)\in f\}$, sendo que $D(f^{-1})=Im(f)$  e  $Im(f^{-1})=D(f)$. 
+
+Por exemplo, a função bijetora  $f(x)=x^{2}$, $x\in\mathbb{R}_{+}$, tem a função inversa  $f^{-1}(x)=\pm\sqrt[2]{x}$, $x\in\mathbb{R}_{+}$. 
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[inverse x^2](https://www.wolframalpha.com/input?i=inverse+x%5E2){target="_blank"}
+
+[inverse ln(x)](https://www.wolframalpha.com/input?i=inverse+ln%28x%29){target="_blank"}
+
+[inverse 1/x](https://www.wolframalpha.com/input?i=inverse+1%2Fx){target="_blank"}
+
+A função inversa de função composta $f(g(x))^{-1}=(f\circ g)^{-1}(x)$  é igual a  $g^{-1}(f^{-1}(x)))=(g^{-1}\circ f^{-1})(x)$. 
+
+# Constante
+
+A função constante ou polinomial de grau 0 é definida como $f(x)=k$, $x\in\mathbb{R}$ e $k\in\mathbb{R}$.
+
+A função constante tem $D(f)=\mathbb{R}$  e  $Im(f)=\{k\}$.Portanto, esta função não é bijetora.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot y=2](https://www.wolframalpha.com/input?i=plot+y%3D2){target="_blank"}
+
+# Linear
+
+A função linear ou polinomial de grau 1 é definida como $f(x)=ax+b$, $x\in\mathbb{R}$, $b\in\mathbb{R}$ e $a\in\mathbb{R^{*}}$.
+
+A função linear tem $D(f)=\mathbb{R}$  e  $Im(f)=\mathbb{R}$. Portanto, esta função é bijetora.
+
+* $a=\dfrac{y_{1}-y_{0}}{x_{1}-x_{0}},\; x_{1}\ne x_{0}$
+
+* $b=y_{0}-ax_{0}$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 3.14. Construção da reta da equação y = ax + b usando o gráfico de y = ax."}
+knitr::include_graphics("./image/Fig3.14.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 3.15. Os incrementos &Delta;x e &Delta;y para uma função linear."}
+knitr::include_graphics("./image/Fig3.15.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot y=5*x-1](https://www.wolframalpha.com/input?i=plot+y%3D5*x-1){target="_blank"}
+
+[plot y=x](https://www.wolframalpha.com/input?i=plot+y%3Dx){target="_blank"}
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 3.13. A pressão arterial medida de duas maneiras diferentes. Sejam x e y as medidas no mesmo indivíduo. Sem erros de medidas teríamos y = x. O gráfico é uma linha reta com &alpha; = 45° como ângulo de inclinação."}
+knitr::include_graphics("./image/Fig3.13.png")
+```
+
+## Elasticidade
+
+* [Elasticity of a function](https://en.wikipedia.org/wiki/Elasticity_of_a_function){target="_blank"}
+
+Elasticidade instantânea da função $f(x)=ax+b$ no ponto $(x,f(x))$ é expressa matematicamente por:
+
+$$\eta(x)=\left|\dfrac{ax}{f(x)}\right|$$
+
+A variação de 1% de $x$ causa a variação de $\eta(x)$% de $f(x)$.
+
+A elasticidade no ponto $(x,f(x))$ é: 
+
+1. Elástica se o valor absoluto da elasticidade é maior que 1, isto é,  $\eta(x)>1$; 
+2. Inelástica se o valor absoluto da elasticidade é menor que 1, ou seja,  $\eta(x)<1$; 
+3. Isoelástica se o valor absoluto da elasticidade é igual a 1, isto é,  $\eta(x)=1$; 
+4. Totalmente inelástica se a elasticidade é nula, isto é, $\eta(x)=0$;
+5. Totalmente elástica se ela é infinita, isto é, $\eta(x)=\infty$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+<!-- [solve |a x/(a x + b)| = eta for x](https://www.wolframalpha.com/input?i=solve+%7Ca+x%2F%28a+x+%2B+b%29%7C+%3D+eta+for+x){target="_blank"} -->
+
+## Exemplo 3.6.2. Reação fotoquímica em Typha latifolia (taboa de folha larga)
+
+Em um estudo sobre a redução do  [2,6-diclorofenolindofenol (DCPIP, DCIP ou DPIP)](https://en.wikipedia.org/wiki/Dichlorophenolindophenol){target="_blank"} pela luz, McNaughton (1967) relata que a reação fotoquímica em [Typha latifolia](https://pt.wikipedia.org/wiki/Typha) (taboa de folha larga) é tanto mais eficiente quanto maior a altitude em que as plantas dessa espécie crescem. Mais precisamente, McNaughton descobriu que a chamada atividade de Hill é uma função quase linear do período sem geada no local onde as plantas vivem.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 3.17. Typha latifolia crescendo em locais com um período sem geadas mais curto mostra uma maior atividade Hill do que em locais com um período sem geadas mais longo."}
+knitr::include_graphics("./image/Fig3.17.png")
+```
+
+A Fig. 3.17 é um diagrama da reta ajustada aos dados. Vamos primeiro determinar a equação. Denotamos o período livre de gelo por $x$ (em dias) e a atividade de Hill por $y$ (em unidades Hill = &mu;Moles de 2,6-diclorofenolindofenol por mg de clorofila por minuto). Na linha reta decrescente, escolhemos dois pontos que não estão próximos, digamos
+
+$x_{0}$ = 100 dias; $y_{0}$ = 42 unidades Hill
+
+$x_{1}$ = 300 dias; $y_{1}$ = 21 unidades Hill
+
+* $a = \dfrac{y_{1}-y_{0}}{x_{1}-x_{0}} = \dfrac{21-42}{300-100} =-0.105$
+
+* $b=y_{0}-ax_{0}=42-(-0.105)\times 100=52.5$
+
+$$y = -0.105x + 52.5$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot y = -0.105x + 52.5 , x:0 to 500,  axes labels "dias" "Hill"`](https://www.wolframalpha.com/input?i=plot+y+%3D+-0.105x+%2B+52.5+%2C+x%3A0+to+500%2C++axes+labels+%22dias%22+%22Hill%22){target="_blank"}
+
+[`eta = abs(250*(-0.105)/(-0.105*250 + 52.5))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%28250*%28-0.105%29%2F%28-0.105*250+%2B+52.5%29%29){target="_blank"}
+
+A função de atividade de Hill varia 1% se ocorrer a variação de 1% no dia 250. Portanto, a função é isoelástica neste ponto.
+
+[`eta = abs(125*(-0.105)/(-0.105*125 + 52.5))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%28125*%28-0.105%29%2F%28-0.105*125+%2B+52.5%29%29){target="_blank"}
+
+A função de atividade de Hill varia $0.\bar{3}$% se ocorrer a variação de 1% no dia 125. Portanto, a função é inelástica neste ponto.
+
+[`eta = abs(375*(-0.105)/(-0.105*375 + 52.5))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%28375*%28-0.105%29%2F%28-0.105*375+%2B+52.5%29%29){target="_blank"}
+
+A função de atividade de Hill varia 3% se ocorrer a variação de 1% no dia 375. Portanto, a função é elástica neste ponto.
+
+[`plot eta = abs(x*(-0.105)/(-0.105*x + 52.5)), x:0 to 500, axes labels "x", "eta"`](https://www.wolframalpha.com/input?i=plot+eta+%3D+abs%28x*%28+-0.105%29%2F%28-0.105*x+%2B+52.5%29%29%2C+x%3A0+to+500%2C+axes+labels+%22x%22%2C+%22eta%22){target="_blank"}
+
+$\Diamond$
+
+# Limitada
+
+A função é limitada se uma das extremidades da imagem é um número real. 
+Por exemplo, a função modular $f(x)=|x|$ tem $D(f)=\mathbb{R}$  e  $I(f)=\mathbb{R}_{+}=[0,+\infty[$. 
+
+Dessa forma, a função modular é limitada inferiormente pelo 0 e não é limitada superiormente; a função sinal é limitada inferiormente e superiormente por -1 e 1, respectivamente; a função linear não é limitada inferiormente e superiormente.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[f(x)=|x|](https://www.wolframalpha.com/input?i=f%28x%29%3D%7Cx%7C){target="_blank"}
+
+# Máximo e mínimo
+
+A função limitada tem valor máximo e/ou mínimo. 
+
+Por exemplo, o mínimo da função modular é 0 e não tem máximo; o máximo e o mínimo da função sinal são 1 e -1, respectivamente; a função linear não tem máximo e mínimo.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[|x|](https://www.wolframalpha.com/input?i=%7Cx%7C){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[min |x|](https://www.wolframalpha.com/input?i=min+%7Cx%7C){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[max |x|](https://www.wolframalpha.com/input?i=max+%7Cx%7C){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[sgn(x)](https://www.wolframalpha.com/input?i=sgn%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[min sgn(x)](https://www.wolframalpha.com/input?i=min+sgn%28x%29){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[max sgn(x)](https://www.wolframalpha.com/input?i=min+sgn%28x%29){target="_blank"}
+
+# Crescente & decrescente
+
+A função $f$ é crescente num intervalo do domínio  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se $x^{"}>x^{\prime}$  implica  $f(x^{"})\ge f(x^{\prime})$, para todos  $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$. 
+
+A função  $f$ é estritamente crescente num intervalo do domínio  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se $x^{"}>x^{\prime}$   implica $f(x^{"})> f(x^{\prime})$, para todos  $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$. 
+
+Por exemplo, a função linear com coeficiente angular positivo, isto é,  $f(x)=ax+b$,  $a>0$, é estritamente crescente em qualquer intervalo de seu domínio.
+
+A função $f$ é decrescente num intervalo do domínio  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se $x^{"}>x^{\prime}$  implica  $f(x^{"})\le f(x^{\prime})$, para todos  $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$.  
+
+A função $f$ é estritamente decrescente num intervalo do domínio  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se $x^{"}>x^{\prime}$  implica  $f(x^{"})< f(x^{\prime})$, para todos  $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$.
+
+Por exemplo, a função linear com coeficiente angular negativo, isto é,  $f(x)=ax+b$,  $a<0$, é estritamente decrescente em qualquer intervalo de seu domínio.
+
+A função é monotonicamente crescente em seu domínio se não é decrescente em nenhum intervalo.
+
+A função é monotonicamente decrescente em seu domínio se não é crescente em nenhum intervalo.
+
+Toda função monótona é inversível e vice-versa.
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 6.5. Exemplos de funções monótonas."}
+knitr::include_graphics("./image/Fig6.5.png")
+```
+
+```{r echo=FALSE, out.width="70%", fig.cap="Fig. 6.4. Gráfico de uma função que não é monótona. Portanto, a função inversa não existe. A um dado y correspondem vários valores de x."}
+knitr::include_graphics("./image/Fig6.4.png")
+```
+
+# Raiz
+
+A raiz da função é o número real $x$ que a anula, isto é, o número real $x$ tal que $f(x)=0$ é chamado de raiz da função $f$. 
+
+Por exemplo, $0$ é raiz da função modular, pois $f(0)=|0|=0$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[roots |x|](https://www.wolframalpha.com/input?i=roots+%7Cx%7C){target="_blank"}
+
+[roots x^2 - 1](https://www.wolframalpha.com/input?i=roots+x%5E2+-+1){target="_blank"}
+
+# Contínua
+
+A função é contínua no par ordenado $(x,f(x))$, se o ponto de seu gráfico não provoca um salto. 
+
+Por exemplo:
+
+* a função linear é contínua em todos os pontos de seu gráfico; 
+
+* a função sinal é descontínua em $(0,0)$.
+
+# Lisa
+
+A função é lisa no par ordenado $(x,f(x))$ se ele não provoca uma cúspide no gráfico. 
+
+Por exemplo:
+
+* a função linear é lisa em todos os pontos; 
+
+* a função modular tem uma cúspide em $(0,0)$.
+
+# Homogênea
+
+A função $f$ é homogênea se $f(hx)=hf(x)$. 
+
+Por exemplo:
+
+* a função linear $f(x)=ax+b$  não é homogênea, pois  $f(hx)=a(hx)+b=hax+b\ne hf(x)=hax+hb$; 
+
+* a função potência $f(x)=x^{a}$ é homogênea, pois  $f(hx)=(hx)^{a}=h^{a}x^{a}=h^{a}f(x)$.
+
+# Côncava e convexa
+
+```{r echo=FALSE, out.width="70%", fig.cap="Função convexa"}
+knitr::include_graphics("./image/funcaoconvexa.png")
+```
+
+A função $f$  é côncava para baixo ou côncava no intervalo  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se e somente se  $f(x)\ge t\; f(x^{\prime})+(1-t)f(x^{"})$,  $t\in [0,1]$, para todos $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$, sendo que $x=t x^{\prime}+(1-t)x^{"}$. 
+
+A soma de duas funções côncavas é função côncava. 
+
+A função $f$  é estritamente côncava para baixo ou côncava no intervalo  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se e somente se  $f(x)> t\; f(x^{\prime})+(1-t)f(x^{"})$,  $t\in [0,1]$, para todos $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$, sendo que $x=t x^{\prime}+(1-t)x^{"}$. 
+
+Por exemplo:
+
+* a função linear é côncava, mas não é estritamente côncava; 
+
+* a função polinomial quadrática com o coeficiente do monômio de maior potência negativo é côncava em seu domínio, isto é,  $f(x)=ax^{2}+bx+c$,  $a<0$.
+
+A função $f$  é côncava para cima ou convexa no intervalo  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se e somente se  $f(x)\le t\; f(x^{\prime})+(1-t)f(x^{"})$,  $t\in [0,1]$, para todos $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$, sendo que $x=t x^{\prime}+(1-t)x^{"}$. 
+
+A soma de duas funções convexas é função convexa. 
+
+A função $f$  é estritamente côncava para cima ou convexa no intervalo  $[x_{1},x_{2}]\subset D(f)$,  $x_{2}>x_{1}$, se e somente se  $f(x)< t\; f(x^{\prime})+(1-t)f(x^{"})$,  $t\in [0,1]$, para todos $x^{\prime} \in [x_{1},x_{2}]$ e  $x^{"} \in [x_{1},x_{2}]$, sendo que $x=t x^{\prime}+(1-t)x^{"}$.
+
+Por exemplo:
+
+* A função linear é convexa, mas não é estritamente convexa; dessa forma, a função linear é côncava e convexa, mas não é estritamente côncava e nem estritamente convexa; 
+
+* a função polinomial quadrática com o coeficiente do monômio de maior potência positivo é côncava em seu domínio, isto é, $f(x)=ax^{2}+bx+c$,  $a>0$.
+
+# Inflexão
+
+A função tem inflexão em seu gráfico se há mudança de concavidade. 
+
+Por exemplo:
+
+* a função polinomial quadrática não tem inflexão; 
+
+* a função polinomial cúbica tem uma inflexão. 
+
+```{r fig.align="left",echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[x^3](https://www.wolframalpha.com/input?i=x%5E3){target="_blank"}
+
+[inflection points x^3](https://www.wolframalpha.com/input?i=inflection+points+x%5E3){target="_blank"}
+
+# Assíntota
+
+A assíntota da função é uma relação ou função para a qual o gráfico da função tende. 
+
+Por exemplo:
+
+* o eixo das abscissas (função linear) e o eixo das ordenadas (relação) são assíntotas da função recíproca $f(x) = 1/x$.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[asymptotes 1/x](https://www.wolframalpha.com/input?i=asymptotes+1%2Fx){target="_blank"}
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[asymptotes (x^2+1)/(x-1)](https://www.wolframalpha.com/input?i=asymptotes+%28x%5E2%2B1%29%2F%28x-1%29){target="_blank"}
+
+# Equação
+
+Sabe-se que 100 g de soja seca contém 35 g de proteína e 100 g de lentilha seca contém 26 g de proteína. Homens de tamanho médio que vivem em um clima moderado precisam de 70 g de proteína em sua alimentação diária. 
+
+Suponha que um homem deseja consumir esses 70 g de proteína comendo soja e/ou lentilhas. 
+
+Seja $x$ a quantidade de soja e $y$ a quantidade diária de lentilhas ($x$ e $y$ medidos em unidades de 100 g). 
+
+Qual é a relação entre $x$ e $y$?
+
+A proteína ingerida com soja é $35x$ e com lentilhas $26y$ por dia
+(ambas medidos em g). A quantidade diária total de proteína é de 70 g. 
+
+Daí obtemos a equação (função implícita):
+
+$$35x+26y=70$$
+
+Reorganizando os termos, podemos expressar $y$ como uma função explícita de $x$:
+
+$$y = - \dfrac{35}{26} x + \dfrac{70}{26}$$
+
+ou 
+
+$$y = (-1.35) x + 2.69$$ 
+
+O segmento de reta no primeiro quadrante representa todas as combinações possíveis de lentilha e soja que fornecem 70 g/dia de proteína.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[`plot y = -(35/26)x + 70/26, x:0 to 2,  axes labels "soja (100g)" "lentilha (100g)"`](https://www.wolframalpha.com/input?i=plot+y+%3D+-%2835%2F26%29x+%2B+70%2F26%2C+x%3A0+to+2%2C++axes+labels+%22soja+%28100g%29%22+%22lentilha+%28100g%29%22){target="_blank"}
+
+[`eta = abs(1*(-(35/26))/(-(35/26)*1 + 70/26))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%281*%28-%2835%2F26%29%29%2F%28-%2835%2F26%29*1+%2B+70%2F26%29%29){target="_blank"}
+
+A função da quantidade de lentilhas varia 1% se ocorrer a variação de 1% na quantidade de 100 g de soja. Portanto, a função é isoelástica neste ponto.
+
+[`eta = abs(0.5*(-(35/26))/(-(35/26)*0.5 + 70/26))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%280.5*%28-%2835%2F26%29%29%2F%28-%2835%2F26%29*0.5+%2B+70%2F26%29%29){target="_blank"}
+
+A função da quantidade de lentilhas varia $0.\bar{3}$% se ocorrer a variação de 1% na quantidade de 50 g de soja. Portanto, a função é inelástica neste ponto.
+
+[`eta = abs(1.5*(-(35/26))/(-(35/26)*1.5 + 70/26))`](https://www.wolframalpha.com/input?i=eta+%3D+abs%281.5*%28-%2835%2F26%29%29%2F%28-%2835%2F26%29*1.5+%2B+70%2F26%29%29){target="_blank"}
+
+A função da quantidade de lentilhas varia 3% se ocorrer a variação de 1% na quantidade de 150 g de soja. Portanto, a função é elástica neste ponto.
+
+[`eta = abs(x*(-(35/26))/(-(35/26)*x + 70/26)), x:0 to 2`](https://www.wolframalpha.com/input?i=eta+%3D+abs%28x*%28-%2835%2F26%29%29%2F%28-%2835%2F26%29*x+%2B+70%2F26%29%29%2C+x%3A0+to+2){target="_blank"}
+
+$\Diamond$
+
+Generalizando este exemplo consideramos a equação linear
+
+$$Ax+By+C=0$$
+
+que é equivalente à fórmula explícita
+
+$$y = - \dfrac{A}{B} x - \dfrac{C}{B}$$
+
+ou 
+
+$$y = ax + b$$
+
+desde que $B\ne 0$. Se $B = 0$, $y$ não pode ser uma função de $x$.
+
+# Inequação
+
+Vamos agora generalizar um pouco o exemplo anterior. 
+
+Suponha que um homem queira comer soja e lentilhas para obter pelo menos 70 g de proteína por dia. Então temos que substituir o sinal de igualdade pelo sinal de "maior que ou igual a". Assim obtemos a desigualdade implícita (também chamada de inequação implícita)
+
+$$35x+26y\ge 70$$
+
+Desigualdades desse tipo geralmente ocorrem em problemas de "misturar" dois tipos de "oportunidades", como misturar nutrição, suprimentos, plâncton, culturas de bactérias etc.
+
+A questão é a mesma de antes: Quais são os pares possíveis $(x, y)$ que satisfaçam a inequação? 
+
+Para encontrar uma maneira prática, primeiro resolva a inequação implícita em relação a $y$. 
+
+A inequação explícita ou relação linear é:
+
+$$y \ge -1.35 x +2.69$$
+
+A área acima do segmento de reta no primeiro quadrante representa todas as combinações possíveis de lentilha e soja que fornecem pelo menos 70 g/dia de proteína.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[plot y >= -(35/26)x + 70/26, x:0 to 3,  y:0 to 3, axes labels "soja (100g)" "lentilha (100g)"](https://www.wolframalpha.com/input?i=plot+y+%3E%3D+-%2835%2F26%29x+%2B+70%2F26%2C+x%3A0+to+3%2C++y%3A0+to+3%2C+axes+labels+%22soja+%28100g%29%22+%22lentilha+%28100g%29%22){target="_blank"}
+
+# Ajuste de curva
+
+No contexto puramente matemático, o ajuste de curva envolve encontrar uma função que passe tão próximo quanto possível de um conjunto de pontos dados, minimizando algum tipo de discrepância entre a curva e os pontos. Diferentemente da abordagem estatística, que frequentemente envolve inferência sobre os erros ou a variabilidade dos dados, o ajuste de curva matemático pode se concentrar simplesmente na minimização de um erro ou numa discrepância geométrica sem atribuir interpretações estatísticas a esse erro.
+
+* Exemplo: Exercício 7.2.9 
+
+A atividade enzimática da catalase é perdida durante a exposição à luz solar na presença de oxigênio. Seja _y_ a concentração de catalase (em µg/10 ml) como função do tempo _t_ (em minutos). Qual é a função mais adequada para representar graficamente os seguintes dados (de Mitchell e Anderson, 1965)?
+
+| _t_ (minuto) | _y_ (µg/10 ml) |
+|-------------|--------------|
+| 0           | 121          |
+| 10          | 74           |
+| 30          | 30           |
+| 50          | 12           |
+| 60          | 6.7          |
+| 70          | 3.7          |
+| 80          | 2.0          |
+
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+t <- c(0.1, 10, 30, 50, 60, 70, 80)
+y <- c(121, 74, 30, 12, 6.7, 3.7, 2.0)
+REAT::curvefit(t, y)
+```
+
+No WolframAlpha, se a quantidade de pontos observados é pequena, pode ser usado, por exemplo, o comando `linear fit {{,},{,},...}`.
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[linear fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=linear+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+[best fit {{0,121},{10,74},{30,30},{50,12},{60,6.7},{70,3.7},{80,2.0}}](https://www.wolframalpha.com/input?i=best+fit+%7B%7B0%2C121%7D%2C%7B10%2C74%7D%2C%7B30%2C30%7D%2C%7B50%2C12%7D%2C%7B60%2C6.7%7D%2C%7B70%2C3.7%7D%2C%7B80%2C2.0%7D%7D){target="_blank"}
+
+# Programação Linear
+
+Costuma-se dizer que o ótimo é inimigo do bom. De fato, do ponto de vista matemático, é mais fácil encontrar uma boa solução do que uma ótima. Os métodos heurísticos buscam soluções suficientemente boas. Porém, o desafio de encontrar a solução ótima de um problema é tratado nesta parte. Uma solução ótima significa que não há outra solução que seja superior à encontrada. De forma concreta, a missão do capítulo desta parte é achar a melhor solução matemática de funções sujeitas às restrições de domínio.
+
+Em problemas de otimização com restrições, busca-se maximizar ou minimizar uma ou mais funções que medem o desempenho do sistema, denominadas funções-objetivo, e estas dependem de variáveis independentes que podem estar relacionadas por meio inequações e ou equações, conhecidas como restrições. Uma função-objetivo pode ser uma função de lucro total, custo total, produção, utilidade, risco, ganho, perda etc. As restrições expressam o conhecimento do analista do problema com relação às limitações dos recursos necessários, das leis e regras envolvidas na situação, dos interesses dos envolvidos no problema e das limitações intrinsecamente matemáticas decorrentes da modelagem do problema etc.
+
+O conceito de otimização é um dos que mais contribuem para uma compreensão mais nítida da estrutura lógica de importantes temas da teoria econômica e de modo geral das ciências sociais aplicadas. É comum estabelecer suposições de otimização ao discutir o comportamento da empresa, do consumidor e de outros agentes econômicos.
+
+A programação matemática é parte integrante e importante dos métodos de otimização. Os problemas de programação matemática são utilizados para alocar recursos escassos para usos alternativos para satisfazer um objetivo.
+
+O programa mais simples consiste em uma estrutura composta por uma função-objetivo a ser maximizada ou minimizada sujeita a um conjunto de restrições em seu domínio por meio de equações e/ou inequações envolvendo as variáveis independentes. As variáveis independentes que são controláveis pelo analista são denominadas variáveis de decisão ou de controle. Uma solução que satisfaz a todas as restrições e maximiza ou minimiza a função-objetivo é chamada solução ótima.
+
+A programação linear mais que uma simples técnica de otimização é uma
+linguagem pela qual uma miríade de problemas em ciências da vida
+pode ser expressa, solucionada, e informações importantes são geradas para
+melhorar qualidade da tomada de decisão.
+
+A programação linear consiste na maximização ou minimização de uma
+função-objetivo linear sujeita a restrições lineares. Uma função-objetivo linear é composta por uma combinação linear das variáveis de decisão ou de controle.
+
+Os coeficientes da combinação linear em geral são constantes com valores conhecidos. As restrições são combinações lineares das variáveis de decisão ou de controle e seus coeficientes são em geral constantes conhecidas. O problema consiste em determinar os valores das variáveis de decisão que maximizam ou minimizam a função-objetivo e respeitam todas as restrições.
+
+O conjunto de restrições lineares produz uma região poligonal convexa que é chamada de região de pontos viáveis. Como a função-ojetivo é linear, então a solução pode ser um vértice ou aresta da região de pontos viáveis. O método que investiga os vértices é chamado de Simplex. Geroge Dantzig em 1947 desenvolveu este algoritmo enquanto trabalhava na Força Aérea dos Estados Unidos, visando otimizar a logística e a alocação de recursos durante a Segunda Guerra Mundial. 
+
+Problemas biológicos desse tipo às vezes são mais complexos. Em vez de apenas uma desigualdade, mais delas devem ser satisfeitas. Além disso, algumas propriedades ótimas podem ser necessárias. Problemas desse tipo são hoje tratados sob o título de programação linear. Concluímos esta seção com um exemplo típico. 
+
+## Exemplo 1: Dois contadores de bactérias
+
+Num laboratório existem dois contadores de bactérias disponíveis. O balcão $C_{1}$ pode ser operado por um aluno de pós-graduação que ganha 2 dólares por hora. Em média, ele consegue contar seis amostras por hora. O contador $C_{2}$ é mais rápido, mas também mais sofisticado. Só uma pessoa bem treinada ganhando 5 dólares a hora pode operá-la. Com a mesma precisão do $C_{1}$, o contador $C_{2}$ permite dez contagens por hora. Há 1000 amostras a serem contadas dentro de um período de tempo não superior a 80 horas para cada contador. Por quanto tempo cada um dos dois contadores deve ser usado para executar a tarefa com um custo mínimo?
+
+Seja $x$ o número de horas em que o contador $C_{1}$ é operado e $y$ o número correspondente para $C_{2}$. Obtemos então a seguinte tabela:
+
+| Contador| Amostras contadas/h| Pagamento/h | Número de horas em operação|
+|:--------:|----------:|-----------:|:----------:|
+| $C_{1}$ | 6 | 2 | $x$|
+| $C_{2}$ | 10 | 5 | $y$|
+
+Como a tarefa deve ser realizada em até 80 horas em cada contador, obtemos as inequações
+
+$$0\le x \le 80 \\
+0\le y \le 80$$
+
+$C_{1}$ conta $6x$ e $C_{2}$ conta $10y$ amostras. Ao todo eles contam
+
+$$6x+ 10y = 1000$$
+
+amostras.
+
+O custo para operar $C_{1}$ é $2x$, e para $C_{2}$ o custo é $5y$ (ambos valores em dólares). Portanto, o custo total é
+
+$$2x+5y$$
+
+e esta é a função-objetivo que deve ser minimizada.
+
+Matematicamente:
+
+Minimizar a função-objetivo $2x+5y$
+
+Sujeita às restrições:
+
+a. $x\le 80$
+b. $y\le 80$
+c. $6x+10y=1000$
+d. $x\ge 0$
+e. $y\ge 0$
+
+```{r echo=FALSE, out.width="70%", fig.cap="Função convexa"}
+knitr::include_graphics("./image/Fig3.20.png")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo1.R
+source("eiras.inequality.plot.R")
+
+expression <- "-(6/10)*x+1000/10"
+main <- expression("y = -(6/10) x+1000/10")
+shading.areas <- c(FALSE,FALSE,FALSE,FALSE)
+fnc.domain <- list(c("x<=80 & x>=0"))
+fnc.range <- list(c("y<=80 & y>=0"))
+inequality.plot(expression,
+                main=main, 
+                cex.main=1.5,
+                fnc.domain=fnc.domain,
+                fnc.range=fnc.range,
+                shading.areas=shading.areas)
+curve(-(2/5)*x+420/5, 10, 85, add=TRUE)
+abline(v=80,h=52, lty=2)
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo1_ompr.R
+model0 <- ompr::MIPModel() # Initialize an empty model
+model0 <- ompr::add_variable(model0, x, type = "continuous", lb = 0)
+model0 <- ompr::add_variable(model0, y, type = "continuous", lb = 0)
+model0 <- ompr::set_objective(model0, 2*x + 5*y, "min")
+model0 <- ompr::add_constraint(model0, x <= 80) 
+model0 <- ompr::add_constraint(model0, y <= 80) 
+model0 <- ompr::add_constraint(model0, 6*x + 10*y == 1000) 
+result0 <- ompr::solve_model(model0, 
+                             ompr.roi::with_ROI(solver = "glpk"))
+print(result0$solution)
+print(model0)
+print(constr0 <- ompr::extract_constraints(model0))
+# Extract the constraints from model
+constr00<- cbind(as.matrix(constr0$matrix), # Get matrix of data
+                 as.matrix(constr0$sense), # Get inequalities
+                 as.matrix(constr0$rhs)) # Get right hand sides
+rownames(constr00) <-c ('C1: Teto #hora','C2: Teto #hora','#Amostras')
+out <- kableExtra::kbl(constr00, booktabs=TRUE, align='rrcr',
+                       caption="Elementos das Restrições",
+                       col.names = c('C1', 'C2','Relação','RHS'))
+kableExtra::kable_styling(out, latex_options = "hold_position")
+res0 <- cbind(ompr::objective_value(result0),
+              ompr::get_solution(result0, x),
+              ompr::get_solution(result0, y))
+colnames(res0) <- list("$","C1 (h)","C2 (h)")
+rownames(res0) <- list("Solução")
+tab <- kableExtra::kbl(res0, booktabs = TRUE, 
+                       caption = "Exemplo 1: Dois contadores de bactérias")
+kableExtra::kable_styling(tab, 
+                          latex_options = "hold_position")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[0<=x<=80, 0<=y<=80, 6x+10y=1000](https://www.wolframalpha.com/input?i=0%3C%3Dx%3C%3D80%2C+0%3C%3Dy%3C%3D80%2C+6x%2B10y%3D1000){target="_blank"}
+
+[2x+5y](https://www.wolframalpha.com/input?i=2x%2B5y){target="_blank"}
+
+[6x+10y=1000 where y=80](https://www.wolframalpha.com/input?i=6x%2B10y%3D1000+where+y%3D80){target="_blank"}
+
+[6x+10y=1000 where x=80](https://www.wolframalpha.com/input?i=6x%2B10y%3D1000+where+x%3D80){target="_blank"}
+
+[2x+5y where x=100/3 and y=80](https://www.wolframalpha.com/input?i=2x%2B5y+where+x%3D100%2F3+and+y%3D80){target="_blank"}
+
+$$2\times \dfrac{100}{3}+5\times 80=\dfrac{1400}{3}\approx 467$$
+
+[2x+5y where x=80 and y=52](https://www.wolframalpha.com/input?i=2x%2B5y+where+x%3D80+and+y%3D52){target="_blank"}
+
+$$2\times 80+5\times 52=420$$
+
+[minimize 2x+5y for 0<=x<=80, 0<=y<=80, 6x+10y=1000](https://www.wolframalpha.com/input?i=minimize+2x%2B5y+for+0%3C%3Dx%3C%3D80%2C+0%3C%3Dy%3C%3D80%2C+6x%2B10y%3D1000){target="_blank"}
+
+[LinearProgramming[{2,5}, {{1,0}, {0,1}, {6,10}}, {{80,-1}, {80,-1}, {1000,0}}]](https://www.wolframalpha.com/input?i=LinearProgramming%5B%7B2%2C5%7D%2C+%7B%7B1%2C0%7D%2C+%7B0%2C1%7D%2C+%7B6%2C10%7D%7D%2C+%7B%7B80%2C-1%7D%2C+%7B80%2C-1%7D%2C+%7B1000%2C0%7D%7D%5D){target="_blank"}
+
+Portanto, a despesa é minimizada, $ 420, se os contadores $C_{1}$ e $C_{2}$ são usados 80 e 52 horas, respectivamente. 
+
+## Exemplo 2: Dois contadores de bactérias II
+
+Minimizar $2x+5y$
+
+Restrições:
+
+a. $x\le 80$
+b. $y\le 80$
+c. $6x+10y\ge 1000$
+d. $x\ge 0$
+e. $y\ge 0$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo2.R
+A <- matrix(c(1, 0, 
+              0, 1, 
+              -6, -10, 
+              -1, 0,
+              0, -1), 
+            nrow = 5,
+            ncol = 2, byrow = TRUE)
+b <- c(80, 80, -1000, 0, 0)
+obj <- c(2, 5)
+print(gMOIP::plotPolytope(A,
+                          b,
+                          obj,
+                          type = rep("c", ncol(A)),
+                          crit = "min",
+                          faces = rep("c", ncol(A)),
+                          plotFaces = TRUE,
+                          plotFeasible = TRUE,
+                          plotOptimum = TRUE,
+                          labels = "coord"))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo2_ompr.R
+model0 <- ompr::MIPModel() # Initialize an empty model
+model0 <- ompr::add_variable(model0, x, type = "continuous", lb = 0)
+model0 <- ompr::add_variable(model0, y, type = "continuous", lb = 0)
+model0 <- ompr::set_objective(model0, 2*x + 5*y, "min")
+model0 <- ompr::add_constraint(model0, x <= 80) 
+model0 <- ompr::add_constraint(model0, y <= 80) 
+model0 <- ompr::add_constraint(model0, 6*x + 10*y >= 1000) 
+result0 <- ompr::solve_model(model0, 
+                             ompr.roi::with_ROI(solver = "glpk"))
+print(result0$solution)
+print(model0)
+print(constr0 <- ompr::extract_constraints(model0))
+# Extract the constraints from model
+constr00<- cbind(as.matrix(constr0$matrix), # Get matrix of data
+                 as.matrix(constr0$sense), # Get inequalities
+                 as.matrix(constr0$rhs)) # Get right hand sides
+rownames(constr00) <-c ('C1: Teto #hora','C2: Teto #hora','#Amostras')
+out <- kableExtra::kbl(constr00, booktabs=TRUE, align='rrcr',
+                       caption="Elementos das Restrições",
+                       col.names = c('C1', 'C2','Relação','RHS'))
+kableExtra::kable_styling(out, latex_options = "hold_position")
+res0 <- cbind(ompr::objective_value(result0),
+              ompr::get_solution(result0, x),
+              ompr::get_solution(result0, y))
+colnames(res0) <- list("$","C1 (h)","C2 (h)")
+rownames(res0) <- list("Solução")
+tab <- kableExtra::kbl(res0, booktabs = TRUE, 
+                       caption = "Exemplo 2: Dois contadores de bactérias")
+kableExtra::kable_styling(tab, 
+                          latex_options = "hold_position")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[0<=x<=80, 0<=y<=80, 6x+10y>=1000](https://www.wolframalpha.com/input?i=0%3C%3Dx%3C%3D80%2C+0%3C%3Dy%3C%3D80%2C+6x%2B10y%3E%3D1000){target="_blank"}
+
+[2x+5y](https://www.wolframalpha.com/input?i=2x%2B5y){target="_blank"}
+
+[minimize 2x+5y for 0<=x<=80, 0<=y<=80, 6x+10y>=1000](https://www.wolframalpha.com/input?i=minimize+2x%2B5y+for+0%3C%3Dx%3C%3D80%2C+0%3C%3Dy%3C%3D80%2C+6x%2B10y%3E%3D1000){target="_blank"}
+
+[LinearProgramming[{2,5}, {{1,0}, {0,1}, {6,10}}, {{80,-1}, {80,-1}, {1000,1}}]](https://www.wolframalpha.com/input?i=LinearProgramming%5B%7B2%2C5%7D%2C+%7B%7B1%2C0%7D%2C+%7B0%2C1%7D%2C+%7B6%2C10%7D%7D%2C+%7B%7B80%2C-1%7D%2C+%7B80%2C-1%7D%2C+%7B1000%2C1%7D%7D%5D){target="_blank"}
+
+Portanto, a despesa é minimizada se o contador $C_{1}$ for usado 80 horas e o contador $C_{2}$ for usado 52 horas. 
+
+## Exemplo 3: Máximo bem-estar
+
+* Fogiel, 1983, p. 1-3
+
+Suponha que você queira decidir entre maneiras alternativas de passar um dia de oito horas, ou seja, deseja alocar seu tempo. Suponha que você ache cinco vezes mais divertido jogar pingue-pongue na sala do que  trabalhar, mas também acha que deveria trabalhar pelo menos três vezes mais horas do que joga pingue-pongue. Agora o problema de decisão é quantas horas jogar e quantas trabalhar para maximizar seu objetivo: "Bem-estar".
+
+$x$: número de horas gastas trabalhando
+
+$y$: número de horas gastas jogando
+
+Você quer maximizar sue bem-estar, $f$:
+
+$$f = x + 5y$$
+
+Seu tempo total por dia é limitado a oito horas:
+
+$$x + y < 8$$
+
+E, finalmente, você deve trabalhar pelo menos três vezes o que você joga:
+
+$$x > 3y$$
+
+Você não pode gastar um número negativo de horas:
+
+$$x \ge 0 \\
+y \ge 0$$
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo3.R
+A <- matrix(c(1, 1, 
+              -1, 3, 
+              -1, 0, 
+              0, -1), 
+            nrow = 4,
+            ncol = 2, byrow = TRUE)
+b <- c(8, 0, 0, 0)
+obj <- c(1, 5)
+print(gMOIP::plotPolytope(A,
+                          b,
+                          obj,
+                          type = rep("c", ncol(A)),
+                          crit = "max",
+                          faces = rep("c", ncol(A)),
+                          plotFaces = TRUE,
+                          plotFeasible = TRUE,
+                          plotOptimum = TRUE,
+                          labels = "coord"))
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+# demo_PL_Exemplo3_ompr.R
+model0 <- ompr::MIPModel() # Initialize an empty model
+model0 <- ompr::add_variable(model0, x, type = "continuous", lb = 0)
+model0 <- ompr::add_variable(model0, y, type = "continuous", lb = 0)
+model0 <- ompr::set_objective(model0, x + 5*y, "max")
+model0 <- ompr::add_constraint(model0, x + y <= 8) 
+model0 <- ompr::add_constraint(model0, x - 3*y >= 0) 
+result0 <- ompr::solve_model(model0, 
+                             ompr.roi::with_ROI(solver = "glpk"))
+print(result0$solution)
+print(model0)
+print(constr0 <- ompr::extract_constraints(model0))
+# Extract the constraints from model
+constr00<- cbind(as.matrix(constr0$matrix), # Get matrix of data
+                 as.matrix(constr0$sense), # Get inequalities
+                 as.matrix(constr0$rhs)) # Get right hand sides
+rownames(constr00) <-c ('Trabalhar+Jogar: Teto', 
+                        'Trabalhar mais que Jogar')
+out <- kableExtra::kbl(constr00, booktabs=TRUE, align='rrcr',
+                       caption="Elementos das Restrições",
+                       col.names = c('Trabalhar', 'Jogar','Relação','RHS')) 
+kableExtra::kable_styling(out, latex_options = "hold_position")
+
+res0 <- cbind(ompr::objective_value(result0),
+              ompr::get_solution(result0, x),
+              ompr::get_solution(result0, y))
+colnames(res0) <- list("Bem-estar","Trabalhar (h)","Jogar (h)")
+rownames(res0) <- list("Solução")
+tab <- kableExtra::kbl(res0, booktabs = TRUE, 
+                       caption = "Exemplo 3: Máximo bem-estar")
+kableExtra::kable_styling(tab, 
+                          latex_options = "hold_position")
+```
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoW.png")
+```
+
+[x+y<8, -x+3y<0, x>=0, y>=0](https://www.wolframalpha.com/input?i=x%2By%3C8%2C+-x%2B3y%3C0%2C+x%3E%3D0%2C+y%3E%3D0){target="_blank"}
+
+[x+5y](https://www.wolframalpha.com/input?i=x%2B5y){target="_blank"}
+
+[LinearProgramming[{-1,-5}, {{1,1}, {-1,3}}, {{8,-1}, {0,-1}}]](https://www.wolframalpha.com/input?i=LinearProgramming%5B%7B-1%2C-5%7D%2C+%7B%7B1%2C1%7D%2C+%7B-1%2C3%7D%7D%2C+%7B%7B8%2C-1%7D%2C+%7B0%2C-1%7D%7D%5D){target="_blank"}
+
+Portanto, o bem-estar é maximizado, 16, se trabalhar 6 h/dia e jogar pingue-pongue 2 h/dia. 
+
+$\Diamond$
+
+# Bibliografia: Aula02: Função e relação
+
+* Anderson, TR (2023) _Optimization Modeling using R_. USA: CRC.
+* Batschelet, E (1979) _Introduction to mathematics for life scientists_. 3rd ed. NY: Springer.
+* Batschelet, E (1978) _Introdução à matemática para biocientistas_. Tradução da 2ª ed. São Paulo: EDUSP e Rio de Janeiro: Interciência.
+* Burton, RM et al. (1978) A role for operational research in health care planning and management teams. _The Journal of the Operational Research Society_ 29(7): 633–41. https://doi.org/10.2307/3009840.
+* Crown, W et al. (2017) Constrained optimization methods in health services research: An introduction: Report 1 of the ISPOR optimization methods emerging good practices task force. _Value in Health_ 20(3): 310-9. https://doi.org/10.1016/j.jval.2017.01.013.
+* Fogiel, M (1983) _The operations research: Problem solver_. NY: REA.
+* Giordano, FR et al. (2015) _A first course in mathematical modeling_. 5th ed. OH: Thomson. Capítulos 2 e 14.
+* Siqueira, JO (2011) _Fundamentos para cálculo_: usando WolframAlpha. São Paulo: Saraiva. Soluções dos exercícios em https://www.researchgate.net/publication/326533655_Fundamentos_para_Calculo_-_Solucoes.
+* Siqueira, JO (2012) _Fundamentos de métodos quantitativos_: aplicados em Administração, Economia, Contabilidade e Atuária usando WolframAlpha e SCILAB. São Paulo: Saraiva. Soluções dos exercícios em  https://www.researchgate.net/publication/326533772_Fundamentos_de_metodos_quantitativos_-_Solucoes.
+* Yoshida, R (2021) _Linear Algebra and Its Applications with R_. USA: CRC. 
+
+# Função em R
+
+```{r fig.align="left", echo=FALSE}
+knitr::include_graphics("./image/logoR.png")
+```
+
+```{r}
+x <- c(-1,0,1,exp(1),NA) # exp(1) = 2.718282...
+abs(x) # 1.000000 0.000000 1.000000 2.718282       NA
+try(sqrt(x)) # NaN 0.000000 1.000000 1.648721       NA
+try(log(x)) # NaN -Inf    0    1   NA
+cos(x) # 0.5403023  1.0000000  0.5403023 -0.9117339         NA
+factorial(4) # 1*2*3*4 = 24
+gamma(4) # 1*2*3 = 6
+beta(4,3) # 0.01666667
+gamma(4)*gamma(3)/(gamma(4+3)) # 0.01666667
+
+# https://towardsdatascience.com/overview-of-40-mathematical-functions-in-r-4b4e138685ff
+curve(exp(x), from = -10, to = 10, main = "exp(x)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(x+0, from = -10, to = 10, main = "x")
+curve(abs(x), from = -10, to = 10, main = "|x|")
+curve(x^2, from = -10, to = 10, main = "x^2")
+curve(x^3, from = -10, to = 10, main = "x^3")
+curve(x^4, from = -10, to = 10, main = "x^4")
+curve(x^5, from = -10, to = 10, main = "x^5")
+curve(x^(1/2), from = -10, to = 10, main = "x^(1/2)")
+curve(x^(1/3), from = -10, to = 10, main = "x^(1/3)")
+curve(1/x, from = -10, to = 10, main = "1/x")
+curve(1/(x^2), from = -10, to = 10, main = "1/(x^2)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(factorial(x), from = -10, to = 10, main = "x!")
+curve(2^x, from = -10, to = 10, main = "2^x")
+curve(1/sqrt(x), from = -10, to = 10, main = "1/x^(1/2)")
+curve(exp(-x), from = -10, to = 10, main = "e^(-x)")
+curve(log(x), from = -10, to = 10, main = "ln(x)")
+curve(exp(x), from = -10, to = 10, main = "e^x")
+curve(log2(x), from = -10, to = 10, main = "log2(x)")
+curve(log10(x), from = -10, to = 10, main = "log10(x)")
+curve(x*log(x), from = -10, to = 10, main = "x*ln(x)")
+curve(log(x)^2, from = -10, to = 10, main = "ln(x)^2")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(1 / (1 + exp(-x)), from = -10, to = 10, main = "sigmoid(x)")
+curve(10 / (1 + exp(-x)), from = -10, to = 10, main = "10*sigmoid(x)")
+curve(tanh(x), from = -10, to = 10, main = "tanh(x)")
+curve(exp(x) / sum(exp(x)), from = -10, to = 10, main = "softmax(x)")
+curve(pmax(0, x), from = -10, to = 10, main = "rectifier(x)")
+curve(log(1 + exp(x)), from = -10, to = 10, main = "softplus(x)")
+curve(sign(x), from = -10, to = 10, main = "sign(x)")
+curve(floor(x), from = -10, to = 10, main = "floor(x)")
+curve(round(x), from = -10, to = 10, main = "round(x)")
+curve(ceiling(x), from = -10, to = 10, main = "ceiling(x)")
+
+par(mfrow=c(5,2), mar=c(2,2,2,2))
+curve(sin(x), from = -10, to = 10, main = "sin(x)")
+curve(sinpi(x), from = -10, to = 10, main = "sin(pi*x)")
+curve(sinh(x), from = -10, to = 10, main = "sinh(x)")
+curve(asinh(x), from = -10, to = 10, main = "asinh(x)")
+curve(cos(x), from = -10, to = 10, main = "cos(x)")
+curve(cospi(x), from = -10, to = 10, main = "cos(pi*x)")
+curve(cosh(x), from = -10, to = 10, main = "cosh(x)")
+curve(acosh(x), from = -10, to = 10, main = "acosh(x)")
+curve(tan(x), from = -10, to = 10, main = "tan(x)")
+curve(tanpi(x), from = -10, to = 10, main = "tan(pi*x)")
+```
+
+```{r}
+# Definir os parâmetros da elipse
+center_x <- 0
+center_y <- 0
+a <- 2  # semi-eixo maior
+b <- 1  # semi-eixo menor
+
+# Criar uma sequência de ângulos
+theta <- seq(0, 2*pi, length.out = 100)
+
+# Calcular as coordenadas x e y da elipse
+x1 <- center_x + a * cos(theta)
+x2 <- center_y + b * sin(theta)
+
+# Plotar a elipse
+plot(x1, x2, 
+     type = "l", asp = 0, 
+     xlab = "x1", ylab = "x2",
+     xlim=c(-2,2), ylim=c(-2,2))
+abline(h=0,v=0, lty=2)
+
+saxes <- c(2,1)
+loc <- c(0,0)
+theta <- 0
+plot(RConics::ellipse(saxes, loc, theta, n=1e3),
+     xlab = "x1", ylab = "x2",
+     type="l", 
+     asp=1)
+abline(h=0,v=0, lty=2) 
+```
+
+
